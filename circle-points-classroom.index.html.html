@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+=============================================================
+  CIRCLE POINTS CLASSROOM — How to Use
+=============================================================
+  1. RENAME A CLASS: Double-click any class name in the left
+     sidebar to edit it inline, then press Enter or click away.
+
+  2. ADD STUDENTS: Click "Add Student" → type a name, then
+     either upload an image file OR paste a direct image URL.
+     A circular preview appears immediately. Leave both blank
+     for an auto-generated initials avatar (no image needed).
+
+  3. AWARD POINTS: Single-click any circle → instantly awards
+     +1 point. The circle bounces and a floating "+1" pops up.
+     Right-click (or long-press) → opens the full award panel
+     with preset amounts, custom points, and history.
+
+  4. CIRCLE SIZE: Circles grow larger as points accumulate —
+     zero-point students stay small, high scorers become big
+     bubbles. Glow rings: gold=top scorer, green=high, red=negative.
+
+  5. PROJECTOR MODE: Click 📽️ in the top bar to hide controls
+     and enlarge the bubble pack for classroom display.
+
+  6. OTHER: Dark/light toggle 🌙, export CSV 📊, reset class 🔄.
+     Long-press or right-click a circle for student details.
+=============================================================
+-->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Circle Points Classroom</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --bg: #f0f4ff;
+    --sidebar-bg: #1e1b4b;
+    --sidebar-accent: #4f46e5;
+    --card-bg: #ffffff;
+    --text: #1e1b4b;
+    --text-muted: #6b7280;
+    --border: #e0e7ff;
+    --topbar: #ffffff;
+    --shadow: 0 4px 24px rgba(99,102,241,0.10);
+    --circle-shadow: 0 8px 32px rgba(99,102,241,0.18);
+  }
+  .dark {
+    --bg: #0f0e1a;
+    --sidebar-bg: #13122b;
+    --sidebar-accent: #6366f1;
+    --card-bg: #1a1830;
+    --text: #e8e6ff;
+    --text-muted: #9ca3af;
+    --border: #2d2b55;
+    --topbar: #1a1830;
+    --shadow: 0 4px 24px rgba(0,0,0,0.35);
+    --circle-shadow: 0 8px 32px rgba(99,102,241,0.28);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    overflow: hidden;
+  }
+  #app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 210px; flex-shrink: 0;
+    background: var(--sidebar-bg);
+    display: flex; flex-direction: column;
+    padding: 0; transition: width 0.3s, opacity 0.3s;
+    z-index: 20; overflow: hidden;
+  }
+  .projector-mode #sidebar { width: 0; opacity: 0; pointer-events: none; }
+  #sidebar-header {
+    padding: 20px 16px 12px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.25rem; font-weight: 800;
+    color: #a5b4fc;
+    letter-spacing: -0.5px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  #sidebar-header span { color: #fff; }
+  #class-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .class-tab {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px; cursor: pointer;
+    transition: background 0.15s; border-radius: 0;
+    color: #a5b4fc; font-weight: 700; font-size: 0.88rem;
+    position: relative; user-select: none;
+  }
+  .class-tab:hover { background: rgba(255,255,255,0.07); }
+  .class-tab.active {
+    background: var(--sidebar-accent);
+    color: #fff;
+    border-radius: 0 24px 24px 0;
+    margin-right: 8px;
+  }
+  .class-tab .class-icon { font-size: 1.1rem; }
+  .class-tab .class-name { flex: 1; }
+  .class-tab .class-name input {
+    background: transparent; border: none; outline: none;
+    color: inherit; font: inherit; width: 100%; cursor: pointer;
+  }
+  .class-tab.active .class-name input { cursor: text; }
+  .class-tab .student-count {
+    font-size: 0.7rem; background: rgba(255,255,255,0.15);
+    border-radius: 99px; padding: 1px 7px; color: #c7d2fe;
+  }
+  .class-tab.active .student-count { background: rgba(255,255,255,0.22); color: #fff; }
+  #sidebar-footer { padding: 12px 16px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
+  #sidebar-footer .footer-label { font-size: 0.72rem; color: #6b7280; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .sidebar-btn {
+    width: 100%; padding: 8px 12px; border-radius: 10px;
+    font: 700 0.8rem 'Nunito', sans-serif;
+    cursor: pointer; border: none; transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.08); color: #c7d2fe;
+    margin-bottom: 4px;
+  }
+  .sidebar-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+  /* ── MAIN ── */
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    background: var(--topbar);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    height: 58px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: var(--shadow);
+    transition: height 0.3s, opacity 0.3s;
+    z-index: 15;
+  }
+  .projector-mode #topbar { height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
+  #class-title {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.35rem; font-weight: 800;
+    color: var(--text);
+  }
+  .tb-sep { flex: 1; }
+  .tb-btn {
+    padding: 7px 14px; border-radius: 12px;
+    font: 700 0.82rem 'Nunito', sans-serif;
+    cursor: pointer; border: none; transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+    background: var(--border); color: var(--text);
+  }
+  .tb-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+  .tb-btn.primary { background: #6366f1; color: #fff; }
+  .tb-btn.primary:hover { background: #4f46e5; }
+  .tb-btn.danger { background: #fee2e2; color: #dc2626; }
+  .tb-btn.danger:hover { background: #fecaca; }
+  .dark .tb-btn { background: var(--border); color: var(--text); }
+  .dark .tb-btn.danger { background: #3b0e0e; color: #f87171; }
+
+  /* ── CIRCLE PACK ── */
+  #circle-area {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    padding: 32px 28px 48px;
+    display: flex; flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 28px;
+    transition: padding 0.3s;
+  }
+  .projector-mode #circle-area { padding: 40px 36px 64px; gap: 36px; }
+
+  /* ── STUDENT CIRCLE ── */
+  .student-circle {
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; user-select: none;
+    position: relative;
+    /* overflow visible so crown badge + glow halos show outside the circle */
+    overflow: visible;
+    padding-top: 18px; /* reserve space above for crown-max badge */
+  }
+  .student-circle:hover .circle-bubble { filter: brightness(1.06); }
+  .circle-bubble {
+    /* width/height set dynamically via JS inline style */
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative;   /* needed for absolute pts badge */
+    box-shadow: var(--circle-shadow);
+    /* smooth size transitions as points change */
+    transition: width 0.45s cubic-bezier(.34,1.56,.64,1),
+                height 0.45s cubic-bezier(.34,1.56,.64,1),
+                font-size 0.45s cubic-bezier(.34,1.56,.64,1),
+                box-shadow 0.3s, border-color 0.3s, filter 0.2s;
+    border: 3px solid transparent;
+  }
+  .circle-pts {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    line-height: 1; margin-top: 1px;
+    color: var(--text);
+    /* font-size set inline with circle size */
+    transition: font-size 0.45s cubic-bezier(.34,1.56,.64,1);
+  }
+  .circle-name {
+    font-size: 0.72rem; font-weight: 800;
+    margin-top: 5px; text-align: center;
+    color: var(--text); max-width: 110px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     TIER SYSTEM — upgraded visual effects
+     ══════════════════════════════════════════════════════════════
+     lvl-0  :  0–4    plain — clean gray ring, minimal shadow
+     lvl-1  :  5–9    SILVER — multi-layer metallic glow, breathe pulse
+     lvl-2  : 10–19   GOLD — warm amber aura, conic shine sweep, scale breathe
+     lvl-3  : 20–29   RAINBOW — full-spectrum rotating border ring + sparkle orbs
+     lvl-max: 30+     MAX — blinding halo, fast spin, floating crown badge + text pulse
+  ══════════════════════════════════════════════════════════════ */
+
+  /* @property for smooth hue rotation (Chrome/Edge; falls back gracefully) */
+  @property --hue {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @property --shine-angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  /* ── LVL 0 — plain ── */
+  .lvl-0 {
+    border: 3px solid rgba(209,213,219,0.8);
+    box-shadow:
+      0 0 0 1px rgba(209,213,219,0.3),
+      0 4px 14px rgba(0,0,0,0.08);
+    transition: box-shadow 0.4s ease;
+  }
+
+  /* ── LVL 1 — SILVER ── */
+  .lvl-1 {
+    border: 3px solid #d4d4d4;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.6),
+      0 0 0 5px rgba(192,192,192,0.45),
+      0 0 18px 4px rgba(200,200,220,0.55),
+      0 0 36px 8px rgba(180,180,200,0.25),
+      0 6px 20px rgba(0,0,0,0.18);
+    animation: silverBreathe 3s ease-in-out infinite;
+  }
+  @keyframes silverBreathe {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.6),
+        0 0 0 5px rgba(192,192,192,0.45),
+        0 0 18px 4px rgba(200,200,220,0.55),
+        0 0 36px 8px rgba(180,180,200,0.25),
+        0 6px 20px rgba(0,0,0,0.18);
+      filter: brightness(1) saturate(1);
+    }
+    50% {
+      box-shadow:
+        0 0 0 3px rgba(255,255,255,0.9),
+        0 0 0 6px rgba(220,220,235,0.65),
+        0 0 28px 8px rgba(210,210,230,0.75),
+        0 0 52px 14px rgba(200,200,220,0.38),
+        0 6px 20px rgba(0,0,0,0.18);
+      filter: brightness(1.08) saturate(1.15);
+    }
+  }
+
+  /* ── LVL 2 — GOLD ── */
+  /* Wrapper holds the conic shine ring; actual circle inside clips to circle */
+  .lvl-2-wrapper {
+    position: relative;
+    border-radius: 50%;
+    /* Rotating conic-gradient ring via @property --shine-angle */
+    background: conic-gradient(
+      from var(--shine-angle),
+      #fde68a 0deg, #fbbf24 40deg, #f59e0b 80deg,
+      #fff7c0 120deg, #fbbf24 160deg, #f59e0b 200deg,
+      #fde68a 240deg, #fff 280deg, #fde68a 360deg
+    );
+    padding: 3px; /* ring thickness */
+    animation: goldRotate 3s linear infinite;
+  }
+  @keyframes goldRotate {
+    to { --shine-angle: 360deg; }
+  }
+  /* Fallback for browsers without @property — just spin the whole element */
+  @supports not (background: conic-gradient(from 1deg, red, blue)) {
+    .lvl-2-wrapper { animation: wrapperSpin 3s linear infinite; }
+    @keyframes wrapperSpin { to { transform: rotate(360deg); } }
+  }
+  .lvl-2 {
+    border: none !important;
+    /* Counter-rotate the bubble so the image stays upright */
+    animation: goldBreath 2.6s ease-in-out infinite, goldCounterSpin 3s linear infinite;
+    box-shadow:
+      0 0 0 2px rgba(251,191,36,0.5),
+      0 0 22px 6px rgba(251,191,36,0.65),
+      0 0 45px 12px rgba(253,224,71,0.38),
+      0 0 70px 20px rgba(251,191,36,0.18),
+      0 10px 28px rgba(0,0,0,0.2);
+  }
+  @keyframes goldBreath {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px rgba(251,191,36,0.5),
+        0 0 22px 6px rgba(251,191,36,0.65),
+        0 0 45px 12px rgba(253,224,71,0.38),
+        0 0 70px 20px rgba(251,191,36,0.18),
+        0 10px 28px rgba(0,0,0,0.2);
+      filter: brightness(1.02) saturate(1.1);
+    }
+    50% {
+      box-shadow:
+        0 0 0 3px rgba(253,230,138,0.85),
+        0 0 32px 10px rgba(251,191,36,0.85),
+        0 0 60px 18px rgba(253,224,71,0.55),
+        0 0 90px 28px rgba(251,191,36,0.28),
+        0 10px 28px rgba(0,0,0,0.2);
+      filter: brightness(1.12) saturate(1.3);
+    }
+  }
+  @keyframes goldCounterSpin {
+    to { transform: rotate(-360deg); }
+  }
+  /* Star sparkles on lvl-2 — 3 pseudo-sparkle dots orbiting */
+  .lvl-2-wrapper::before {
+    content: '✦';
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: #fbbf24;
+    filter: drop-shadow(0 0 4px #fbbf24);
+    animation: sparkleOrbit1 2.6s linear infinite;
+    pointer-events: none; z-index: 20;
+  }
+  .lvl-2-wrapper::after {
+    content: '✦';
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    font-size: 8px; color: #fde68a;
+    filter: drop-shadow(0 0 4px #fbbf24);
+    animation: sparkleOrbit2 2.6s linear infinite;
+    pointer-events: none; z-index: 20;
+  }
+  @keyframes sparkleOrbit1 {
+    0%   { opacity: 0; transform: translateX(-50%) scale(0.5); }
+    20%  { opacity: 1; transform: translateX(-50%) scale(1.3); }
+    50%  { opacity: 0.6; }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  }
+  @keyframes sparkleOrbit2 {
+    0%   { opacity: 0; transform: translateX(-50%) scale(0.5); }
+    30%  { opacity: 0; }
+    60%  { opacity: 1; transform: translateX(-50%) scale(1.3); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  }
+
+  /* ── LVL 3 — RAINBOW ── */
+  .lvl-3-wrapper {
+    position: relative;
+    border-radius: 50%;
+    background: conic-gradient(
+      from var(--hue),
+      #f472b6, #fb923c, #facc15, #4ade80, #60a5fa, #a78bfa, #f472b6
+    );
+    padding: 4px;
+    animation: hueRotate 1.8s linear infinite;
+  }
+  @keyframes hueRotate {
+    to { --hue: 360deg; }
+  }
+  @supports not (background: conic-gradient(from 1deg, red, blue)) {
+    .lvl-3-wrapper { animation: wrapperSpin3 1.8s linear infinite; }
+    @keyframes wrapperSpin3 { to { transform: rotate(360deg); } }
+  }
+  .lvl-3 {
+    border: none !important;
+    animation: rainbowBreath 2s ease-in-out infinite, rainbowCounterSpin 1.8s linear infinite;
+    box-shadow:
+      0 0 0 2px rgba(167,139,250,0.6),
+      0 0 24px 8px rgba(244,114,182,0.55),
+      0 0 44px 14px rgba(96,165,250,0.40),
+      0 0 70px 22px rgba(74,222,128,0.25),
+      0 10px 32px rgba(0,0,0,0.22);
+  }
+  @keyframes rainbowBreath {
+    0%, 100% {
+      filter: brightness(1.05) saturate(1.2);
+      box-shadow:
+        0 0 0 2px rgba(167,139,250,0.6),
+        0 0 24px 8px rgba(244,114,182,0.55),
+        0 0 44px 14px rgba(96,165,250,0.40),
+        0 0 70px 22px rgba(74,222,128,0.25),
+        0 10px 32px rgba(0,0,0,0.22);
+    }
+    50% {
+      filter: brightness(1.18) saturate(1.5);
+      box-shadow:
+        0 0 0 3px rgba(251,191,36,0.7),
+        0 0 36px 12px rgba(244,114,182,0.75),
+        0 0 60px 20px rgba(96,165,250,0.55),
+        0 0 90px 30px rgba(167,139,250,0.38),
+        0 10px 32px rgba(0,0,0,0.22);
+    }
+  }
+  @keyframes rainbowCounterSpin {
+    to { transform: rotate(-360deg); }
+  }
+  /* Sparkle particles floating up around lvl-3 */
+  .lvl-3-wrapper::before,
+  .lvl-3-wrapper::after {
+    content: '✦';
+    position: absolute;
+    font-size: 11px;
+    pointer-events: none; z-index: 20;
+  }
+  .lvl-3-wrapper::before {
+    top: 0; left: -4px;
+    color: #f472b6;
+    filter: drop-shadow(0 0 5px #f472b6);
+    animation: sparkleFloat 2s ease-in-out infinite;
+  }
+  .lvl-3-wrapper::after {
+    top: 0; right: -4px;
+    color: #60a5fa;
+    filter: drop-shadow(0 0 5px #60a5fa);
+    animation: sparkleFloat 2s ease-in-out infinite 0.9s;
+  }
+  @keyframes sparkleFloat {
+    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+    30%  { opacity: 1; transform: translateY(-8px) scale(1.2); }
+    70%  { opacity: 0.5; transform: translateY(-16px) scale(0.9); }
+    100% { opacity: 0; transform: translateY(-24px) scale(0.4); }
+  }
+
+  /* ── LVL MAX — 30+ ── */
+  .lvl-max-wrapper {
+    position: relative;
+    border-radius: 50%;
+    /* Thick dual-layer halo: inner white ring + outer rainbow */
+    background: conic-gradient(
+      from var(--hue),
+      #fff9c4, #fbbf24, #f97316, #ef4444, #a855f7, #3b82f6, #10b981, #fbbf24, #fff9c4
+    );
+    padding: 5px;
+    animation: maxHaloSpin 1.2s linear infinite;
+    /* Outer atmospheric halo via box-shadow on wrapper */
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,0.5),
+      0 0 30px 10px rgba(251,191,36,0.70),
+      0 0 60px 20px rgba(251,191,36,0.45),
+      0 0 100px 35px rgba(253,230,138,0.28);
+    filter: drop-shadow(0 0 20px rgba(251,191,36,0.8));
+  }
+  @keyframes maxHaloSpin {
+    to { --hue: 360deg; }
+  }
+  @supports not (background: conic-gradient(from 1deg, red, blue)) {
+    .lvl-max-wrapper { animation: wrapperSpinMax 1.2s linear infinite; }
+    @keyframes wrapperSpinMax { to { transform: rotate(360deg); } }
+  }
+  .lvl-max {
+    border: none !important;
+    animation: maxPulse 1.2s ease-in-out infinite, maxCounterSpin 1.2s linear infinite;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.9),
+      0 0 30px 10px rgba(251,191,36,0.90),
+      0 0 60px 20px rgba(253,224,71,0.65),
+      0 0 100px 35px rgba(251,191,36,0.40),
+      0 16px 48px rgba(0,0,0,0.28);
+  }
+  @keyframes maxPulse {
+    0%, 100% {
+      filter: brightness(1.08) saturate(1.3);
+      box-shadow:
+        0 0 0 2px rgba(255,255,255,0.9),
+        0 0 30px 10px rgba(251,191,36,0.90),
+        0 0 60px 20px rgba(253,224,71,0.65),
+        0 0 100px 35px rgba(251,191,36,0.40),
+        0 16px 48px rgba(0,0,0,0.28);
+    }
+    50% {
+      filter: brightness(1.22) saturate(1.6);
+      box-shadow:
+        0 0 0 3px rgba(255,255,255,1),
+        0 0 45px 16px rgba(251,191,36,1),
+        0 0 85px 30px rgba(253,224,71,0.85),
+        0 0 130px 50px rgba(251,191,36,0.55),
+        0 16px 48px rgba(0,0,0,0.28);
+    }
+  }
+  @keyframes maxCounterSpin {
+    to { transform: rotate(-360deg); }
+  }
+  /* Blinding inner lens-flare sweep */
+  .lvl-max-wrapper::before {
+    content: '';
+    position: absolute; inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(
+      transparent 0deg,
+      rgba(255,255,255,0.7) 25deg,
+      rgba(255,255,255,0.2) 55deg,
+      transparent 85deg,
+      rgba(255,255,255,0.4) 180deg,
+      rgba(255,255,255,0.1) 210deg,
+      transparent 240deg
+    );
+    animation: lensFlare 1.2s linear infinite;
+    pointer-events: none; z-index: 3;
+    border-radius: 50%;
+  }
+  @keyframes lensFlare {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  /* Floating sparkle trio */
+  .lvl-max-wrapper::after {
+    content: '✦ ✦ ✦';
+    position: absolute;
+    top: -20px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; letter-spacing: 3px;
+    color: #fde68a;
+    filter: drop-shadow(0 0 6px #fbbf24) drop-shadow(0 0 12px #f59e0b);
+    pointer-events: none; z-index: 20;
+    animation: sparkleTriFloat 1.8s ease-in-out infinite;
+  }
+  @keyframes sparkleTriFloat {
+    0%, 100% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.7); }
+    30%       { opacity: 1; transform: translateX(-50%) translateY(-6px) scale(1.1); }
+    65%       { opacity: 0.7; transform: translateX(-50%) translateY(-12px) scale(0.9); }
+  }
+
+  /* ── MAX CROWN BADGE (sits above the wrapper) ── */
+  .crown-max {
+    position: absolute;
+    top: -26px; left: 50%; transform: translateX(-50%);
+    z-index: 30; pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    animation: crownFloat 2s ease-in-out infinite;
+  }
+  .crown-max .crown-icon {
+    font-size: 1.4rem;
+    filter: drop-shadow(0 0 8px rgba(251,191,36,0.9)) drop-shadow(0 0 16px rgba(251,191,36,0.5));
+    animation: crownSpin 3s ease-in-out infinite;
+  }
+  .crown-max .crown-label {
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.55rem; font-weight: 800; letter-spacing: 0.06em;
+    color: #fbbf24; line-height: 1;
+    text-shadow: 0 0 6px rgba(251,191,36,0.9), 0 0 12px rgba(251,191,36,0.5);
+    animation: crownLabelPulse 2s ease-in-out infinite;
+  }
+  @keyframes crownFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(-4px); }
+  }
+  @keyframes crownSpin {
+    0%, 80%, 100% { transform: rotate(0deg) scale(1); }
+    90%            { transform: rotate(-18deg) scale(1.25); }
+    95%            { transform: rotate(14deg) scale(1.1); }
+  }
+  @keyframes crownLabelPulse {
+    0%, 100% { opacity: 1; letter-spacing: 0.06em; }
+    50%       { opacity: 0.7; letter-spacing: 0.12em; }
+  }
+
+  /* ── Level pin badge (top-right of bubble for lvl-1/2/3) ── */
+  .level-badge {
+    position: absolute;
+    top: -5px; right: -5px;
+    font-size: 0.95rem; line-height: 1;
+    pointer-events: none; z-index: 10;
+    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
+    animation: pinPop 2.4s ease-in-out infinite;
+  }
+  @keyframes pinPop {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50%       { transform: scale(1.25) rotate(15deg); }
+  }
+
+  /* ── BOUNCE ANIMATION ── */
+  @keyframes circlePulse {
+    0%   { filter: brightness(1) saturate(1); }
+    25%  { filter: brightness(1.22) saturate(1.4); transform: scale(1.18); }
+    55%  { transform: scale(0.96); }
+    80%  { transform: scale(1.06); }
+    100% { filter: brightness(1) saturate(1); transform: scale(1); }
+  }
+  .bouncing .circle-bubble { animation: circlePulse 0.65s cubic-bezier(.34,1.56,.64,1); }
+
+  /* ── FLOATING SCORE ── */
+  .float-score {
+    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+    font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800;
+    pointer-events: none; z-index: 100; white-space: nowrap;
+    animation: floatUp 1.1s ease forwards;
+  }
+  @keyframes floatUp {
+    0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    60%  { opacity: 1; transform: translate(-50%, -38px) scale(1.1); }
+    100% { opacity: 0; transform: translate(-50%, -60px) scale(0.8); }
+  }
+
+  /* ── AWARD MENU ── */
+  #award-menu {
+    position: fixed; z-index: 500;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 14px 16px 10px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+    min-width: 260px;
+    display: none;
+    animation: menuPop 0.22s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes menuPop {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  #award-menu .menu-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+  #award-menu .menu-avatar { font-size: 1.6rem; }
+  #award-menu .menu-name {
+    font-family: 'Baloo 2', cursive; font-size: 1rem; font-weight: 800; color: var(--text);
+  }
+  #award-menu .menu-pts-label { font-size: 0.75rem; color: var(--text-muted); }
+  #award-menu .close-btn {
+    margin-left: auto; cursor: pointer; font-size: 1.2rem;
+    color: var(--text-muted); background: none; border: none; line-height: 1;
+  }
+  .award-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .award-btn {
+    padding: 8px 6px; border-radius: 12px; border: none; cursor: pointer;
+    font: 700 0.78rem 'Nunito', sans-serif;
+    transition: all 0.15s; text-align: center;
+  }
+  .award-btn.pos { background: #d1fae5; color: #065f46; }
+  .award-btn.pos:hover { background: #6ee7b7; }
+  .award-btn.neg { background: #fee2e2; color: #991b1b; }
+  .award-btn.neg:hover { background: #fca5a5; }
+  .dark .award-btn.pos { background: #064e3b; color: #6ee7b7; }
+  .dark .award-btn.neg { background: #450a0a; color: #fca5a5; }
+  .custom-row { display: flex; gap: 6px; margin-top: 4px; }
+  .custom-row input {
+    flex: 1; padding: 7px 10px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
+    font: 700 0.85rem 'Nunito', sans-serif; outline: none;
+  }
+  .custom-row input:focus { border-color: #6366f1; }
+  .custom-row button {
+    padding: 7px 12px; border-radius: 10px;
+    background: #6366f1; color: #fff; border: none; cursor: pointer;
+    font: 700 0.82rem 'Nunito', sans-serif;
+    transition: background 0.15s;
+  }
+  .custom-row button:hover { background: #4f46e5; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 600;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-box {
+    background: var(--card-bg); border-radius: 22px;
+    padding: 28px 30px; min-width: 320px; max-width: 480px; width: 90%;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.25);
+    animation: menuPop 0.22s cubic-bezier(.34,1.56,.64,1);
+  }
+  .modal-title {
+    font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800;
+    color: var(--text); margin-bottom: 16px;
+  }
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+  .modal-field input, .modal-field select {
+    width: 100%; padding: 9px 12px; border-radius: 12px;
+    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
+    font: 700 0.9rem 'Nunito', sans-serif; outline: none;
+  }
+  .modal-field input:focus, .modal-field select:focus { border-color: #6366f1; }
+  /* ── AVATAR UPLOAD UI ── */
+  .avatar-section {
+    display: flex; align-items: flex-start; gap: 16px; margin-bottom: 4px;
+  }
+  /* Circular preview — shows either <img> or initials SVG */
+  .avatar-preview-ring {
+    flex-shrink: 0;
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 3px solid var(--border);
+    overflow: hidden; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .avatar-preview-ring.has-image { border-color: #6366f1; }
+  .avatar-preview-ring img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    display: block;
+  }
+  .avatar-preview-ring .initials-svg {
+    width: 100%; height: 100%;
+  }
+  .avatar-controls { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+  /* Upload button styled as a pill */
+  .upload-btn-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 11px; cursor: pointer;
+    background: var(--border); color: var(--text);
+    font: 700 0.82rem 'Nunito', sans-serif;
+    transition: background 0.15s; width: fit-content;
+    border: 1.5px dashed #a5b4fc;
+  }
+  .upload-btn-label:hover { background: #ede9fe; border-color: #6366f1; }
+  .dark .upload-btn-label:hover { background: #312e81; }
+  input[type="file"]#avatar-file-input { display: none; }
+  .avatar-divider {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.72rem; color: var(--text-muted); font-weight: 700;
+  }
+  .avatar-divider::before, .avatar-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  /* URL input row */
+  .url-input-row { display: flex; gap: 6px; align-items: center; }
+  .url-input-row input {
+    flex: 1; padding: 7px 10px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
+    font: 600 0.8rem 'Nunito', sans-serif; outline: none;
+    transition: border-color 0.2s;
+  }
+  .url-input-row input:focus { border-color: #6366f1; }
+  .url-input-row input.url-valid   { border-color: #34d399; }
+  .url-input-row input.url-invalid { border-color: #f87171; }
+  .url-check-btn {
+    padding: 7px 11px; border-radius: 10px;
+    background: #6366f1; color: #fff; border: none; cursor: pointer;
+    font: 700 0.78rem 'Nunito', sans-serif; transition: background 0.15s; white-space: nowrap;
+  }
+  .url-check-btn:hover { background: #4f46e5; }
+  .avatar-hint {
+    font-size: 0.7rem; color: var(--text-muted); line-height: 1.4;
+  }
+  .avatar-hint.warn { color: #f59e0b; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .modal-actions button {
+    padding: 9px 20px; border-radius: 12px; border: none; cursor: pointer;
+    font: 700 0.88rem 'Nunito', sans-serif; transition: all 0.15s;
+  }
+  .btn-cancel { background: var(--border); color: var(--text); }
+  .btn-confirm { background: #6366f1; color: #fff; }
+  .btn-confirm:hover { background: #4f46e5; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+
+  /* ── DETAILS PANEL ── */
+  #details-panel {
+    position: fixed; right: 0; top: 0; bottom: 0; z-index: 400;
+    width: 300px; background: var(--card-bg);
+    border-left: 1.5px solid var(--border);
+    box-shadow: -8px 0 40px rgba(0,0,0,0.12);
+    padding: 24px 20px; overflow-y: auto;
+    transform: translateX(100%); transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+  }
+  #details-panel.open { transform: translateX(0); }
+  .detail-avatar {
+    display: flex; justify-content: center; margin-bottom: 10px;
+  }
+  .detail-avatar-ring {
+    width: 88px; height: 88px; border-radius: 50%;
+    overflow: hidden; border: 3px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg);
+  }
+  .detail-avatar-ring img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .detail-name {
+    font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800;
+    text-align: center; color: var(--text); margin-bottom: 2px;
+  }
+  .detail-pts {
+    text-align: center; font-size: 1.1rem; font-weight: 800;
+    color: #6366f1; margin-bottom: 16px;
+  }
+  .history-title { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .history-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px; border-radius: 10px; margin-bottom: 4px;
+    background: var(--bg); font-size: 0.8rem;
+  }
+  .history-item .h-delta { font-weight: 800; min-width: 36px; }
+  .h-pos { color: #059669; }
+  .h-neg { color: #dc2626; }
+  .history-item .h-reason { flex: 1; color: var(--text); }
+  .history-item .h-time { font-size: 0.68rem; color: var(--text-muted); }
+  .close-detail {
+    position: absolute; top: 16px; right: 16px;
+    font-size: 1.3rem; cursor: pointer; color: var(--text-muted); background: none; border: none;
+  }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard {
+    position: fixed; bottom: 18px; right: 18px;
+    z-index: 200; background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 18px; padding: 12px 16px;
+    min-width: 180px; box-shadow: var(--shadow);
+    transition: opacity 0.3s;
+  }
+  .projector-mode #leaderboard { opacity: 0; pointer-events: none; }
+  .lb-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .lb-item {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 5px; font-size: 0.82rem; font-weight: 700; color: var(--text);
+  }
+  .lb-rank { font-size: 0.72rem; color: var(--text-muted); min-width: 14px; }
+  .lb-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    overflow: hidden; flex-shrink: 0; background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lb-avatar svg { width: 100%; height: 100%; }
+  .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-pts { font-family: 'Baloo 2', cursive; color: #6366f1; font-size: 0.9rem; }
+
+  /* ── CONFETTI ── */
+  .confetti-piece {
+    position: fixed; pointer-events: none; z-index: 9999;
+    width: 9px; height: 9px; border-radius: 2px;
+    animation: confettiFall 1.4s ease-in forwards;
+  }
+  @keyframes confettiFall {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(200px) rotate(720deg); }
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    width: 100%; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px 20px; color: var(--text-muted);
+    text-align: center;
+  }
+  .empty-state .es-icon { font-size: 3.5rem; margin-bottom: 12px; }
+  .empty-state h3 { font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+  .empty-state p { font-size: 0.85rem; }
+  /* ═══════════════════════════════════════════════════════════
+     67 CELEBRATION OVERLAY — gamified bubble aesthetic
+     8-second show: staggered digits → bounce → pulse → fade
+  ═══════════════════════════════════════════════════════════ */
+
+  #celebration-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+    /* Deep space backdrop with radial corona */
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 48%,
+        rgba(251,191,36,0.18) 0%,
+        rgba(99,102,241,0.22) 38%,
+        rgba(10,8,30,0.88) 100%);
+  }
+
+  /* ── DIGIT ROW: "6" and "7" animate in independently ── */
+  #celebration-digits {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.04em;
+    line-height: 1;
+    position: relative;
+  }
+
+  /* Each digit shares these base styles */
+  .cel-digit {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(130px, 24vw, 290px);
+    font-weight: 800;
+    line-height: 1;
+    display: inline-block;
+    opacity: 0;
+    position: relative;
+    /* will-change keeps GPU layers ready */
+    will-change: transform, opacity, filter;
+  }
+
+  /* "6" — drops in from above with a big overshoot bounce */
+  .cel-digit-6 {
+    background: linear-gradient(160deg, #fff7c0 0%, #fbbf24 30%, #f97316 60%, #ef4444 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter:
+      drop-shadow(0 0 18px rgba(251,191,36,1))
+      drop-shadow(0 0 42px rgba(251,191,36,0.8))
+      drop-shadow(0 0 80px rgba(249,115,22,0.6));
+    animation: digit6Drop 0.7s cubic-bezier(.34,1.7,.64,1) 0.08s forwards,
+               digitPulse  1.1s ease-in-out 1.1s infinite;
+  }
+  @keyframes digit6Drop {
+    0%   { opacity: 0; transform: translateY(-160px) rotate(-14deg) scale(0.4); }
+    55%  { opacity: 1; transform: translateY(18px)   rotate(6deg)  scale(1.18); }
+    75%  { transform: translateY(-10px) rotate(-3deg) scale(0.96); }
+    88%  { transform: translateY(6px)  rotate(1deg)  scale(1.04); }
+    100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+  }
+
+  /* "7" — launches up from below, slight delay so digits feel staggered */
+  .cel-digit-7 {
+    background: linear-gradient(160deg, #e0f2fe 0%, #38bdf8 30%, #6366f1 65%, #a855f7 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter:
+      drop-shadow(0 0 18px rgba(56,189,248,1))
+      drop-shadow(0 0 42px rgba(99,102,241,0.85))
+      drop-shadow(0 0 80px rgba(168,85,247,0.6));
+    animation: digit7Rise 0.7s cubic-bezier(.34,1.7,.64,1) 0.32s forwards,
+               digitPulse  1.1s ease-in-out 1.35s infinite;
+  }
+  @keyframes digit7Rise {
+    0%   { opacity: 0; transform: translateY(160px) rotate(14deg) scale(0.4); }
+    55%  { opacity: 1; transform: translateY(-18px) rotate(-6deg) scale(1.18); }
+    75%  { transform: translateY(10px) rotate(3deg) scale(0.96); }
+    88%  { transform: translateY(-5px) rotate(-1deg) scale(1.04); }
+    100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+  }
+
+  /* Shared breathing pulse once both digits are settled */
+  @keyframes digitPulse {
+    0%, 100% { transform: scale(1)    rotate(0deg); }
+    30%       { transform: scale(1.07) rotate(1.5deg); }
+    65%       { transform: scale(0.97) rotate(-0.8deg); }
+  }
+
+  /* ── "×" separator that pops in between digits ── */
+  .cel-sep {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(40px, 7vw, 90px);
+    font-weight: 800;
+    color: rgba(255,255,255,0.55);
+    display: inline-block;
+    opacity: 0;
+    transform: scale(0) rotate(90deg);
+    animation: sepPop 0.45s cubic-bezier(.34,1.9,.64,1) 0.62s forwards;
+    text-shadow: 0 0 14px rgba(255,255,255,0.5);
+    margin: 0 0.05em;
+    align-self: center;
+    margin-bottom: 0.12em;
+  }
+  @keyframes sepPop {
+    to { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+
+  /* ── Subtitle label ── */
+  #celebration-label {
+    font-family: 'Baloo 2', cursive;
+    font-size: clamp(15px, 2.8vw, 32px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 10px;
+    opacity: 0;
+    transform: translateY(22px) scale(0.9);
+    animation: labelPop 0.5s cubic-bezier(.34,1.56,.64,1) 0.85s forwards;
+    text-shadow:
+      0 0 12px rgba(251,191,36,1),
+      0 0 28px rgba(251,191,36,0.7),
+      0 0 55px rgba(99,102,241,0.5),
+      0 2px 6px rgba(0,0,0,0.7);
+  }
+  @keyframes labelPop {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── Sub-subtitle: scrolling emoji ticker ── */
+  #celebration-ticker {
+    font-size: clamp(20px, 3.5vw, 40px);
+    letter-spacing: 0.1em;
+    opacity: 0;
+    margin-top: 6px;
+    animation: labelPop 0.4s ease 1.1s forwards;
+    /* gentle left-right shimmy */
+    animation: labelPop 0.4s ease 1.1s forwards, tickerShimmy 2.2s ease-in-out 1.6s infinite;
+  }
+  @keyframes tickerShimmy {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-6px) rotate(-2deg); }
+    75%       { transform: translateX(6px)  rotate(2deg); }
+  }
+
+  /* ── Neon ring: a conic halo that expands outward once ── */
+  #celebration-halo {
+    position: absolute;
+    width: 0; height: 0;
+    border-radius: 50%;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: haloExpand 1.4s cubic-bezier(.2,.8,.3,1) 0.5s forwards;
+    opacity: 0;
+    box-shadow:
+      0 0 0 6px  rgba(251,191,36,0.9),
+      0 0 0 14px rgba(99,102,241,0.6),
+      0 0 0 28px rgba(244,114,182,0.35),
+      0 0 0 50px rgba(56,189,248,0.18);
+  }
+  @keyframes haloExpand {
+    0%   { opacity: 1; width: 0; height: 0; }
+    60%  { opacity: 0.9; width: 70vmin; height: 70vmin; }
+    100% { opacity: 0; width: 95vmin; height: 95vmin; }
+  }
+
+  /* ── Second delayed halo pulse ── */
+  #celebration-halo2 {
+    position: absolute;
+    width: 0; height: 0;
+    border-radius: 50%;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: haloExpand2 1.2s cubic-bezier(.2,.8,.3,1) 1.6s forwards;
+    opacity: 0;
+    box-shadow:
+      0 0 0 5px  rgba(244,114,182,0.95),
+      0 0 0 12px rgba(251,191,36,0.55),
+      0 0 0 26px rgba(99,102,241,0.3),
+      0 0 0 48px rgba(56,189,248,0.12);
+  }
+  @keyframes haloExpand2 {
+    0%   { opacity: 1; width: 0; height: 0; }
+    65%  { opacity: 0.8; width: 60vmin; height: 60vmin; }
+    100% { opacity: 0; width: 88vmin; height: 88vmin; }
+  }
+
+  /* ── Spark particles ── */
+  .spark-ring {
+    position: absolute; left: 50%; top: 50%;
+    width: 0; height: 0;
+    pointer-events: none;
+  }
+  .spark {
+    position: absolute;
+    border-radius: 50%;
+    transform-origin: 0 0;
+    animation: sparkBurst var(--dur, 1s) cubic-bezier(.15,.8,.35,1) var(--del, 0s) forwards;
+  }
+  @keyframes sparkBurst {
+    0%   { opacity: 1; transform: rotate(var(--a)) translateX(0)              scale(1.2); }
+    55%  { opacity: 1; transform: rotate(var(--a)) translateX(var(--d))        scale(1.5); }
+    100% { opacity: 0; transform: rotate(var(--a)) translateX(calc(var(--d)*1.35)) scale(0.2); }
+  }
+  /* Elongated dart sparks */
+  .spark.dart {
+    border-radius: 40%;
+    animation: dartBurst var(--dur, 1s) cubic-bezier(.1,.9,.3,1) var(--del, 0s) forwards;
+  }
+  @keyframes dartBurst {
+    0%   { opacity: 1; transform: rotate(var(--a)) translateX(0)               scaleX(2.5) scaleY(0.5); }
+    50%  { opacity: 1; transform: rotate(var(--a)) translateX(var(--d))        scaleX(1.8) scaleY(0.7); }
+    100% { opacity: 0; transform: rotate(var(--a)) translateX(calc(var(--d)*1.4)) scaleX(0.3) scaleY(0.3); }
+  }
+
+  /* ── Star glitter that floats up ── */
+  .glitter {
+    position: fixed;
+    font-size: 1.1rem; line-height: 1;
+    pointer-events: none; z-index: 10001;
+    animation: glitterFloat var(--dur,2s) ease-out var(--del,0s) forwards;
+  }
+  @keyframes glitterFloat {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    60%  { opacity: 1; transform: translateY(var(--up,-120px)) rotate(var(--rot,240deg)) scale(1.2); }
+    100% { opacity: 0; transform: translateY(var(--up2,-220px)) rotate(var(--rot2,480deg)) scale(0.3); }
+  }
+
+  /* ── Overlay fade-out ── */
+  #celebration-overlay.fading {
+    animation: overlayFadeOut 1.1s cubic-bezier(.4,0,1,1) forwards;
+  }
+  @keyframes overlayFadeOut {
+    0%   { opacity: 1; transform: scale(1); }
+    60%  { opacity: 0.6; transform: scale(1.04); }
+    100% { opacity: 0; transform: scale(1.1); }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div id="sidebar-header">🍎 <span>Kyle's Class</span></div>
+    <div id="class-list"></div>
+    <div id="sidebar-footer">
+      <div class="footer-label">Quick Actions</div>
+      <button class="sidebar-btn" onclick="openAddStudentModal()">➕ Add Student</button>
+      <button class="sidebar-btn" onclick="confirmReset('class')">🔄 Reset Class</button>
+      <button class="sidebar-btn" onclick="exportCSV()">📊 Export CSV</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- TOP BAR -->
+    <div id="topbar">
+      <div id="class-title">Loading...</div>
+      <div class="tb-sep"></div>
+      <button class="tb-btn primary" onclick="openAddStudentModal()">➕ Add Student</button>
+      <button class="tb-btn" onclick="toggleDark()" id="dark-btn">🌙</button>
+      <button class="tb-btn" onclick="toggleProjector()" id="proj-btn">📽️</button>
+      <button class="tb-btn danger" onclick="confirmReset('class')">🔄 Reset</button>
+    </div>
+
+    <!-- CIRCLE PACK -->
+    <div id="circle-area"></div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leaderboard">
+  <div class="lb-title">🏆 Top Students</div>
+  <div id="lb-list"></div>
+</div>
+
+<!-- AWARD MENU -->
+<div id="award-menu">
+  <div class="menu-header">
+    <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border);" id="menu-avatar-ring">
+      <span class="menu-avatar" id="menu-avatar"></span>
+    </div>
+    <div>
+      <div class="menu-name" id="menu-name"></div>
+      <div class="menu-pts-label"><span id="menu-pts"></span> pts</div>
+    </div>
+    <button class="close-btn" onclick="closeAwardMenu()">✕</button>
+  </div>
+  <div class="award-grid" id="award-grid"></div>
+  <div class="custom-row">
+    <input type="number" id="custom-pts" placeholder="Custom pts (e.g. -2)" />
+    <input type="text" id="custom-reason" placeholder="Reason..." style="flex:2" />
+    <button onclick="applyCustom()">✓</button>
+  </div>
+  <div style="display:flex;gap:6px;margin-top:8px;">
+    <button onclick="openDetails(activeStudentId)" style="flex:1;padding:7px;border-radius:10px;background:var(--border);color:var(--text);border:none;cursor:pointer;font:700 0.78rem 'Nunito',sans-serif;">📋 History</button>
+    <button onclick="closeAwardMenu();openAddStudentModal(activeStudentId)" style="flex:1;padding:7px;border-radius:10px;background:var(--border);color:var(--text);border:none;cursor:pointer;font:700 0.78rem 'Nunito',sans-serif;">✏️ Edit</button>
+    <button onclick="removeStudentConfirm(activeStudentId)" style="flex:1;padding:7px;border-radius:10px;background:#fee2e2;color:#dc2626;border:none;cursor:pointer;font:700 0.78rem 'Nunito',sans-serif;">🗑️</button>
+  </div>
+</div>
+
+<!-- DETAILS PANEL -->
+<div id="details-panel">
+  <button class="close-detail" onclick="closeDetails()">✕</button>
+  <div class="detail-avatar"><div class="detail-avatar-ring" id="detail-avatar"></div></div>
+  <div class="detail-name" id="detail-name"></div>
+  <div class="detail-pts" id="detail-pts"></div>
+  <div class="history-title">Recent History</div>
+  <div id="detail-history"></div>
+</div>
+
+<!-- MODAL CONTAINER -->
+<div id="modal-container"></div>
+
+<script>
+// ============================================================
+//  DATA MODEL
+// ============================================================
+//
+// IMPORTANT — localStorage size note:
+//   Each base64-encoded image is roughly 1.33× the original file size.
+//   A single 200KB photo becomes ~270KB of base64 in localStorage.
+//   With 30 students × 200KB each = ~8 MB — near the typical 5–10 MB
+//   browser quota. Warn users to use small/compressed images (<100KB)
+//   or prefer URL references, which store only a short string.
+//   We call checkStorageUsage() after each save to surface warnings early.
+//
+const PALETTE = ['#fde68a','#bfdbfe','#a7f3d0','#fca5a5','#ddd6fe','#fed7aa','#fce7f3','#e0f2fe','#d1fae5','#fef9c3'];
+const AWARDS = [
+  { label:'Great job! ⭐', delta:5, type:'pos' },
+  { label:'Helping ❤️', delta:4, type:'pos' },
+  { label:'Focused 🚀', delta:3, type:'pos' },
+  { label:'Teamwork 🤝', delta:5, type:'pos' },
+  { label:'+1 Point', delta:1, type:'pos' },
+  { label:'+2 Points', delta:2, type:'pos' },
+  { label:'Off-task 😕', delta:-3, type:'neg' },
+  { label:'Disruption 🔇', delta:-2, type:'neg' },
+];
+const CLASS_ICONS = ['📘','📗','📙','📕','📓'];
+const CLASS_NAMES = ['Class 1A','Class 2B','Class 3C','Class 4D','Class 5E'];
+
+let state = { classes: [], activeClassId: null, dark: false, projector: false };
+let activeStudentId = null;
+let longPressTimer = null;
+
+function loadState() {
+  const saved = localStorage.getItem('circlepoints_v3');
+  if (saved) {
+    state = JSON.parse(saved);
+  } else {
+    state.classes = CLASS_NAMES.map((name, i) => ({
+      id: 'class_' + i,
+      name,
+      icon: CLASS_ICONS[i],
+      students: generateDefaultStudents(i),
+    }));
+    state.activeClassId = state.classes[0].id;
+  }
+  if (state.dark) document.body.classList.add('dark');
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('circlepoints_v3', JSON.stringify(state));
+    checkStorageUsage();
+  } catch(e) {
+    // QuotaExceededError — base64 images have filled localStorage
+    showStorageWarning('⚠️ Storage full! Remove some students or use image URLs instead of uploads.');
+  }
+}
+
+// Warn when approaching ~4 MB used (conservative threshold)
+function checkStorageUsage() {
+  try {
+    const used = new Blob([JSON.stringify(state)]).size;
+    if (used > 4 * 1024 * 1024) {
+      showStorageWarning(`⚠️ Storage at ${(used/1024/1024).toFixed(1)} MB. Consider using image URLs instead of uploads to save space.`);
+    }
+  } catch(e) {}
+}
+
+function showStorageWarning(msg) {
+  let el = document.getElementById('storage-warn');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'storage-warn';
+    el.style.cssText = `
+      position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+      background:#fef3c7;color:#92400e;border:1.5px solid #fbbf24;
+      border-radius:12px;padding:9px 18px;font:700 0.8rem 'Nunito',sans-serif;
+      z-index:9000;box-shadow:0 4px 20px rgba(0,0,0,0.12);
+      animation:menuPop 0.2s ease;max-width:400px;text-align:center;`;
+    document.body.appendChild(el);
+    setTimeout(() => el?.remove(), 6000);
+  }
+  el.textContent = msg;
+}
+
+function generateDefaultStudents(classIdx) {
+  const names = [
+    ['Alex','Blake','Casey','Dana','Eli','Finn','Grace','Harper','Iris','Jay','Kim','Leo','Maya','Noah'],
+    ['Olivia','Parker','Quinn','Riley','Sam','Tyler','Uma','Violet','Will','Xena','Yara','Zoe'],
+    ['Aiden','Brynn','Cole','Dylan','Eden','Faye','Gabe','Hana','Ivan','Jade'],
+    ['Kai','Lena','Milo','Nora','Owen','Piper','Reed','Sage','Theo','Vera','West'],
+    ['Aria','Beau','Cleo','Drew','Emile','Flora','Gus','Hale','Ivy','Jules'],
+  ];
+  const pool = names[classIdx % names.length];
+  return pool.map((name, i) => ({
+    id: `s_${classIdx}_${i}`,
+    name,
+    // avatar: null means "use initials fallback"
+    avatar: null,   // string: base64 data URL or https:// URL, or null
+    bg: PALETTE[(classIdx * 3 + i) % PALETTE.length],
+    points: 0,
+    history: [],
+  }));
+}
+
+function getActiveClass() {
+  return state.classes.find(c => c.id === state.activeClassId);
+}
+
+// ============================================================
+//  AVATAR HELPERS
+// ============================================================
+
+// Generate initials from name (up to 2 chars), returns an SVG data URL
+function initialsAvatar(name, bg) {
+  const parts  = name.trim().split(/\s+/);
+  const chars  = parts.length >= 2
+    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
+    : (name.slice(0,2).toUpperCase());
+  // Pick a readable contrasting text color relative to the bg
+  const textColor = '#1e1b4b';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="50" fill="${bg || '#ddd6fe'}"/>
+    <text x="50" y="50" dy=".35em" text-anchor="middle"
+      font-family="'Nunito',sans-serif" font-weight="800"
+      font-size="${chars.length > 1 ? 36 : 44}"
+      fill="${textColor}">${chars}</text>
+  </svg>`;
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
+// Returns the src string to use for a student's avatar <img>
+function getAvatarSrc(student) {
+  if (student.avatar) return student.avatar;
+  return initialsAvatar(student.name, student.bg);
+}
+
+// Rough URL validation: must start with http(s):// and end with image extension
+function isValidImageUrl(url) {
+  return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url.trim());
+}
+
+// Build a circular <img> element string for use in innerHTML
+function avatarImgHtml(src, alt, extraClass) {
+  return `<img src="${src}" alt="${alt || ''}" ${extraClass ? `class="${extraClass}"` : ''}
+    style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
+    onerror="this.src='${initialsAvatar(alt||'?','#ddd6fe')}'" />`;
+}
+
+// ============================================================
+//  RENDER
+// ============================================================
+function render() {
+  renderSidebar();
+  renderCircles();
+  renderLeaderboard();
+  document.getElementById('class-title').textContent = getActiveClass()?.name || '';
+  saveState();
+}
+
+function renderSidebar() {
+  const list = document.getElementById('class-list');
+  list.innerHTML = state.classes.map(cls => `
+    <div class="class-tab ${cls.id === state.activeClassId ? 'active' : ''}" 
+         onclick="switchClass('${cls.id}')" ondblclick="startRenameClass('${cls.id}')">
+      <span class="class-icon">${cls.icon}</span>
+      <span class="class-name">
+        <input type="text" value="${cls.name}" id="class-input-${cls.id}"
+          onfocus="event.stopPropagation()"
+          onblur="finishRenameClass('${cls.id}', this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()"
+          onclick="event.stopPropagation()" readonly />
+      </span>
+      <span class="student-count">${cls.students.length}</span>
+    </div>
+  `).join('');
+}
+
+function renderCircles() {
+  const area = document.getElementById('circle-area');
+  const cls = getActiveClass();
+  if (!cls) return;
+  if (cls.students.length === 0) {
+    area.innerHTML = `<div class="empty-state"><div class="es-icon">🫧</div><h3>No students yet!</h3><p>Click "Add Student" to get started.</p></div>`;
+    return;
+  }
+  // Size scaling: base=72px at 0pts, max=160px, with an extra bump at lvl-max.
+  const BASE_SIZE = 72;
+  const MAX_SIZE  = 155;
+
+  function getCircleSize(pts) {
+    if (pts <= 0) return BASE_SIZE;
+    // Use absolute thresholds for size steps, sqrt within each band
+    if (pts >= 30) return Math.min(MAX_SIZE + 10, Math.round(BASE_SIZE + Math.sqrt(pts / 30) * (MAX_SIZE - BASE_SIZE + 10)));
+    const ratio = Math.sqrt(Math.min(pts, 29) / 29);
+    return Math.round(BASE_SIZE + ratio * (MAX_SIZE - BASE_SIZE));
+  }
+
+  area.innerHTML = cls.students.map(s => {
+    const { cls: tierCls, badge } = getTier(s.points);
+    const isMax     = s.points >= 30;
+    const isRainbow = s.points >= 20 && !isMax;
+    const isGold    = s.points >= 10 && s.points < 20;
+    const sz        = getCircleSize(s.points);
+    const ptsSz     = Math.max(10, Math.round(sz * 0.155));
+    const src       = getAvatarSrc(s);
+
+    // Determine wrapper class (lvl-2/3/max use a conic-gradient ring wrapper)
+    let wrapperOpen = '', wrapperClose = '';
+    if      (isMax)     { wrapperOpen = `<div class="lvl-max-wrapper" style="border-radius:50%;flex-shrink:0;">`; wrapperClose = `</div>`; }
+    else if (isRainbow) { wrapperOpen = `<div class="lvl-3-wrapper"  style="border-radius:50%;flex-shrink:0;">`; wrapperClose = `</div>`; }
+    else if (isGold)    { wrapperOpen = `<div class="lvl-2-wrapper"  style="border-radius:50%;flex-shrink:0;">`; wrapperClose = `</div>`; }
+
+    // Crown for MAX tier — sits above the whole wrapper
+    const crownBadge = isMax
+      ? `<div class="crown-max"><span class="crown-icon">👑</span><span class="crown-label">MAX</span></div>`
+      : '';
+    // Pin badge for lvl-1/2/3 (not max, max has crown above)
+    const pinBadge = (!isMax && badge)
+      ? `<div class="level-badge">${badge}</div>`
+      : '';
+
+    return `
+    <div class="student-circle" id="circ-${s.id}"
+         onclick="handleCircleClick(event,'${s.id}')"
+         oncontextmenu="onRightClick(event,'${s.id}')"
+         onmousedown="startLongPress('${s.id}')"
+         onmouseup="cancelLongPress()"
+         onmouseleave="cancelLongPress()"
+         style="position:relative;">
+      ${crownBadge}
+      ${wrapperOpen}
+        <div class="circle-bubble ${tierCls}"
+             style="background:${s.bg};width:${sz}px;height:${sz}px;overflow:hidden;padding:0;position:relative;display:block;border-radius:50%;">
+          ${pinBadge}
+          <img src="${src}" alt="${s.name}"
+            style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;pointer-events:none;"
+            onerror="this.src='${initialsAvatar(s.name, s.bg).replace(/'/g,"\\'")}'"/>
+          <div class="circle-pts" style="font-size:${ptsSz}px;position:absolute;bottom:${Math.round(sz*0.07)}px;
+            left:50%;transform:translateX(-50%);
+            background:rgba(255,255,255,0.82);border-radius:99px;
+            padding:0 ${Math.round(sz*0.06)}px;backdrop-filter:blur(2px);
+            color:#1e1b4b;line-height:1.4;">${s.points}</div>
+        </div>
+      ${wrapperClose}
+      <div class="circle-name">${s.name}</div>
+    </div>`;
+  }).join('');
+}
+
+// Returns { cls, badge } for a student's points tier
+function getTier(pts) {
+  if (pts >= 30) return { cls: 'lvl-max', badge: '🌟' };
+  if (pts >= 20) return { cls: 'lvl-3',   badge: '✨' };
+  if (pts >= 10) return { cls: 'lvl-2',   badge: '⭐' };
+  if (pts >= 5)  return { cls: 'lvl-1',   badge: '💫' };
+  return           { cls: 'lvl-0',   badge: null };
+}
+
+function renderLeaderboard() {
+  const cls = getActiveClass();
+  if (!cls) return;
+  const top = [...cls.students].sort((a,b) => b.points - a.points).slice(0,5);
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+  document.getElementById('lb-list').innerHTML = top.map((s,i) => {
+    const src = getAvatarSrc(s);
+    const { badge } = getTier(s.points);
+    const tierBadge = s.points >= 30 ? '👑' : (badge || '');
+    return `
+    <div class="lb-item">
+      <span class="lb-rank">${medals[i]}</span>
+      <span class="lb-avatar"><img src="${src}" alt="${s.name}"
+        style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
+        onerror="this.src='${initialsAvatar(s.name,s.bg).replace(/'/g,"\\'")}'" /></span>
+      <span class="lb-name">${s.name}</span>
+      ${tierBadge ? `<span style="font-size:0.85rem;">${tierBadge}</span>` : ''}
+      <span class="lb-pts">${s.points}</span>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+//  INTERACTIONS
+// ============================================================
+function switchClass(id) {
+  state.activeClassId = id;
+  closeAwardMenu();
+  closeDetails();
+  render();
+}
+
+function startRenameClass(id) {
+  const input = document.getElementById('class-input-' + id);
+  if (input) { input.removeAttribute('readonly'); input.focus(); input.select(); }
+}
+
+function finishRenameClass(id, val) {
+  const cls = state.classes.find(c => c.id === id);
+  if (cls) cls.name = val.trim() || cls.name;
+  const input = document.getElementById('class-input-' + id);
+  if (input) input.setAttribute('readonly', true);
+  render();
+}
+
+function handleCircleClick(e, sid) {
+  e.stopPropagation();
+  lastClickedId = sid;
+  // Single click = instant +1 point
+  awardPoints(sid, 1, 'Click +1');
+}
+
+function onRightClick(e, sid) {
+  e.preventDefault();
+  lastClickedId = sid;
+  openAwardMenu(e, sid);
+}
+
+function startLongPress(sid) {
+  longPressTimer = setTimeout(() => {
+    lastClickedId = sid;
+    // Synthesize a fake event position near the circle
+    const circ = document.getElementById('circ-' + sid);
+    const rect = circ ? circ.getBoundingClientRect() : {left:0,top:0,width:0,height:0};
+    openAwardMenu({ clientX: rect.left + rect.width/2, clientY: rect.top }, sid);
+  }, 600);
+}
+function cancelLongPress() { clearTimeout(longPressTimer); }
+
+// ── AWARD MENU (opened via right-click / long-press only) ──
+function openAwardMenu(e, sid) {
+  const cls = getActiveClass();
+  const s = cls.students.find(x => x.id === sid);
+  if (!s) return;
+  activeStudentId = sid;
+  document.getElementById('menu-avatar').textContent = s.emoji;
+  document.getElementById('menu-name').textContent = s.name;
+  document.getElementById('menu-pts').textContent = s.points;
+  document.getElementById('custom-pts').value = '';
+  document.getElementById('custom-reason').value = '';
+
+  const grid = document.getElementById('award-grid');
+  grid.innerHTML = AWARDS.map(a => `
+    <button class="award-btn ${a.type}" onclick="applyAward(${a.delta},'${a.label}')">
+      ${a.label} <strong>${a.delta > 0 ? '+'+a.delta : a.delta}</strong>
+    </button>
+  `).join('');
+
+  const menu = document.getElementById('award-menu');
+  menu.style.display = 'block';
+  // Position near circle
+  const circ = document.getElementById('circ-' + sid);
+  const rect = circ ? circ.getBoundingClientRect() : null;
+  if (rect) {
+    let left = rect.left + rect.width / 2 - 130;
+    let top = rect.top - 320;
+    if (top < 10) top = rect.bottom + 10;
+    if (left < 8) left = 8;
+    if (left + 270 > window.innerWidth) left = window.innerWidth - 275;
+    menu.style.left = left + 'px';
+    menu.style.top = top + 'px';
+  }
+}
+
+function closeAwardMenu() {
+  document.getElementById('award-menu').style.display = 'none';
+  activeStudentId = null;
+}
+
+function applyAward(delta, reason) {
+  if (!activeStudentId) return;
+  awardPoints(activeStudentId, delta, reason);
+  document.getElementById('menu-pts').textContent =
+    getActiveClass().students.find(s=>s.id===activeStudentId)?.points;
+}
+
+function applyCustom() {
+  const delta = parseInt(document.getElementById('custom-pts').value);
+  const reason = document.getElementById('custom-reason').value.trim() || 'Custom';
+  if (isNaN(delta)) return;
+  applyAward(delta, reason);
+  closeAwardMenu();
+}
+
+function awardPoints(sid, delta, reason) {
+  const cls = getActiveClass();
+  const s = cls.students.find(x => x.id === sid);
+  if (!s) return;
+  s.points += delta;
+  s.history.unshift({
+    delta, reason,
+    time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+  });
+  if (s.history.length > 10) s.history.pop();
+  saveState();
+  renderCircles();
+  renderLeaderboard();
+  animateCircle(sid, delta);
+  if (Math.abs(delta) >= 5) spawnConfetti(sid);
+
+  // ── CHECK 67-POINT MILESTONE ──
+  checkClassTotal67(cls);
+}
+
+// Fires the full-screen 67 celebration exactly once per class
+function checkClassTotal67(cls) {
+  const total = cls.students.reduce((sum, s) => sum + s.points, 0);
+  if (total !== 67) return;
+  const flagKey = 'celebrated67-' + cls.id;
+  if (localStorage.getItem(flagKey)) return; // already celebrated
+  localStorage.setItem(flagKey, '1');
+  triggerCelebration67();
+}
+
+// ── ANIMATIONS ──
+function animateCircle(sid, delta) {
+  const circ = document.getElementById('circ-' + sid);
+  if (!circ) return;
+  // Bounce the bubble (CSS targets .bouncing .circle-bubble)
+  circ.classList.remove('bouncing');
+  void circ.offsetWidth;
+  circ.classList.add('bouncing');
+  circ.addEventListener('animationend', () => circ.classList.remove('bouncing'), { once: true });
+
+  // Floating score indicator
+  const float = document.createElement('div');
+  float.className = 'float-score';
+  float.textContent = (delta > 0 ? '+' : '') + delta;
+  float.style.color = delta > 0 ? '#059669' : '#dc2626';
+  circ.appendChild(float);
+  float.addEventListener('animationend', () => float.remove());
+
+  // Sound
+  playDing(delta);
+}
+
+function spawnConfetti(sid) {
+  const circ = document.getElementById('circ-' + sid);
+  const rect = circ ? circ.getBoundingClientRect() : {left:200,top:200,width:88,height:88};
+  const colors = ['#fbbf24','#34d399','#60a5fa','#f472b6','#a78bfa','#fb923c'];
+  for (let i = 0; i < 22; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.background = colors[i % colors.length];
+    el.style.left = (rect.left + rect.width/2 + (Math.random()-0.5)*60) + 'px';
+    el.style.top = (rect.top + (Math.random()-0.5)*20) + 'px';
+    el.style.animationDuration = (0.9 + Math.random()*0.7) + 's';
+    el.style.animationDelay = (Math.random()*0.3) + 's';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+// ── 67 CELEBRATION — 8-second gamified bubble show ──────────
+function triggerCelebration67() {
+  // ── BUILD DOM ────────────────────────────────────────────
+  const overlay = document.createElement('div');
+  overlay.id = 'celebration-overlay';
+
+  // Expanding neon halos (CSS animated)
+  const halo  = document.createElement('div'); halo.id  = 'celebration-halo';
+  const halo2 = document.createElement('div'); halo2.id = 'celebration-halo2';
+
+  // Spark ring (populated below)
+  const sparkRing = document.createElement('div');
+  sparkRing.className = 'spark-ring';
+
+  // Digit row: "6" ✦ "7"
+  const digitRow = document.createElement('div');
+  digitRow.id = 'celebration-digits';
+
+  const d6  = document.createElement('span');
+  d6.className  = 'cel-digit cel-digit-6';
+  d6.textContent = '6';
+
+  const sep = document.createElement('span');
+  sep.className  = 'cel-sep';
+  sep.textContent = '✦';
+
+  const d7  = document.createElement('span');
+  d7.className  = 'cel-digit cel-digit-7';
+  d7.textContent = '7';
+
+  digitRow.append(d6, sep, d7);
+
+  // Label
+  const label = document.createElement('div');
+  label.id = 'celebration-label';
+  label.textContent = '🏆 CLASS TOTAL: 67! 🏆';
+
+  // Emoji ticker
+  const ticker = document.createElement('div');
+  ticker.id = 'celebration-ticker';
+  ticker.textContent = '🎉✨🌟💥🎊🚀⭐🎯';
+
+  overlay.append(halo, halo2, sparkRing, digitRow, label, ticker);
+  document.body.appendChild(overlay);
+
+  // ── SPARK RING: 28 particles in two waves ────────────────
+  const sparkPalette = [
+    '#fbbf24','#fde68a','#f97316','#ef4444',
+    '#f472b6','#a855f7','#6366f1','#38bdf8',
+    '#34d399','#fff','#fb923c','#e879f9',
+  ];
+  // Wave 1: round dots (immediate)
+  for (let i = 0; i < 20; i++) {
+    const sp  = document.createElement('div');
+    const ang = (i / 20) * 360;
+    const d   = 140 + Math.random() * 160;
+    const sz  = 5 + Math.random() * 9;
+    sp.className = 'spark';
+    sp.style.cssText = `
+      --a:${ang}deg; --d:${d}px;
+      --dur:${(0.7 + Math.random()*0.55).toFixed(2)}s;
+      --del:${(Math.random()*0.22).toFixed(2)}s;
+      background:${sparkPalette[i % sparkPalette.length]};
+      width:${sz}px; height:${sz}px;
+    `;
+    sparkRing.appendChild(sp);
+  }
+  // Wave 2: elongated darts (slight delay)
+  for (let i = 0; i < 16; i++) {
+    const sp  = document.createElement('div');
+    const ang = (i / 16) * 360 + 11;
+    const d   = 110 + Math.random() * 130;
+    const sz  = 6 + Math.random() * 6;
+    sp.className = 'spark dart';
+    sp.style.cssText = `
+      --a:${ang}deg; --d:${d}px;
+      --dur:${(0.6 + Math.random()*0.5).toFixed(2)}s;
+      --del:${(0.28 + Math.random()*0.25).toFixed(2)}s;
+      background:${sparkPalette[(i+3) % sparkPalette.length]};
+      width:${sz*2.2}px; height:${sz*0.6}px;
+    `;
+    sparkRing.appendChild(sp);
+  }
+
+  // ── GLITTER STARS: 22 emoji stars floating upward ────────
+  const glitterEmoji = ['⭐','✨','💫','🌟','🎊','💥','🎉','⚡'];
+  for (let i = 0; i < 22; i++) {
+    const g = document.createElement('div');
+    g.className = 'glitter';
+    const x   = 10 + Math.random() * 80; // % of viewport width
+    const up  = -(100 + Math.random() * 200);
+    const rot = 120 + Math.random() * 480;
+    g.textContent = glitterEmoji[i % glitterEmoji.length];
+    g.style.cssText = `
+      left:${x}vw; top:${50 + (Math.random()-0.5)*28}vh;
+      --up:${up}px; --up2:${up*1.6}px;
+      --rot:${rot}deg; --rot2:${rot*2}deg;
+      --dur:${(1.4 + Math.random()*1.8).toFixed(2)}s;
+      --del:${(Math.random()*1.4).toFixed(2)}s;
+    `;
+    document.body.appendChild(g);
+    g.addEventListener('animationend', () => g.remove());
+  }
+
+  // ── CANVAS-CONFETTI: 5 staggered volleys ─────────────────
+  const COLORS = ['#fbbf24','#f97316','#ef4444','#f472b6',
+                  '#a855f7','#6366f1','#38bdf8','#34d399',
+                  '#fff','#fb923c'];
+
+  function burst(cfg) {
+    if (typeof confetti !== 'function') return;
+    confetti(cfg);
+  }
+
+  // Volley 1 — central explosion (on digits appear)
+  setTimeout(() => {
+    burst({ particleCount:150, spread:100, startVelocity:65,
+            origin:{x:0.5,y:0.48}, colors:COLORS,
+            ticks:260, gravity:0.85, scalar:1.25,
+            shapes:['circle','square'] });
+  }, 280);
+
+  // Volley 2 — side cannons
+  setTimeout(() => {
+    burst({ particleCount:90, angle:55,  spread:60, startVelocity:70,
+            origin:{x:0,y:0.58}, colors:COLORS.slice(0,6), ticks:220 });
+    burst({ particleCount:90, angle:125, spread:60, startVelocity:70,
+            origin:{x:1,y:0.58}, colors:COLORS.slice(4), ticks:220 });
+  }, 650);
+
+  // Volley 3 — top firework arcs
+  setTimeout(() => {
+    burst({ particleCount:80, angle:70,  spread:50, startVelocity:80,
+            origin:{x:0.2,y:0.3}, colors:COLORS, ticks:300, gravity:1 });
+    burst({ particleCount:80, angle:110, spread:50, startVelocity:80,
+            origin:{x:0.8,y:0.3}, colors:COLORS, ticks:300, gravity:1 });
+  }, 1350);
+
+  // Volley 4 — second central burst
+  setTimeout(() => {
+    burst({ particleCount:120, spread:360, startVelocity:30,
+            origin:{x:0.5,y:0.5}, colors:COLORS,
+            ticks:200, gravity:0.5, scalar:0.9,
+            shapes:['circle'] });
+  }, 2200);
+
+  // Volley 5 — final shower from top
+  setTimeout(() => {
+    burst({ particleCount:200, spread:120, startVelocity:50,
+            origin:{x:0.5,y:0.0}, colors:COLORS,
+            ticks:350, gravity:1.1, scalar:1.0 });
+  }, 3800);
+
+  // ── SOUND ────────────────────────────────────────────────
+  playCelebrationSound();
+
+  // ── DISMISS after 8 seconds ──────────────────────────────
+  setTimeout(() => {
+    overlay.classList.add('fading');
+    overlay.addEventListener('animationend', () => {
+      overlay.remove();
+      // clean up any lingering glitter
+      document.querySelectorAll('.glitter').forEach(g => g.remove());
+    }, { once: true });
+  }, 7200);
+}
+
+// 8-second triumphant fanfare — C-major chord arpeggio
+// + rising pentatonic run + bright shimmer trill
+function playCelebrationSound() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    const now = ctx.currentTime;
+
+    // Master gain (prevents clipping)
+    const master = ctx.createGain();
+    master.gain.value = 0.55;
+    master.connect(ctx.destination);
+
+    function note(freq, type, start, dur, vol) {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(master);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(vol, start + 0.04);
+      gain.gain.setValueAtTime(vol, start + dur * 0.7);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+      osc.start(start); osc.stop(start + dur + 0.05);
+    }
+
+    // 1. Bass thud  C3
+    note(130.81, 'triangle', now,        0.55, 0.9);
+
+    // 2. Rising arpeggio C4-E4-G4-C5-E5
+    [261.63, 329.63, 392.00, 523.25, 659.25].forEach((f,i) => {
+      note(f, 'sine', now + 0.06 + i*0.1, 0.9, 0.35);
+    });
+
+    // 3. Full chord stab at peak (C4+E4+G4+C5)
+    [261.63, 329.63, 392.00, 523.25].forEach(f => {
+      note(f, 'sine', now + 0.55, 1.6, 0.22);
+    });
+
+    // 4. Pentatonic sparkle run (C5→D5→E5→G5→A5→C6)
+    [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50].forEach((f,i) => {
+      note(f, 'sine', now + 0.7 + i*0.075, 0.4, 0.14);
+    });
+
+    // 5. High shimmer trill (repeated)
+    [1046.50, 1318.51, 1567.98, 2093.00].forEach((f,i) => {
+      note(f, 'sine', now + 1.1 + i*0.07, 0.45, 0.09);
+      note(f, 'sine', now + 2.2 + i*0.07, 0.35, 0.06);
+    });
+
+    // 6. Final resolve chord at ~3.8s
+    [261.63, 392.00, 523.25, 659.25].forEach(f => {
+      note(f, 'sine', now + 3.8, 1.8, 0.18);
+    });
+
+  } catch(e) {}
+}
+let audioCtx = null;
+function playDing(delta) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = delta > 0 ? (delta >= 5 ? 880 : 660) : 330;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+// ── DETAILS PANEL ──
+function openDetails(sid) {
+  closeAwardMenu();
+  const cls = getActiveClass();
+  const s = cls?.students.find(x => x.id === sid);
+  if (!s) return;
+  const src = getAvatarSrc(s);
+  document.getElementById('detail-avatar').innerHTML =
+    `<img src="${src}" alt="${s.name}"
+      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
+      onerror="this.src='${initialsAvatar(s.name,s.bg).replace(/'/g,"\\'")}'" />`;
+  document.getElementById('detail-name').textContent = s.name;
+  document.getElementById('detail-pts').textContent = s.points + ' points';
+  document.getElementById('detail-history').innerHTML = s.history.length === 0
+    ? '<div style="font-size:0.82rem;color:var(--text-muted)">No history yet.</div>'
+    : s.history.map(h => `
+      <div class="history-item">
+        <span class="h-delta ${h.delta>=0?'h-pos':'h-neg'}">${h.delta>0?'+':''}${h.delta}</span>
+        <span class="h-reason">${h.reason}</span>
+        <span class="h-time">${h.time}</span>
+      </div>`).join('');
+  document.getElementById('details-panel').classList.add('open');
+}
+
+function closeDetails() {
+  document.getElementById('details-panel').classList.remove('open');
+}
+
+// ── ADD / EDIT STUDENT MODAL ──
+// pendingAvatar: holds the chosen avatar src (base64 or URL) during modal session
+let pendingAvatar = null;
+
+function openAddStudentModal(editSid) {
+  pendingAvatar = null;
+  const isEdit = !!editSid;
+  const cls    = getActiveClass();
+  const s      = isEdit ? cls?.students.find(x => x.id === editSid) : null;
+  if (isEdit && !s) return;
+
+  if (isEdit) {
+    // Pre-load existing avatar into pendingAvatar
+    pendingAvatar = s.avatar || null;
+  }
+
+  const initSrc = s ? getAvatarSrc(s) : initialsAvatar('?', '#ddd6fe');
+  const initName = s?.name || '';
+
+  const html = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal-box">
+        <div class="modal-title">${isEdit ? '✏️ Edit Student' : '➕ Add Student'}</div>
+
+        <!-- Name -->
+        <div class="modal-field">
+          <label>Name</label>
+          <input type="text" id="modal-student-name"
+            placeholder="Student name..." value="${initName}"
+            oninput="updateInitialsPreview()" />
+        </div>
+
+        <!-- Avatar section -->
+        <div class="modal-field">
+          <label>Avatar</label>
+          <div class="avatar-section">
+
+            <!-- Live circular preview -->
+            <div class="avatar-preview-ring ${pendingAvatar ? 'has-image' : ''}" id="avatar-preview-ring">
+              <img id="avatar-preview-img" src="${initSrc}" alt="preview"
+                style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />
+            </div>
+
+            <div class="avatar-controls">
+              <!-- Upload button -->
+              <label class="upload-btn-label" for="avatar-file-input">
+                📁 Upload Image
+              </label>
+              <input type="file" id="avatar-file-input" accept="image/*"
+                onchange="handleAvatarFileUpload(this)" />
+              <div class="avatar-hint">
+                JPG, PNG, GIF, WebP — small files recommended (&lt;100 KB)<br>
+                <span id="file-size-hint"></span>
+              </div>
+
+              <!-- OR divider -->
+              <div class="avatar-divider">or paste URL</div>
+
+              <!-- URL input -->
+              <div class="url-input-row">
+                <input type="text" id="avatar-url-input"
+                  placeholder="https://example.com/photo.jpg"
+                  oninput="onAvatarUrlInput()" />
+                <button class="url-check-btn" onclick="applyAvatarUrl()">Preview</button>
+              </div>
+              <div class="avatar-hint" id="url-hint"></div>
+
+              <!-- Clear avatar -->
+              <button onclick="clearAvatar()"
+                style="background:none;border:none;cursor:pointer;font:600 0.75rem 'Nunito',sans-serif;color:var(--text-muted);padding:2px 0;text-align:left;">
+                ✕ Remove avatar (use initials)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-confirm" onclick="confirmStudentModal('${editSid || ''}')">
+            ${isEdit ? 'Save Changes' : 'Add Student'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('modal-container').innerHTML = html;
+  setTimeout(() => document.getElementById('modal-student-name')?.focus(), 50);
+}
+
+// Update the preview to show initials when name changes and no image chosen yet
+function updateInitialsPreview() {
+  if (pendingAvatar) return; // custom image takes priority
+  const name = document.getElementById('modal-student-name')?.value.trim() || '?';
+  const bg = PALETTE[getActiveClass()?.students.length % PALETTE.length] || '#ddd6fe';
+  const img = document.getElementById('avatar-preview-img');
+  if (img) img.src = initialsAvatar(name, bg);
+}
+
+// FILE UPLOAD → FileReader → base64 data URL
+function handleAvatarFileUpload(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+
+  // Warn about large files (>150KB raw → ~200KB base64)
+  const hint = document.getElementById('file-size-hint');
+  if (hint) {
+    const kb = Math.round(file.size / 1024);
+    hint.textContent = `File: ${kb} KB${kb > 150 ? ' ⚠️ Large — may fill storage quickly' : ' ✓'}`;
+    hint.style.color = kb > 150 ? '#f59e0b' : '#059669';
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;  // full base64 data URL
+    pendingAvatar = dataUrl;
+    setAvatarPreview(dataUrl);
+  };
+  reader.readAsDataURL(file);  // → "data:image/jpeg;base64,/9j/4AAQ..."
+}
+
+// URL input live feedback
+function onAvatarUrlInput() {
+  const val = document.getElementById('avatar-url-input')?.value.trim();
+  const hint = document.getElementById('url-hint');
+  const inp  = document.getElementById('avatar-url-input');
+  if (!val) {
+    inp?.classList.remove('url-valid','url-invalid');
+    if (hint) hint.textContent = '';
+    return;
+  }
+  if (isValidImageUrl(val)) {
+    inp?.classList.replace('url-invalid','url-valid') || inp?.classList.add('url-valid');
+    if (hint) { hint.textContent = '✓ Valid image URL'; hint.style.color = '#059669'; }
+  } else {
+    inp?.classList.replace('url-valid','url-invalid') || inp?.classList.add('url-invalid');
+    if (hint) { hint.textContent = 'Must start with https:// and end with .jpg/.png/.webp etc.'; hint.style.color = '#f87171'; }
+  }
+}
+
+// Apply URL to preview
+function applyAvatarUrl() {
+  const val = document.getElementById('avatar-url-input')?.value.trim();
+  if (!val) return;
+  if (!isValidImageUrl(val)) {
+    const hint = document.getElementById('url-hint');
+    if (hint) { hint.textContent = '⚠️ URL doesn\'t look like a valid image link.'; hint.style.color = '#f87171'; }
+    return;
+  }
+  // Store just the URL string — much smaller than base64
+  pendingAvatar = val;
+  setAvatarPreview(val);
+}
+
+function setAvatarPreview(src) {
+  const img  = document.getElementById('avatar-preview-img');
+  const ring = document.getElementById('avatar-preview-ring');
+  if (img)  { img.src = src; img.onerror = () => { img.src = initialsAvatar('?','#ddd6fe'); }; }
+  if (ring) ring.classList.add('has-image');
+}
+
+function clearAvatar() {
+  pendingAvatar = null;
+  const name = document.getElementById('modal-student-name')?.value.trim() || '?';
+  const bg   = PALETTE[getActiveClass()?.students.length % PALETTE.length] || '#ddd6fe';
+  const img  = document.getElementById('avatar-preview-img');
+  const ring = document.getElementById('avatar-preview-ring');
+  const urlInp = document.getElementById('avatar-url-input');
+  if (img)  img.src = initialsAvatar(name, bg);
+  if (ring) ring.classList.remove('has-image');
+  if (urlInp) urlInp.value = '';
+  const hint = document.getElementById('url-hint');
+  if (hint) hint.textContent = '';
+}
+
+function confirmStudentModal(editSid) {
+  const name = document.getElementById('modal-student-name')?.value.trim();
+  if (!name) {
+    document.getElementById('modal-student-name')?.focus();
+    return;
+  }
+  const cls = getActiveClass();
+  if (editSid) {
+    // Edit existing
+    const s = cls.students.find(x => x.id === editSid);
+    if (s) { s.name = name; s.avatar = pendingAvatar; }
+  } else {
+    // Add new
+    const id = 's_' + Date.now();
+    const bg = PALETTE[cls.students.length % PALETTE.length];
+    cls.students.push({ id, name, avatar: pendingAvatar, bg, points: 0, history: [] });
+  }
+  pendingAvatar = null;
+  closeModal();
+  render();
+}
+
+// ── REMOVE STUDENT ──
+function removeStudentConfirm(sid) {
+  const cls = getActiveClass();
+  const s = cls?.students.find(x => x.id === sid);
+  if (!s) return;
+  closeAwardMenu();
+  const src = getAvatarSrc(s);
+  const html = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal-box">
+        <div class="modal-title">🗑️ Remove Student?</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+          <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border);">
+            <img src="${src}" alt="${s.name}" style="width:100%;height:100%;object-fit:cover;"
+              onerror="this.src='${initialsAvatar(s.name,s.bg).replace(/'/g,"\\'")}'" />
+          </div>
+          <p style="color:var(--text-muted);font-size:0.88rem;">
+            Remove <strong>${s.name}</strong>? Their points history will be lost.
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-danger" onclick="doRemoveStudent('${sid}')">Remove</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modal-container').innerHTML = html;
+}
+
+function doRemoveStudent(sid) {
+  const cls = getActiveClass();
+  cls.students = cls.students.filter(s => s.id !== sid);
+  closeModal();
+  render();
+}
+
+// ── RESET ──
+function confirmReset(scope) {
+  const msg = scope === 'all'
+    ? 'Reset ALL classes? Every student\'s points will be cleared.'
+    : `Reset all points in <strong>${getActiveClass()?.name}</strong>?`;
+  const html = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal-box">
+        <div class="modal-title">🔄 Confirm Reset</div>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:18px;">${msg}</p>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-danger" onclick="doReset('${scope}')">Reset</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modal-container').innerHTML = html;
+}
+
+function doReset(scope) {
+  const reset = cls => cls.students.forEach(s => { s.points = 0; s.history = []; });
+  if (scope === 'all') state.classes.forEach(reset);
+  else reset(getActiveClass());
+  closeModal();
+  render();
+}
+
+// ── DARK MODE ──
+function toggleDark() {
+  state.dark = !state.dark;
+  document.body.classList.toggle('dark', state.dark);
+  document.getElementById('dark-btn').textContent = state.dark ? '☀️' : '🌙';
+  saveState();
+}
+
+// ── PROJECTOR MODE ──
+function toggleProjector() {
+  state.projector = !state.projector;
+  document.body.classList.toggle('projector-mode', state.projector);
+  document.getElementById('proj-btn').textContent = state.projector ? '🪟' : '📽️';
+  saveState();
+}
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  const cls = getActiveClass();
+  if (!cls) return;
+  const rows = [['Name','Points','Emoji']];
+  cls.students.forEach(s => rows.push([s.name, s.points, s.emoji]));
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = cls.name.replace(/\s/g,'_') + '_points.csv';
+  a.click();
+}
+
+// ── CLOSE MODAL ──
+function closeModal() {
+  document.getElementById('modal-container').innerHTML = '';
+}
+
+// ── KEYBOARD SHORTCUTS ──
+// After clicking a circle, keyboard shortcuts apply to that student
+let lastClickedId = null;
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const sid = lastClickedId || activeStudentId;
+  if (sid) {
+    const map = { '1':1, '2':2, '3':5, '4':10, 'q':-1, 'w':-3 };
+    if (map[e.key] !== undefined) {
+      const label = map[e.key] > 0 ? `Keyboard +${map[e.key]}` : `Keyboard ${map[e.key]}`;
+      awardPoints(sid, map[e.key], label);
+    }
+  }
+  if (e.key === 'Escape') { closeDetails(); closeModal(); }
+});
+
+// ── CLOSE ON OUTSIDE CLICK ──
+document.addEventListener('click', e => {
+  const menu = document.getElementById('award-menu');
+  if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.closest('.student-circle')) {
+    closeAwardMenu();
+  }
+  // Clear lastClickedId when clicking outside a circle
+  if (!e.target.closest('.student-circle')) lastClickedId = null;
+});
+
+// ── INIT ──
+loadState();
+render();
+</script>
+</body>
+</html>
