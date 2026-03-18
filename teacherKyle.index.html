@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vladislav (Kyle) Ilekhmetkin — English Language Educator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0d0b;
+    --paper: #f0ebe2;
+    --accent: #b8411c;
+    --accent-light: #e8c4b5;
+    --muted: #524c45;
+    --rule: #ccc5ba;
+    --white: #fdfaf6;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    font-size: 17px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.6;
+  }
+
+  /* ── LAYOUT ── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 0 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: end;
+    border-bottom: 1.5px solid var(--ink);
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 7vw, 5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-name em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 12px;
+  }
+
+  .hero-contact {
+    text-align: right;
+    font-size: 0.95rem;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  .hero-contact a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .hero-contact a:hover { color: var(--accent); }
+
+  .location-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 8px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── SUMMARY BAND ── */
+  .summary-band {
+    background: var(--ink);
+    color: var(--paper);
+    margin: 0 -24px;
+    padding: 36px 24px;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .summary-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .summary-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-light);
+    padding-top: 4px;
+  }
+
+  .summary-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    font-weight: 400;
+    color: #ede7dc;
+  }
+
+  /* ── TWO-COLUMN GRID ── */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 0 56px;
+    padding-top: 52px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  /* ── SECTION HEADER ── */
+  .section {
+    margin-bottom: 44px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* ── JOB ENTRIES ── */
+  .job {
+    margin-bottom: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+
+  .job:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 12px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .job-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .job-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    padding-top: 3px;
+  }
+
+  .job-company {
+    font-size: 0.93rem;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+
+  .job-bullets {
+    list-style: none;
+    padding: 0;
+  }
+
+  .job-bullets li {
+    font-size: 0.95rem;
+    color: #1e1a16;
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 5px;
+    line-height: 1.65;
+  }
+
+  .job-bullets li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar .section {
+    margin-bottom: 36px;
+  }
+
+  /* ── SKILLS ── */
+  .skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .skill-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: #1e1a16;
+  }
+
+  .skill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  /* ── EDUCATION ── */
+  .edu-entry {
+    margin-bottom: 20px;
+  }
+
+  .edu-degree {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .edu-school {
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 500;
+    margin: 2px 0;
+  }
+
+  .edu-detail {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── CERT BADGES ── */
+  .cert-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .cert-badge {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 9px 13px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: #1e1a16;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .cert-badge strong {
+    display: block;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+
+  /* ── LANGUAGES / TOEFL ── */
+  .lang-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+    color: #1e1a16;
+  }
+
+  .lang-row:last-child { border-bottom: none; }
+
+  .lang-level {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    background: var(--accent);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1.5px solid var(--ink);
+    margin-top: 20px;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+    .hero-contact {
+      text-align: left;
+    }
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+    .sidebar {
+      border-top: 1.5px solid var(--rule);
+      padding-top: 40px;
+    }
+    .summary-inner {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div>
+      <h1 class="hero-name">Vladislav<br><em>«Kyle»</em> Ilekhmetkin</h1>
+      <p class="hero-title">English Language Educator &nbsp;·&nbsp; ESL / EFL / TESOL</p>
+    </div>
+    <div class="hero-contact">
+      <div class="location-tag">
+        <svg width="9" height="12" viewBox="0 0 9 12" fill="none"><path d="M4.5 0C2.01 0 0 2.01 0 4.5c0 3.375 4.5 7.5 4.5 7.5S9 7.875 9 4.5C9 2.01 6.99 0 4.5 0zm0 6.375a1.875 1.875 0 110-3.75 1.875 1.875 0 010 3.75z" fill="currentColor"/></svg>
+        Taipei &amp; New Taipei, Taiwan
+      </div>
+      <div>+886 0968 031 857</div>
+      <div><a href="/cdn-cgi/l/email-protection#f88e94999cd691949d9390959d8c939196c9cbcac9b89f95999194d69b9795"><span class="__cf_email__" data-cfemail="baccd6dbde94d3d6dfd1d2d7dfced1d3d48b89888bfaddd7dbd3d694d9d5d7">[email&#160;protected]</span></a></div>
+    </div>
+  </header>
+
+  <!-- SUMMARY BAND -->
+  <div class="summary-band">
+    <div class="summary-inner">
+      <span class="summary-label">Profile</span>
+      <p class="summary-text">
+        Enthusiastic and adaptable English educator with experience teaching across Russia, China, and Vietnam — now based in Taiwan. Holding a BA in Linguistics and a TESOL certificate (150+ hours), I specialise in phonics, communicative teaching, and learner-centred instruction. I focus on building confidence and motivation in students while fostering positive, inclusive learning environments.
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content-grid">
+
+    <!-- LEFT: EXPERIENCE -->
+    <main>
+      <section class="section">
+        <div class="section-header">
+          <span class="section-num">01</span>
+          <h2 class="section-title">Experience</h2>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <span class="job-title">ESL Teacher</span>
+            <span class="job-date">02 / 2026 — Present</span>
+          </div>
+          <div class="job-company">ELTA Zhuwei High School &nbsp;·&nbsp; New Taipei City, Taiwan</div>
+          <ul class="job-bullets">
+            <li>Design and deliver interactive, student-centred lessons focused on speaking, listening, and literacy development.</li>
+            <li>Integrate communicative teaching approaches to improve student engagement and comprehension.</li>
+            <li>Foster a positive classroom environment while managing diverse proficiency levels.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <span class="job-title">ESL Teacher</span>
+            <span class="job-date">04 / 2025 — 07 / 2025</span>
+          </div>
+          <div class="job-company">Mom Kid Kindergarten &nbsp;·&nbsp; Hanoi, Vietnam</div>
+          <ul class="job-bullets">
+            <li>Taught 5–6-year-olds through songs, stories, and games, promoting language acquisition and social development.</li>
+            <li>Collaborated with local staff to enhance lesson engagement and classroom participation.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <span class="job-title">ESL Teacher</span>
+            <span class="job-date">02 / 2024 — 04 / 2025</span>
+          </div>
+          <div class="job-company">Rosemont American International School &nbsp;·&nbsp; Hanoi, Vietnam</div>
+          <ul class="job-bullets">
+            <li>Taught primary students (Grades 2–4) within a Cambridge Core-aligned curriculum.</li>
+            <li>Led phonics and early literacy lessons; implemented creative activities to build confidence in speaking, reading, and writing.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <span class="job-title">English Teacher</span>
+            <span class="job-date">03 / 2023 — 07 / 2024</span>
+          </div>
+          <div class="job-company">Ms Hoa Junior &nbsp;·&nbsp; Hanoi, Vietnam</div>
+          <ul class="job-bullets">
+            <li>Taught pre-school students through dynamic, play-based lessons combining songs, reading, and games.</li>
+            <li>Supported emotional and linguistic growth through positive reinforcement strategies.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <span class="job-title">English Teacher</span>
+            <span class="job-date">03 / 2023 — 06 / 2024</span>
+          </div>
+          <div class="job-company">Bach Duong School &nbsp;·&nbsp; Hanoi, Vietnam</div>
+          <ul class="job-bullets">
+            <li>Taught 100+ students (Grades 1–3) using communicative and phonics-based approaches.</li>
+            <li>Created differentiated weekly lesson plans; designed progress evaluations covering English, phonics, and math.</li>
+            <li>Fostered participation through pair work, storytelling, and project-based learning.</li>
+          </ul>
+        </div>
+
+        <div class="job">
+          <div class="job-header">
+            <span class="job-title">ESL Teacher / Activity Coordinator</span>
+            <span class="job-date">01 / 2021 — 01 / 2023</span>
+          </div>
+          <div class="job-company">Summer Camps &nbsp;·&nbsp; Russia</div>
+          <ul class="job-bullets">
+            <li>Delivered interactive English lessons for various age groups in multilingual environments.</li>
+            <li>Organised themed educational camps promoting teamwork, creativity, and communication.</li>
+            <li>Designed goal-oriented routines that built fluency and confidence in learners.</li>
+          </ul>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- RIGHT: SIDEBAR -->
+    <aside class="sidebar">
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-num">02</span>
+          <h2 class="section-title">Education</h2>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="edu-entry">
+          <div class="edu-degree">Bachelor's in Linguistics</div>
+          <div class="edu-school">Far Eastern Federal University (FEFU)</div>
+          <div class="edu-detail">Vladivostok, Russia &nbsp;·&nbsp; 2016 – 2021<br>English linguistics, intercultural communication &amp; pedagogy.</div>
+        </div>
+
+        <div class="edu-entry">
+          <div class="edu-degree">Second Language Acquisition &amp; Teaching (Specialisation)</div>
+          <div class="edu-school">Arizona State University via Coursera</div>
+          <div class="edu-detail">Lesson design, assessment, grammar, speaking, pronunciation &amp; technology-enriched instruction.</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-num">03</span>
+          <h2 class="section-title">Certifications</h2>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="cert-list">
+          <div class="cert-badge">
+            <strong>TESOL Certificate</strong>
+            150+ Hours
+          </div>
+          <div class="cert-badge">
+            <strong>ELTA Certification</strong>
+            Taiwan
+          </div>
+          <div class="cert-badge">
+            <strong>English Medium Instruction (EMI)</strong>
+            Training
+          </div>
+          <div class="cert-badge">
+            <strong>TOEFL iBT — C1</strong>
+            2024 &nbsp;·&nbsp; TOEFL IBT Center
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-num">04</span>
+          <h2 class="section-title">Skills</h2>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="skill-list">
+          <div class="skill-item"><span class="skill-dot"></span>English Language Teaching (ESL/EFL)</div>
+          <div class="skill-item"><span class="skill-dot"></span>Phonics, Reading &amp; Early Literacy</div>
+          <div class="skill-item"><span class="skill-dot"></span>Communicative &amp; Interactive Learning</div>
+          <div class="skill-item"><span class="skill-dot"></span>Lesson Planning &amp; Curriculum Design</div>
+          <div class="skill-item"><span class="skill-dot"></span>Classroom Management</div>
+          <div class="skill-item"><span class="skill-dot"></span>Student Assessment &amp; Progress Tracking</div>
+          <div class="skill-item"><span class="skill-dot"></span>Cross-Cultural Education</div>
+          <div class="skill-item"><span class="skill-dot"></span>Academic Collaboration &amp; Training</div>
+          <div class="skill-item"><span class="skill-dot"></span>TESOL &amp; Language Pedagogy</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <span class="section-num">05</span>
+          <h2 class="section-title">Languages</h2>
+          <div class="section-line"></div>
+        </div>
+
+        <div class="lang-row">
+          <span>English</span>
+          <span class="lang-level">C1</span>
+        </div>
+        <div class="lang-row">
+          <span>Russian</span>
+          <span class="lang-level">Native</span>
+        </div>
+      </section>
+
+    </aside>
+  </div>
+
+  <footer class="footer">
