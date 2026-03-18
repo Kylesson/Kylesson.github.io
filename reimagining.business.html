@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identifying Organizational Change Without External Shocks</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Epilogue:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f14;
+    --surface: #111720;
+    --surface2: #161d28;
+    --border: #1e2a38;
+    --accent: #3b9eff;
+    --accent2: #00d4aa;
+    --accent3: #ff7b54;
+    --accent4: #c87bff;
+    --text: #dde6f0;
+    --text-dim: #6e869e;
+    --text-bright: #f0f7ff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Epilogue', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,158,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,158,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 28px 100px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeUp 0.7s ease both;
+  }
+
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .hero-tag {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(59,158,255,0.1);
+    border: 1px solid rgba(59,158,255,0.2);
+    padding: 4px 12px;
+    border-radius: 2px;
+  }
+
+  .hero-line {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(to right, var(--border), transparent);
+  }
+
+  .hero-q {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.6rem, 4vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--text-bright);
+    letter-spacing: -0.02em;
+    max-width: 820px;
+    margin-bottom: 40px;
+  }
+
+  .hero-q span {
+    color: var(--accent);
+  }
+
+  /* ── TEAM CARDS ── */
+  .team {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .member {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .member:hover { border-color: var(--accent); }
+
+  .member-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .member:nth-child(1) .member-avatar { background: rgba(59,158,255,0.15); color: var(--accent); }
+  .member:nth-child(2) .member-avatar { background: rgba(0,212,170,0.15); color: var(--accent2); }
+  .member:nth-child(3) .member-avatar { background: rgba(200,123,255,0.15); color: var(--accent4); }
+
+  .member-info { line-height: 1.3; }
+  .member-name { font-size: 0.88rem; font-weight: 500; color: var(--text-bright); }
+  .member-id { font-size: 0.72rem; color: var(--text-dim); font-family: 'Epilogue', monospace; }
+
+  /* ── SECTION LABELS ── */
+  .section-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+    margin-top: 60px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── INTRO STRIP ── */
+  .intro-strip {
+    background: linear-gradient(135deg, rgba(59,158,255,0.07), rgba(0,212,170,0.05));
+    border: 1px solid rgba(59,158,255,0.15);
+    border-radius: 8px;
+    padding: 24px 28px;
+    font-size: 1rem;
+    color: var(--text);
+    font-style: italic;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .intro-strip::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-size: 6rem;
+    font-family: 'Syne', sans-serif;
+    color: rgba(59,158,255,0.07);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* ── INNOVATE SECTION ── */
+  .innovate-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    animation: fadeUp 0.7s 0.15s ease both;
+  }
+
+  .innovate-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+
+  .innovate-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent2);
+  }
+
+  .innovate-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--accent2), var(--accent));
+  }
+
+  .innovate-icon {
+    font-size: 1.6rem;
+    margin-bottom: 12px;
+  }
+
+  .innovate-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    margin-bottom: 10px;
+  }
+
+  .innovate-body {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+
+  /* ── IDENTIFY SECTION ── */
+  .identify-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .identify-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .identify-card:hover { border-color: rgba(59,158,255,0.4); }
+
+  .identify-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .identify-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .card-1 .identify-num { background: rgba(59,158,255,0.12); color: var(--accent); }
+  .card-2 .identify-num { background: rgba(0,212,170,0.12); color: var(--accent2); }
+  .card-3 .identify-num { background: rgba(255,123,84,0.12); color: var(--accent3); }
+  .card-4 .identify-num { background: rgba(200,123,255,0.12); color: var(--accent4); }
+  .card-5 .identify-num { background: rgba(59,158,255,0.12); color: var(--accent); }
+  .card-6 .identify-num { background: rgba(0,212,170,0.12); color: var(--accent2); }
+  .card-7 .identify-num { background: rgba(255,123,84,0.12); color: var(--accent3); }
+
+  .identify-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-bright);
+    flex: 1;
+  }
+
+  .identify-chevron {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    transition: transform 0.25s;
+  }
+
+  .identify-card.open .identify-chevron {
+    transform: rotate(180deg);
+  }
+
+  .identify-body {
+    display: none;
+    padding: 0 24px 22px 72px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+  }
+
+  .identify-card.open .identify-body { display: block; }
+
+  .identify-body p { margin-bottom: 10px; }
+  .identify-body p:last-child { margin-bottom: 0; }
+
+  .sub-list {
+    list-style: none;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .sub-list li {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .sub-bullet {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-top: 9px;
+    flex-shrink: 0;
+  }
+
+  .card-1 .sub-bullet { background: var(--accent); }
+  .card-2 .sub-bullet { background: var(--accent2); }
+  .card-3 .sub-bullet { background: var(--accent3); }
+  .card-4 .sub-bullet { background: var(--accent4); }
+  .card-5 .sub-bullet { background: var(--accent); }
+  .card-6 .sub-bullet { background: var(--accent2); }
+  .card-7 .sub-bullet { background: var(--accent3); }
+
+  .highlight-box {
+    background: rgba(59,158,255,0.06);
+    border: 1px solid rgba(59,158,255,0.15);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  .highlight-box strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ── FRAMEWORK PILLS ── */
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .pill {
+    font-size: 0.78rem;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+
+  .pill-blue  { background: rgba(59,158,255,0.1);  color: var(--accent);  border-color: rgba(59,158,255,0.25); }
+  .pill-green { background: rgba(0,212,170,0.1);   color: var(--accent2); border-color: rgba(0,212,170,0.25); }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .innovate-grid { grid-template-columns: 1fr; }
+    .identify-body { padding-left: 24px; }
+    .footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-meta">
+      <span class="hero-tag">Group Presentation</span>
+      <div class="hero-line"></div>
+    </div>
+    <h1 class="hero-q">How can managers identify needed changes for an organization <span>without external shocks?</span></h1>
+    <div class="team">
+      <div class="member">
+        <div class="member-avatar">范</div>
+        <div class="member-info">
+          <div class="member-name">范克南</div>
+          <div class="member-id">613585271</div>
+        </div>
+      </div>
+      <div class="member">
+        <div class="member-avatar">阮</div>
+        <div class="member-info">
+          <div class="member-name">阮氏如玉</div>
+          <div class="member-id">614585247</div>
+        </div>
+      </div>
+      <div class="member">
+        <div class="member-avatar">易</div>
+        <div class="member-info">
+          <div class="member-name">易拉夫</div>
+          <div class="member-id">614585122</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEXT -->
+  <div class="section-label">Discussion Context</div>
+  <div class="intro-strip">
+    Before proceeding to the answer, we discussed how a team could innovate through collaboration and empowerment — recognizing that internal change capacity is a prerequisite for identifying and acting on needed organizational shifts.
+  </div>
+
+  <!-- HOW TO INNOVATE -->
+  <div class="section-label">How to Innovate</div>
+  <div class="innovate-grid">
+    <div class="innovate-card">
+      <div class="innovate-icon">💡</div>
+      <div class="innovate-title">Empower Idea Generation</div>
+      <div class="innovate-body">Create structured opportunities for innovation through weekly, monthly, or quarterly forums where teams contribute ideas. Rotate ownership across departments to ensure cross-functional perspectives and avoid siloed thinking.</div>
+    </div>
+    <div class="innovate-card">
+      <div class="innovate-icon">🎯</div>
+      <div class="innovate-title">Set Measurable Innovation Targets</div>
+      <div class="innovate-body">Define a minimum innovation quota — e.g., at least one implemented initiative per year. This shifts innovation from an abstract goal to an operational KPI, forcing teams to experiment and expand capabilities.</div>
+    </div>
+  </div>
+
+  <!-- HOW TO IDENTIFY -->
+  <div class="section-label">How to Identify — 7 Methods</div>
+  <div class="identify-list">
+
+    <div class="identify-card card-1 open">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">01</span>
+        <span class="identify-title">Internal Performance Gap Analysis</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>The most direct way is to compare actual results against planned targets. If KPIs like employee productivity, profit margins, or quality control are trending downward, it signals that current processes are becoming obsolete.</p>
+        <div class="highlight-box">
+          <strong>Key signals:</strong> Declining KPIs, missed targets, rising cost-per-unit, increasing error rates.
+        </div>
+      </div>
+    </div>
+
+    <div class="identify-card card-2">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">02</span>
+        <span class="identify-title">Feedback Loops & "Bottom-Up" Communication</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>Frontline employees often see inefficiencies long before leadership does. Managers can identify change needs by:</p>
+        <ul class="sub-list">
+          <li><span class="sub-bullet"></span><span><strong style="color:var(--text-bright)">Stay Interviews:</strong> Asking employees what hinders their daily work.</span></li>
+          <li><span class="sub-bullet"></span><span><strong style="color:var(--text-bright)">Suggestion Boxes:</strong> Encouraging "intrapreneurship" where staff propose better ways to operate.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="identify-card card-3">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">03</span>
+        <span class="identify-title">Organizational Culture Audits</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>A decline in morale, high employee turnover, and increased absences are considered internal disruptions. If the culture becomes toxic or stagnant, it's a leading indicator that organizational structure or leadership style needs an overhaul.</p>
+        <div class="highlight-box">
+          <strong>Watch for:</strong> Turnover spikes, disengagement scores, absenteeism patterns, and exit interview themes.
+        </div>
+      </div>
+    </div>
+
+    <div class="identify-card card-4">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">04</span>
+        <span class="identify-title">Benchmarking & Continuous Improvement (Kaizen)</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>Even if the company is doing well, managers can look at industry leaders. If a competitor achieves the same output with 20% fewer resources, that gap identifies a need for change in internal efficiency.</p>
+        <p>Even without external shocks, firms may fall behind industry leaders. Using tools like SWOT analysis, managers can:</p>
+        <ul class="sub-list">
+          <li><span class="sub-bullet"></span><span>Identify internal weaknesses</span></li>
+          <li><span class="sub-bullet"></span><span>Anticipate external threats</span></li>
+          <li><span class="sub-bullet"></span><span>Recognize missed opportunities</span></li>
+        </ul>
+        <div class="highlight-box" style="margin-top:14px;">
+          <strong>Tip:</strong> Avoid narrow thinking — regularly analyze both related and unrelated industries. Many major innovations come from applying ideas across fields, not just from direct competitors.
+        </div>
+      </div>
+    </div>
+
+    <div class="identify-card card-5">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">05</span>
+        <span class="identify-title">Utilizing Business Frameworks</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>Managers often use diagnostic tools to scan for internal misalignment:</p>
+        <ul class="sub-list">
+          <li><span class="sub-bullet"></span><span><strong style="color:var(--text-bright)">McKinsey 7-S Framework:</strong> Checking if "Soft" elements (Staff, Skills, Shared Values) still align with "Hard" elements (Strategy, Structure, Systems).</span></li>
+          <li><span class="sub-bullet"></span><span><strong style="color:var(--text-bright)">Value Chain Analysis:</strong> Examining every step of production to find where value is being lost or where "bloat" exists.</span></li>
+        </ul>
+        <div class="pill-row">
+          <span class="pill pill-blue">McKinsey 7-S</span>
+          <span class="pill pill-green">Value Chain Analysis</span>
+          <span class="pill pill-blue">SWOT Analysis</span>
+          <span class="pill pill-green">Kaizen</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="identify-card card-6">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">06</span>
+        <span class="identify-title">Organizational Overconfidence</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>A prevailing mindset of <em>"we are already the best"</em> often blinds teams to inefficiencies and emerging risks that require attention.</p>
+        <ul class="sub-list">
+          <li><span class="sub-bullet"></span><span>Resistance to feedback, experimentation, or external perspectives.</span></li>
+          <li><span class="sub-bullet"></span><span>Opportunities for growth and innovation are frequently overlooked or dismissed.</span></li>
+        </ul>
+        <div class="highlight-box">
+          <strong>Signal:</strong> When a team consistently rejects outside benchmarks, it may indicate dangerous overconfidence rather than genuine strength.
+        </div>
+      </div>
+    </div>
+
+    <div class="identify-card card-7">
+      <div class="identify-header" onclick="toggle(this)">
+        <span class="identify-num">07</span>
+        <span class="identify-title">Innovation Stagnation</span>
+        <span class="identify-chevron">▼</span>
+      </div>
+      <div class="identify-body">
+        <p>When the process of innovation itself has not evolved over time, this often results in diminishing returns — as outdated approaches fail to address current challenges effectively.</p>
+        <ul class="sub-list">
+          <li><span class="sub-bullet"></span><span>Repetitive reliance on the same methods, tools, or formats creates rigidity.</span></li>
+          <li><span class="sub-bullet"></span><span>Teams struggle to respond to new opportunities or changing market conditions.</span></li>
+        </ul>
+        <div class="highlight-box">
+          <strong>Ask:</strong> When was the last time the team tried a fundamentally new approach? If the answer is unclear, stagnation has likely set in.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>Organizational Change Management</span>
+    <span>Group Presentation · 3 Members</span>
+  </footer>
+
+</div>
+
+<script>
+  function toggle(header) {
+    const card = header.closest('.identify-card');
+    card.classList.toggle('open');
+  }
+</script>
+</body>
+</html>
