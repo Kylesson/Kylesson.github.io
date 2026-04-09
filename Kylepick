@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kyle's Pick – Kyle's Pick Picker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap');
+
+  :root { --total: 35; }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(135deg, #ff9ff3 0%, #ffeaa7 25%, #81ecec 50%, #a29bfe 75%, #fd79a8 100%);
+    background-size: 400% 400%;
+    animation: bgShift 10s ease infinite;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  @keyframes bgShift {
+    0%,100%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+  }
+
+  /* Floating emojis */
+  .floater {
+    position: fixed;
+    font-size: 2rem;
+    pointer-events: none;
+    animation: floatUp linear infinite;
+    opacity: 0.35;
+    z-index: 0;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Title */
+  .Kyle's Pick {
+    font-family: 'Fredoka One', cursive;
+    background: linear-gradient(90deg, #e84393, #ff6b6b, #ffa500, #ffe600, #00d2ff, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.2));
+  }
+
+  /* Student card bubbles */
+  .student-card {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 3px solid rgba(255,255,255,0.6);
+    position: relative;
+    user-select: none;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+  }
+  .student-card:hover:not(.used) {
+    transform: scale(1.15);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .student-card.selected {
+    border: 4px solid #ffe600 !important;
+    box-shadow: 0 0 0 4px #ffe600, 0 0 20px 8px #ffe60088 !important;
+    transform: scale(1.2);
+    animation: pulseSelected 1s ease-in-out infinite;
+  }
+  @keyframes pulseSelected {
+    0%,100%{box-shadow:0 0 0 4px #ffe600,0 0 20px 8px #ffe60088;}
+    50%{box-shadow:0 0 0 6px #ffe600,0 0 30px 14px #ffe600bb;}
+  }
+  .student-card.used {
+    opacity: 0.15;
+    cursor: not-allowed;
+    transform: scale(0.85);
+    filter: grayscale(1);
+    pointer-events: none;
+  }
+  .student-card.flying {
+    position: fixed !important;
+    z-index: 200;
+    transition: none;
+    animation: flyAround 0.5s ease-in-out infinite alternate;
+  }
+  @keyframes flyAround {
+    0%  { transform: translate(0,0) rotate(-15deg) scale(1); }
+    25% { transform: translate(10px,-12px) rotate(20deg) scale(1.1); }
+    50% { transform: translate(-8px,8px) rotate(-10deg) scale(0.9); }
+    75% { transform: translate(12px,5px) rotate(30deg) scale(1.15); }
+    100%{ transform: translate(-5px,-10px) rotate(-25deg) scale(1.05); }
+  }
+  .student-card.chosen-flash {
+    animation: chosenFlash 0.4s ease-in-out 4;
+  }
+  @keyframes chosenFlash {
+    0%,100%{transform:scale(1) rotate(0deg);}
+    25%{transform:scale(1.5) rotate(-15deg);}
+    75%{transform:scale(1.5) rotate(15deg);}
+  }
+
+  /* Center pair display */
+  .pair-circle {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.8rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    border: 5px solid rgba(255,255,255,0.7);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    0%{transform:scale(0) rotate(-180deg);opacity:0;}
+    100%{transform:scale(1) rotate(0deg);opacity:1;}
+  }
+  .pair-circle.correct-glow {
+    box-shadow: 0 0 0 6px #00e676, 0 0 40px 16px #00e67688 !important;
+    animation: correctPulse 0.6s ease-in-out 3;
+  }
+  @keyframes correctPulse {
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.08);}
+  }
+
+  /* Buttons */
+  .btn-rainbow {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    padding: 14px 36px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    background: linear-gradient(90deg,#ff6b6b,#ffa500,#ffe600,#00d2ff,#a855f7,#ff6b6b);
+    background-size: 300% 100%;
+    animation: rainbowShift 2s linear infinite, bounceBtn 1.2s ease-in-out infinite;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    transition: transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-rainbow:hover { transform: scale(1.07); }
+  .btn-rainbow:active { transform: scale(0.95); }
+  @keyframes rainbowShift {
+    0%{background-position:0% 50%}
+    100%{background-position:300% 50%}
+  }
+  @keyframes bounceBtn {
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-5px);}
+  }
+
+  .btn-green {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    padding: 12px 30px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg,#00e676,#00c853);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px rgba(0,200,83,0.5);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-green:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(0,200,83,0.7); }
+  .btn-green:active { transform: scale(0.95); }
+
+  .btn-red {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    padding: 12px 30px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg,#ff5252,#d32f2f);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px rgba(211,47,47,0.5);
+    transition: transform 0.15s;
+  }
+  .btn-red:hover { transform: scale(1.08); }
+  .btn-red:active { transform: scale(0.95); }
+
+  .btn-next {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    padding: 12px 32px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg,#a855f7,#7c3aed);
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 16px rgba(124,58,237,0.5);
+    transition: transform 0.15s;
+    animation: bounceBtn 1s ease-in-out infinite;
+  }
+  .btn-next:hover { transform: scale(1.08); }
+
+  .btn-reset {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    padding: 8px 22px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg,#f97316,#dc2626);
+    color: white;
+    box-shadow: 0 3px 12px rgba(220,38,38,0.4);
+    transition: transform 0.15s;
+  }
+  .btn-reset:hover { transform: scale(1.07); }
+
+  /* Panels */
+  .glass-panel {
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+
+  /* Counter badge */
+  .counter-badge {
+    font-family: 'Fredoka One', cursive;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50px;
+    padding: 4px 18px;
+    font-size: 1.1rem;
+    color: #7c3aed;
+    border: 2px solid #a855f7;
+    display: inline-block;
+  }
+
+  /* Pair found text */
+  .pair-found-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    background: linear-gradient(90deg,#ff6b6b,#a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textBounce 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes textBounce {
+    0%{transform:scale(1) rotate(-2deg);}
+    100%{transform:scale(1.05) rotate(2deg);}
+  }
+
+  /* Paired list items */
+  .pair-item {
+    background: rgba(255,255,255,0.7);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: slideIn 0.3s ease;
+    border: 2px solid rgba(255,255,255,0.8);
+  }
+  @keyframes slideIn {
+    from{transform:translateX(30px);opacity:0;}
+    to{transform:translateX(0);opacity:1;}
+  }
+
+  /* Canvas for confetti */
+  #confetti-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Tooltip */
+  .tooltip-box {
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 8px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 1000;
+  }
+
+  /* Edit students modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-box {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    min-width: 320px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+
+  /* Bye message */
+  .bye-msg {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: #f59e0b;
+    text-align: center;
+    animation: textBounce 0.7s ease-in-out infinite alternate;
+    padding: 20px;
+  }
+
+  /* Sparkles */
+  .sparkle {
+    position: absolute;
+    pointer-events: none;
+    font-size: 1.5rem;
+    animation: sparkleAnim 0.8s ease-out forwards;
+    z-index: 300;
+  }
+  @keyframes sparkleAnim {
+    0%{transform:scale(0) translate(0,0);opacity:1;}
+    100%{transform:scale(1.5) translate(var(--dx),var(--dy));opacity:0;}
+  }
+
+  /* Scroll for paired list */
+  #paired-list {
+    max-height: 340px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #a855f7 transparent;
+  }
+
+  .edit-btn {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.85rem;
+    padding: 5px 14px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.4);
+    transition: transform 0.15s;
+  }
+  .edit-btn:hover { transform: scale(1.07); }
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- Floating emojis -->
+<div id="floaters"></div>
+
+<!-- Modal for editing student count -->
+<div id="edit-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h2 style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:#7c3aed;margin-bottom:16px;">✏️ Edit Student Count</h2>
+    <p style="font-size:0.9rem;color:#555;margin-bottom:12px;">Enter the number of students (1–60):</p>
+    <input id="student-count-input" type="number" min="1" max="60" value="35"
+      style="width:100%;padding:10px 14px;border-radius:12px;border:2px solid #a855f7;font-size:1.2rem;font-family:'Fredoka One',cursive;color:#7c3aed;outline:none;margin-bottom:16px;"/>
+    <div style="display:flex;gap:12px;">
+      <button onclick="applyStudentCount()" class="btn-green" style="flex:1;font-size:1rem;padding:10px;">✅ Apply</button>
+      <button onclick="closeModal()" class="btn-red" style="flex:1;font-size:1rem;padding:10px;">❌ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main layout -->
+<div style="position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;">
+
+  <!-- HEADER -->
+  <header class="glass-panel" style="margin:16px 16px 0;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 class="goofy-title" style="font-size:2.4rem;line-height:1;margin:0;">🎲 Kyle's Pick</h1>
+      <p style="font-family:'Fredoka One',cursive;color:#7c3aed;font-size:1rem;margin:2px 0 0;opacity:0.85;" id="subtitle-text">35 Students – Random Pairing Madness!</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="counter-badge">Available: <span id="available-count" style="color:#e84393;">35</span></div>
+      <button class="edit-btn" onclick="openModal()" title="Change number of students">✏️ Edit Students</button>
+      <button class="btn-reset" onclick="resetAll()" title="Reset everything and start over">🔄 Reset All</button>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div style="display:flex;flex:1;gap:14px;padding:14px 16px;min-height:0;">
+
+    <!-- LEFT: Student grid -->
+    <div class="glass-panel" style="width:30%;padding:16px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:#7c3aed;">👥 Students</span>
+        <span style="font-size:0.75rem;color:#555;background:rgba(255,255,255,0.7);border-radius:8px;padding:2px 8px;">Click to pick first!</span>
+      </div>
+      <div id="student-grid" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:flex-start;overflow-y:auto;flex:1;max-height:calc(100vh - 200px);padding:4px;"></div>
+    </div>
+
+    <!-- CENTER: Pair display -->
+    <div style="width:40%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;" id="center-panel">
+      <div id="center-idle" style="text-align:center;opacity:0.6;">
+        <div style="font-size:5rem;">🤔</div>
+        <p style="font-family:'Fredoka One',cursive;font-size:1.3rem;color:#7c3aed;">Pick a student from the left to start!</p>
+        <p style="font-size:0.85rem;color:#555;">Click any numbered bubble to select your first student.</p>
+      </div>
+
+      <div id="center-selected" style="display:none;text-align:center;flex-direction:column;align-items:center;gap:16px;">
+        <p style="font-family:'Fredoka One',cursive;font-size:1.2rem;color:#f59e0b;">⭐ First Student Selected!</p>
+        <div id="selected-preview" class="pair-circle" style="background:linear-gradient(135deg,#f59e0b,#f97316);width:100px;height:100px;font-size:2.2rem;">?</div>
+        <button class="btn-rainbow" onclick="choosePair()" id="choose-btn">🎲 CHOOSE A PAIR!</button>
+      </div>
+
+      <div id="center-pair" style="display:none;flex-direction:column;align-items:center;gap:14px;">
+        <div class="pair-found-text">PAIR FOUND! 🎉</div>
+        <div style="display:flex;align-items:center;gap:18px;">
+          <div id="pair-circle-a" class="pair-circle" style="background:linear-gradient(135deg,#f59e0b,#f97316);">?</div>
+          <div style="font-family:'Fredoka One',cursive;font-size:2.5rem;animation:textBounce 0.5s infinite alternate;">❤️</div>
+          <div id="pair-circle-b" class="pair-circle" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);">?</div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;" id="judgment-btns">
+          <button class="btn-green" onclick="judgeCorrect()">✅ CORRECT</button>
+          <button class="btn-red" onclick="judgeIncorrect()">❌ INCORRECT</button>
+        </div>
+        <button id="next-btn" class="btn-next" onclick="nextPair()" style="display:none;">NEXT PAIR →</button>
+      </div>
+
+      <div id="center-bye" style="display:none;text-align:center;">
+        <div style="font-size:5rem;">🏆</div>
+        <p class="bye-msg">Last student gets a BYE! 🏆</p>
+        <p style="font-family:'Fredoka One',cursive;font-size:1.5rem;color:#7c3aed;">Student <span id="bye-student" style="color:#e84393;">?</span> is the champion!</p>
+        <button class="btn-reset" style="margin-top:12px;font-size:1rem;padding:10px 24px;" onclick="resetAll()">🔄 Play Again!</button>
+      </div>
+
+      <div id="center-done" style="display:none;text-align:center;">
+        <div style="font-size:5rem;">🥳</div>
+        <p style="font-family:'Fredoka One',cursive;font-size:1.6rem;color:#7c3aed;">All paired up!</p>
+        <button class="btn-reset" style="margin-top:12px;font-size:1rem;padding:10px 24px;" onclick="resetAll()">🔄 Play Again!</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Controls + paired list -->
+    <div class="glass-panel" style="width:30%;padding:16px;display:flex;flex-direction:column;gap:16px;">
+      <div>
+        <p style="font-family:'Fredoka One',cursive;font-size:1.1rem;color:#7c3aed;margin-bottom:8px;">💑 Paired Students (<span id="pair-count">0</span>)</p>
+        <div id="paired-list" style="display:flex;flex-direction:column;gap:6px;">
+          <p id="no-pairs-msg" style="font-size:0.85rem;color:#888;text-align:center;padding:8px;">No pairs yet — get going! 🚀</p>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.5);border-radius:16px;padding:14px;margin-top:auto;">
+        <p style="font-family:'Fredoka One',cursive;font-size:0.95rem;color:#7c3aed;margin-bottom:6px;">📋 How to Play</p>
+        <ol style="font-size:0.78rem;color:#444;margin:0;padding-left:16px;line-height:1.7;">
+          <li>Click a student bubble on the left.</li>
+          <li>Press <strong>CHOOSE A PAIR!</strong> button.</li>
+          <li>Watch the chaos unfold! 🤪</li>
+          <li>Mark ✅ or ❌ for the pair.</li>
+          <li>Press <strong>NEXT PAIR →</strong> to continue.</li>
+        </ol>
+      </div>
+    </div>
+
+  </div><!-- end body -->
+</div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let totalStudents = 35;
+let available = [];
+let usedStudents = new Set();
+let firstStudent = null;
+let secondStudent = null;
+let pairs = [];
+let isAnimating = false;
+let flyingElements = [];
+
+const CARD_COLORS = [
+  'linear-gradient(135deg,#f97316,#ef4444)',
+  'linear-gradient(135deg,#a855f7,#7c3aed)',
+  'linear-gradient(135deg,#06b6d4,#3b82f6)',
+  'linear-gradient(135deg,#22c55e,#16a34a)',
+  'linear-gradient(135deg,#ec4899,#db2777)',
+  'linear-gradient(135deg,#f59e0b,#d97706)',
+  'linear-gradient(135deg,#14b8a6,#0891b2)',
+  'linear-gradient(135deg,#8b5cf6,#6366f1)',
+  'linear-gradient(135deg,#84cc16,#65a30d)',
+  'linear-gradient(135deg,#fb7185,#e11d48)',
+];
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  available = Array.from({length: totalStudents}, (_,i) => i+1);
+  usedStudents = new Set();
+  firstStudent = null; secondStudent = null;
+  pairs = [];
+  isAnimating = false;
+  flyingElements = [];
+  buildGrid();
+  renderPairedList();
+  showCenter('idle');
+  updateCounter();
+  document.getElementById('subtitle-text').textContent = `${totalStudents} Students – Random Pairing Madness!`;
+}
+
+function buildGrid() {
+  const grid = document.getElementById('student-grid');
+  grid.innerHTML = '';
+  for(let i = 1; i <= totalStudents; i++) {
+    const el = document.createElement('div');
+    el.className = 'student-card';
+    el.id = `sc-${i}`;
+    el.textContent = i;
+    el.style.background = CARD_COLORS[(i-1) % CARD_COLORS.length];
+    el.title = `Student ${i} – Click to select as first student`;
+    el.onclick = () => selectFirst(i);
+    grid.appendChild(el);
+  }
+}
+
+// ─── UI HELPERS ───────────────────────────────────────────────────────────────
+function showCenter(view) {
+  ['idle','selected','pair','bye','done'].forEach(v => {
+    const el = document.getElementById(`center-${v}`);
+    el.style.display = (v === view) ? 'flex' : 'none';
+    if(v === view && (v==='idle'||v==='bye'||v==='done')) el.style.display='block';
+  });
+}
+
+function updateCounter() {
+  const cnt = totalStudents - usedStudents.size;
+  document.getElementById('available-count').textContent = cnt;
+}
+
+function getCardColor(num) {
+  return CARD_COLORS[(num-1) % CARD_COLORS.length];
+}
+
+// ─── SELECT FIRST ─────────────────────────────────────────────────────────────
+function selectFirst(num) {
+  if(isAnimating) return;
+  if(usedStudents.has(num)) return;
+
+  // Deselect previous
+  if(firstStudent !== null) {
+    const prev = document.getElementById(`sc-${firstStudent}`);
+    if(prev) prev.classList.remove('selected');
+  }
+
+  firstStudent = num;
+  const el = document.getElementById(`sc-${num}`);
+  if(el) el.classList.add('selected');
+
+  // Update preview
+  const preview = document.getElementById('selected-preview');
+  preview.textContent = num;
+  preview.style.background = getCardColor(num);
+
+  showCenter('selected');
+}
+
+// ─── CHOOSE PAIR ──────────────────────────────────────────────────────────────
+function choosePair() {
+  if(isAnimating || firstStudent === null) return;
+
+  const avail = available.filter(n => n !== firstStudent && !usedStudents.has(n));
+  if(avail.length === 0) {
+    // Only one student left (the first) — they get a bye
+    showByeFor(firstStudent);
+    return;
+  }
+  if(avail.length === 1 && usedStudents.size + 2 >= totalStudents) {
+    // pick it directly without chaos
+    const chosen = avail[0];
+    revealPair(firstStudent, chosen);
+    return;
+  }
+
+  isAnimating = true;
+  document.getElementById('choose-btn').disabled = true;
+
+  // Pick winner ahead of time
+  const chosen = avail[Math.floor(Math.random() * avail.length)];
+
+  // Grab all available card elements and make them fly
+  const cardEls = avail.map(n => document.getElementById(`sc-${n}`)).filter(Boolean);
+
+  // Store original positions
+  const rects = {};
+  cardEls.forEach(el => {
+    rects[el.id] = el.getBoundingClientRect();
+  });
+
+  // Clone each card as a flying element
+  flyingElements = [];
+  cardEls.forEach(el => {
+    const r = rects[el.id];
+    const clone = document.createElement('div');
+    clone.className = 'student-card flying';
+    clone.textContent = el.textContent;
+    clone.style.background = el.style.background;
+    clone.style.left = r.left + 'px';
+    clone.style.top  = r.top  + 'px';
+    clone.style.width = r.width + 'px';
+    clone.style.height = r.height + 'px';
+    document.body.appendChild(clone);
+    flyingElements.push(clone);
+  });
+
+  // Hide originals while flying
+  cardEls.forEach(el => el.style.visibility = 'hidden');
+
+  // Random movement during chaos
+  const chaosInterval = setInterval(() => {
+    flyingElements.forEach(clone => {
+      const x = Math.random() * (window.innerWidth * 0.8) + window.innerWidth * 0.1;
+      const y = Math.random() * (window.innerHeight * 0.7) + window.innerHeight * 0.1;
+      clone.style.left = x + 'px';
+      clone.style.top  = y + 'px';
+      clone.style.background = CARD_COLORS[Math.floor(Math.random()*CARD_COLORS.length)];
+      const scale = 0.7 + Math.random() * 1.2;
+      clone.style.fontSize = (scale * 1.1) + 'rem';
+    });
+  }, 350);
+
+  // After 2.5s, stop chaos
+  setTimeout(() => {
+    clearInterval(chaosInterval);
+    // Remove all flying clones except the chosen one
+    flyingElements.forEach(clone => {
+      if(clone.textContent != chosen) {
+        clone.remove();
+      }
+    });
+
+    // Restore originals
+    cardEls.forEach(el => el.style.visibility = '');
+
+    // Animate the chosen clone to center
+    const chosenClone = flyingElements.find(c => c.textContent == chosen);
+    if(chosenClone) {
+      chosenClone.style.transition = 'all 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+      chosenClone.style.left = (window.innerWidth/2 - 40) + 'px';
+      chosenClone.style.top  = (window.innerHeight/2 - 40) + 'px';
+      chosenClone.style.width  = '80px';
+      chosenClone.style.height = '80px';
+      chosenClone.style.fontSize = '1.8rem';
+      chosenClone.style.zIndex = '500';
+      chosenClone.style.animation = 'chosenFlash 0.4s ease-in-out 3';
+      chosenClone.style.background = getCardColor(parseInt(chosen));
+      setTimeout(() => {
+        chosenClone.remove();
+        isAnimating = false;
+        revealPair(firstStudent, chosen);
+      }, 1400);
+    } else {
+      isAnimating = false;
+      revealPair(firstStudent, chosen);
+    }
+    flyingElements = [];
+  }, 2500);
+}
+
+// ─── REVEAL PAIR ─────────────────────────────────────────────────────────────
+function revealPair(a, b) {
+  secondStudent = b;
+
+  const ca = document.getElementById('pair-circle-a');
+  const cb = document.getElementById('pair-circle-b');
+  ca.textContent = a;
+  ca.style.background = getCardColor(a);
+  ca.classList.remove('correct-glow');
+  cb.textContent = b;
+  cb.style.background = getCardColor(b);
+  cb.classList.remove('correct-glow');
+
+  // Re-trigger animation
+  ca.style.animation = 'none'; cb.style.animation = 'none';
+  requestAnimationFrame(() => {
+    ca.style.animation = ''; cb.style.animation = '';
+  });
+
+  document.getElementById('judgment-btns').style.display = 'flex';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('choose-btn').disabled = false;
+
+  showCenter('pair');
+}
+
+// ─── JUDGMENT ────────────────────────────────────────────────────────────────
+function judgeCorrect() {
+  const ca = document.getElementById('pair-circle-a');
+  const cb = document.getElementById('pair-circle-b');
+  ca.classList.add('correct-glow');
+  cb.classList.add('correct-glow');
+  launchConfetti();
+  spawnSparkles(ca);
+  spawnSparkles(cb);
+  document.getElementById('judgment-btns').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function judgeIncorrect() {
+  document.getElementById('judgment-btns').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+// ─── NEXT PAIR ───────────────────────────────────────────────────────────────
+function nextPair() {
+  // Mark both students as used
+  usedStudents.add(firstStudent);
+  usedStudents.add(secondStudent);
+  available = available.filter(n => !usedStudents.has(n));
+
+  // Fade out cards
+  [firstStudent, secondStudent].forEach(n => {
+    const el = document.getElementById(`sc-${n}`);
+    if(el) {
+      el.style.transition = 'all 0.5s';
+      el.classList.remove('selected');
+      el.classList.add('used');
+    }
+  });
+
+  // Record pair
+  pairs.push([firstStudent, secondStudent]);
+  renderPairedList();
+  updateCounter();
+
+  firstStudent = null; secondStudent = null;
+
+  // Check state
+  const remaining = available.length;
+  if(remaining === 0) {
+    showCenter('done');
+  } else if(remaining === 1) {
+    showByeFor(available[0]);
+  } else {
+    showCenter('idle');
+  }
+}
+
+function showByeFor(num) {
+  usedStudents.add(num);
+  const el = document.getElementById(`sc-${num}`);
+  if(el) {
+    el.style.transition = 'all 0.5s';
+    el.classList.add('used');
+  }
+  available = available.filter(n => n !== num);
+  updateCounter();
+  document.getElementById('bye-student').textContent = num;
+  showCenter('bye');
+  launchConfetti();
+}
+
+// ─── PAIRED LIST ─────────────────────────────────────────────────────────────
+const PAIR_EMOJIS = ['❤️','💛','💚','💙','💜','🧡','🤍','💖','💝'];
+function renderPairedList() {
+  const list = document.getElementById('paired-list');
+  const noMsg = document.getElementById('no-pairs-msg');
+  document.getElementById('pair-count').textContent = pairs.length;
+  if(pairs.length === 0) {
+    noMsg.style.display = 'block';
+    // Remove pair items
+    list.querySelectorAll('.pair-item').forEach(e=>e.remove());
+    return;
+  }
+  noMsg.style.display = 'none';
+  list.querySelectorAll('.pair-item').forEach(e=>e.remove());
+  pairs.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'pair-item';
+    const emoji = PAIR_EMOJIS[i % PAIR_EMOJIS.length];
+    const badgeA = `<span style="background:${getCardColor(p[0])};color:white;padding:2px 8px;border-radius:20px;font-size:0.9rem;">${p[0]}</span>`;
+    const badgeB = `<span style="background:${getCardColor(p[1])};color:white;padding:2px 8px;border-radius:20px;font-size:0.9rem;">${p[1]}</span>`;
+    item.innerHTML = `<span style="color:#888;font-size:0.75rem;min-width:18px;">${i+1}.</span>${badgeA}<span>${emoji}</span>${badgeB}`;
+    list.appendChild(item);
+  });
+  // Scroll to bottom
+  list.scrollTop = list.scrollHeight;
+}
+
+// ─── RESET ────────────────────────────────────────────────────────────────────
+function resetAll() {
+  // Remove any leftover flying clones
+  flyingElements.forEach(c => c.remove());
+  flyingElements = [];
+  isAnimating = false;
+  init();
+}
+
+// ─── EDIT MODAL ──────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('student-count-input').value = totalStudents;
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+function closeModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+}
+function applyStudentCount() {
+  const val = parseInt(document.getElementById('student-count-input').value);
+  if(isNaN(val) || val < 1 || val > 60) {
+    alert('Please enter a number between 1 and 60!');
+    return;
+  }
+  totalStudents = val;
+  closeModal();
+  resetAll();
+}
+
+// ─── CONFETTI ─────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('confetti-canvas');
+const ctx = canvas.getContext('2d');
+let confettiParticles = [];
+
+function launchConfetti() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#ff6b6b','#ffa500','#ffe600','#00d2ff','#a855f7','#f97316','#22c55e','#ec4899','#06b6d4'];
+  for(let i = 0; i < 220; i++) {
+    confettiParticles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 12 + 4,
+      h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random()-0.5) * 0.2,
+      vx: (Math.random()-0.5)*4,
+      vy: Math.random()*3+2,
+      opacity: 1,
+    });
+  }
+  if(!confettiAnimating) animateConfetti();
+}
+
+let confettiAnimating = false;
+function animateConfetti() {
+  confettiAnimating = true;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  confettiParticles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.rotation += p.rotSpeed;
+    if(p.y > canvas.height) p.opacity -= 0.05;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.opacity);
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  });
+  confettiParticles = confettiParticles.filter(p => p.opacity > 0);
+  if(confettiParticles.length > 0) {
+    requestAnimationFrame(animateConfetti);
+  } else {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    confettiAnimating = false;
+  }
+}
+
+// ─── SPARKLES ─────────────────────────────────────────────────────────────────
+const SPARK_EMOJIS = ['✨','⭐','🌟','💥','🎉','🎊'];
+function spawnSparkles(el) {
+  const r = el.getBoundingClientRect();
+  const cx = r.left + r.width/2;
+  const cy = r.top + r.height/2;
+  for(let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = SPARK_EMOJIS[Math.floor(Math.random()*SPARK_EMOJIS.length)];
+    const angle = (i/8)*Math.PI*2;
+    const dist = 50 + Math.random()*50;
+    s.style.setProperty('--dx', Math.cos(angle)*dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle)*dist + 'px');
+    s.style.left = cx + 'px';
+    s.style.top  = cy + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  }
+}
+
+// ─── FLOATING EMOJI BACKGROUND ───────────────────────────────────────────────
+function buildFloaters() {
+  const container = document.getElementById('floaters');
+  const emojis = ['🎉','🤪','👏','🎊','✨','🌈','🎈','🥳'];
+  for(let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    el.className = 'floater';
+    el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left = (Math.random()*95) + 'vw';
+    el.style.animationDuration = (8 + Math.random()*12) + 's';
+    el.style.animationDelay = (-Math.random()*15) + 's';
+    el.style.fontSize = (1.2 + Math.random()*1.8) + 'rem';
+    container.appendChild(el);
+  }
+}
+
+// ─── START ────────────────────────────────────────────────────────────────────
+buildFloaters();
+init();
+</script>
+</body>
+</html>
