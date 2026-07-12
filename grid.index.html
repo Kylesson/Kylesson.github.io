@@ -349,7 +349,7 @@
   .face-back{
     transform: rotateY(180deg);
     color: var(--ink);
-    font-size: clamp(20px, 3.4vw, 34px);
+    font-size: calc(var(--fb-size, clamp(20px, 3.4vw, 34px)) * var(--scale, 1));
     line-height: 1.28;
     font-weight: 700;
     box-shadow: var(--shadow-hard);
@@ -358,7 +358,7 @@
   }
   .face-back .tag{
     font-family:'Baloo 2', sans-serif;
-    font-size: clamp(11px, 1.3vw, 15px);
+    font-size: calc(clamp(11px, 1.3vw, 15px) * max(var(--scale, 1), 0.72));
     letter-spacing: .1em;
     text-transform: uppercase;
     opacity: .8;
@@ -402,6 +402,7 @@
 
   body.fullscreen-mode{
     background: var(--bg-deep);
+    overflow: hidden;
   }
   body.fullscreen-mode header.marquee,
   body.fullscreen-mode .panel,
@@ -415,17 +416,24 @@
   body.fullscreen-mode .wrap{
     max-width: none;
     padding: 26px;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     display: flex;
-    align-items: center;
+    flex-direction: column;
   }
   body.fullscreen-mode #board{
     width: 100%;
-    gap: 20px;
+    flex: 1;
+    min-height: 0;
+    gap: 16px;
+    grid-auto-rows: 1fr;
+  }
+  body.fullscreen-mode .tile{
+    aspect-ratio: auto;
+    min-height: 0;
   }
   body.fullscreen-mode .face-back{
-    font-size: clamp(26px, 4.2vw, 56px);
-    line-height: 1.25;
+    --fb-size: clamp(26px, 4.2vw, 56px);
   }
   body.fullscreen-mode .face-back .tag{
     font-size: clamp(13px, 1.6vw, 20px);
@@ -648,7 +656,24 @@ function buildRound(){
   statusPill.textContent = `Board shuffled — ${parsed.length} item${parsed.length===1?'':'s'} loaded across a ${dim}×${dim} grid.`;
 }
 
-/* ---------- rendering ---------- */
+/* ---------- auto-sizing long content ----------
+   Short entries (2-3 words, like "Free coffee") should stay big and
+   bold; longer ones (a full sentence, an unscramble task, etc.) need
+   to shrink so they still fit inside a square tile without spilling
+   over the edges. This maps content length to a --scale multiplier
+   that the CSS clamp() for .face-back is multiplied by. */
+function getTextScale(text){
+  const len = text.length;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  if(len <= 18 && words <= 3) return 1;
+  if(len <= 34) return 0.82;
+  if(len <= 55) return 0.68;
+  if(len <= 80) return 0.56;
+  if(len <= 115) return 0.47;
+  return 0.4;
+}
+
+
 
 function renderEmptyState(){
   board.style.gridTemplateColumns = '1fr';
@@ -668,6 +693,7 @@ function renderBoard(dim){
     const tile = document.createElement('div');
     tile.className = `tile type-${item.type}`;
     tile.dataset.index = i;
+    tile.style.setProperty('--scale', getTextScale(item.text));
 
     tile.innerHTML = `
       <div class="tile-inner">
