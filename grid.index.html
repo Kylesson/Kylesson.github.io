@@ -318,6 +318,7 @@
     backface-visibility: hidden;
     padding: 8px;
     text-align:center;
+    overflow: hidden;
   }
 
   .face-front{
@@ -363,6 +364,13 @@
     text-transform: uppercase;
     opacity: .8;
     font-weight: 700;
+    flex: none;
+  }
+  .face-back .body{
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 100%;
   }
 
   .tile.used .face-front{
@@ -673,6 +681,33 @@ function getTextScale(text){
   return 0.4;
 }
 
+/* getTextScale() above is just a fast starting guess. Actual tile
+   dimensions depend on the grid size and the viewport (and change
+   again in full screen mode), so after the board is painted we
+   measure each tile for real and keep shrinking its scale until the
+   revealed text actually fits inside the tile — this is what
+   guarantees nothing pokes past the tile's rounded edges. */
+function fitTileText(tile){
+  const face = tile.querySelector('.face-back');
+  if(!face) return;
+  let scale = parseFloat(tile.style.getPropertyValue('--scale')) || 1;
+  const minScale = 0.26;
+  let guard = 0;
+  while(
+    guard < 30 &&
+    scale > minScale &&
+    (face.scrollHeight > face.clientHeight + 1 || face.scrollWidth > face.clientWidth + 1)
+  ){
+    scale = Math.max(minScale, scale - 0.04);
+    tile.style.setProperty('--scale', scale.toFixed(2));
+    guard++;
+  }
+}
+
+function fitAllTiles(){
+  document.querySelectorAll('.tile').forEach(fitTileText);
+}
+
 
 
 function renderEmptyState(){
@@ -711,6 +746,10 @@ function renderBoard(dim){
     tile.addEventListener('click', () => revealTile(tile));
     board.appendChild(tile);
   });
+
+  // Wait a frame so the browser has actually laid out the tiles
+  // before we measure them for overflow.
+  requestAnimationFrame(fitAllTiles);
 }
 
 function labelForType(type){
@@ -782,6 +821,7 @@ function enterFullscreenMode(){
   const el = document.documentElement;
   const request = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
   if(request){ request.call(el).catch(() => { /* API blocked, CSS fallback still applies */ }); }
+  setTimeout(fitAllTiles, 80);
 }
 
 function exitFullscreenMode(){
@@ -790,6 +830,7 @@ function exitFullscreenMode(){
     const exit = document.exitFullscreen || document.webkitExitFullscreen;
     if(exit){ exit.call(document).catch(() => {}); }
   }
+  setTimeout(fitAllTiles, 80);
 }
 
 fullscreenBtn.addEventListener('click', enterFullscreenMode);
@@ -798,9 +839,20 @@ exitFullscreenBtn.addEventListener('click', exitFullscreenMode);
 // Keep the CSS class in sync if the user exits via Esc or browser controls.
 document.addEventListener('fullscreenchange', () => {
   if(!document.fullscreenElement) document.body.classList.remove('fullscreen-mode');
+  setTimeout(fitAllTiles, 80);
 });
 document.addEventListener('webkitfullscreenchange', () => {
   if(!document.webkitFullscreenElement) document.body.classList.remove('fullscreen-mode');
+  setTimeout(fitAllTiles, 80);
+});
+
+// Re-check text fit whenever the viewport changes size (rotating a
+// tablet, resizing a browser window, etc.) — debounced so it doesn't
+// run on every pixel while dragging.
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(fitAllTiles, 150);
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
