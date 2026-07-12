@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kyle's Grid — Build Your Own Grid Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg: #171233;
+    --bg-deep: #100c26;
+    --surface: #241b4a;
+    --surface-soft: #2c2158;
+    --ink: #F5F1FF;
+    --muted: #B7ADD9;
+    --line: #382c68;
+    --accent: #CFFF5C;
+    --accent-ink: #17240a;
+
+    --c-task: #4ECDC4;
+    --c-task-ink: #06302c;
+    --c-prize: #FFD166;
+    --c-prize-ink: #3a2600;
+    --c-dare: #FF6B6B;
+    --c-dare-ink: #3a0808;
+    --c-question: #A78BFA;
+    --c-question-ink: #221046;
+    --c-blank: #4a4270;
+    --c-blank-ink: #d8d2f0;
+
+    --radius: 18px;
+    --shadow-hard: 0 6px 0 rgba(0,0,0,0.35);
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 8%, #251b52 0%, transparent 45%),
+      radial-gradient(circle at 88% 92%, #201849 0%, transparent 50%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1,h2,h3, .display{
+    font-family: 'Baloo 2', system-ui, sans-serif;
+  }
+
+  /* ---------- layout shell ---------- */
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+  }
+
+  header.marquee{
+    position: relative;
+    text-align: center;
+    padding: 34px 20px 30px;
+    margin-bottom: 28px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+  }
+  header.marquee::before{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(
+      -45deg,
+      rgba(255,255,255,0.035) 0 14px,
+      transparent 14px 28px
+    );
+    pointer-events:none;
+  }
+  header.marquee .eyebrow{
+    display:inline-block;
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    background: var(--accent);
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  header.marquee h1{
+    margin: 0;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    letter-spacing: .01em;
+    text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+  }
+  header.marquee p{
+    margin: 10px auto 0;
+    max-width: 520px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ---------- settings panel ---------- */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 22px 24px;
+    margin-bottom: 26px;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:pointer;
+    gap: 12px;
+  }
+  .panel-head h2{
+    margin:0;
+    font-size: 1.15rem;
+    font-weight:700;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-head .chev{
+    transition: transform .25s ease;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .panel.collapsed .chev{ transform: rotate(-90deg); }
+  .panel-body{
+    display:grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+    margin-top: 18px;
+    overflow: hidden;
+  }
+  .panel.collapsed .panel-body{ display:none; }
+
+  label.field-label{
+    display:block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  textarea#itemsInput{
+    width:100%;
+    min-height: 160px;
+    resize: vertical;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    padding: 12px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+  textarea#itemsInput:focus, select:focus, input:focus{
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .hint{
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height:1.5;
+  }
+  .hint code{
+    background: var(--surface-soft);
+    padding: 1px 6px;
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 11.5px;
+  }
+
+  .side-controls{
+    display:flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  select#gridSize{
+    width:100%;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14.5px;
+    font-family:'Inter',sans-serif;
+  }
+
+  .count-row{
+    display:flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--surface-soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border:1px solid var(--line);
+  }
+  .count-row strong{ color: var(--ink); }
+
+  .type-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .swatch{
+    display:flex; align-items:center; gap:6px;
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--surface-soft);
+    border:1px solid var(--line);
+    padding: 5px 9px 5px 6px;
+    border-radius: 999px;
+  }
+  .dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+
+  /* ---------- action row ---------- */
+  .actions{
+    display:flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items:center;
+    margin-bottom: 26px;
+  }
+  button{
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    cursor:pointer;
+    border-radius: 14px;
+    padding: 14px 22px;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  button:active{ transform: translateY(3px); box-shadow: none !important; }
+
+  .btn-shuffle{
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: var(--shadow-hard);
+    display:flex; align-items:center; gap:9px;
+    font-size: 16px;
+    padding: 15px 26px;
+  }
+  .btn-shuffle:hover{ filter: brightness(1.05); }
+
+  .btn-ghost{
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    box-shadow: none;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .btn-ghost:hover{ color: var(--ink); border-color: var(--muted); }
+
+  .status-pill{
+    margin-left: auto;
+    font-family:'Inter',sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--surface);
+    border:1px solid var(--line);
+    padding: 9px 14px;
+    border-radius: 999px;
+  }
+  .status-pill strong{ color: var(--accent); }
+
+  /* ---------- grid ---------- */
+  #board{
+    display:grid;
+    gap: 14px;
+    perspective: 1200px;
+  }
+
+  .empty-state{
+    grid-column: 1 / -1;
+    text-align:center;
+    padding: 70px 20px;
+    border: 2px dashed var(--line);
+    border-radius: var(--radius);
+    color: var(--muted);
+  }
+  .empty-state .big-emoji{ font-size: 40px; display:block; margin-bottom: 12px; }
+  .empty-state h3{ color: var(--ink); margin: 0 0 6px; font-size: 1.3rem; }
+  .empty-state p{ margin:0; font-size: 14px; max-width: 360px; margin-inline:auto; }
+
+  .tile{
+    aspect-ratio: 1 / 1;
+    position: relative;
+  }
+  .tile-inner{
+    position: relative;
+    width:100%; height:100%;
+    transform-style: preserve-3d;
+    transition: transform .55s cubic-bezier(.2,.85,.35,1.1);
+  }
+  .tile.revealed .tile-inner{ transform: rotateY(180deg); }
+
+  .face{
+    position:absolute; inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    padding: 8px;
+    text-align:center;
+  }
+
+  .face-front{
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-hard);
+    cursor:pointer;
+  }
+  .face-front .num{
+    font-family:'Baloo 2', sans-serif;
+    font-size: clamp(1.4rem, 3.4vw, 2.1rem);
+    font-weight: 800;
+    color: var(--ink);
+  }
+  .face-front .spark{
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .tile:not(.used):not(.revealed) .face-front:hover{
+    transform: translateY(-3px);
+  }
+  .tile:not(.used):not(.revealed) .face-front:active{
+    transform: translateY(1px);
+  }
+
+  .face-back{
+    transform: rotateY(180deg);
+    color: var(--ink);
+    font-size: clamp(20px, 3.4vw, 34px);
+    line-height: 1.28;
+    font-weight: 700;
+    box-shadow: var(--shadow-hard);
+    gap: 10px;
+    padding: 14px 10px;
+  }
+  .face-back .tag{
+    font-family:'Baloo 2', sans-serif;
+    font-size: clamp(11px, 1.3vw, 15px);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    opacity: .8;
+    font-weight: 700;
+  }
+
+  .tile.used .face-front{
+    opacity: 0;
+    pointer-events:none;
+  }
+  .tile.used .tile-inner{ transform: rotateY(180deg); }
+
+  .type-task .face-back{ background: var(--c-task); color: var(--c-task-ink); }
+  .type-prize .face-back{ background: var(--c-prize); color: var(--c-prize-ink); }
+  .type-dare .face-back{ background: var(--c-dare); color: var(--c-dare-ink); }
+  .type-question .face-back{ background: var(--c-question); color: var(--c-question-ink); }
+  .type-blank .face-back{ background: var(--c-blank); color: var(--c-blank-ink); }
+  .type-blank .face-front{ opacity: .55; }
+
+  footer{
+    text-align:center;
+    color: var(--muted);
+    font-size: 12.5px;
+    margin-top: 34px;
+  }
+
+  /* ---------- full screen presentation mode ---------- */
+  .exit-fullscreen-btn{
+    display:none;
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 50;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-hard);
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  body.fullscreen-mode{
+    background: var(--bg-deep);
+  }
+  body.fullscreen-mode header.marquee,
+  body.fullscreen-mode .panel,
+  body.fullscreen-mode .actions,
+  body.fullscreen-mode footer{
+    display: none;
+  }
+  body.fullscreen-mode .exit-fullscreen-btn{
+    display: inline-flex;
+  }
+  body.fullscreen-mode .wrap{
+    max-width: none;
+    padding: 26px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+  body.fullscreen-mode #board{
+    width: 100%;
+    gap: 20px;
+  }
+  body.fullscreen-mode .face-back{
+    font-size: clamp(26px, 4.2vw, 56px);
+    line-height: 1.25;
+  }
+  body.fullscreen-mode .face-back .tag{
+    font-size: clamp(13px, 1.6vw, 20px);
+  }
+  body.fullscreen-mode .face-front .num{
+    font-size: clamp(2.2rem, 6vw, 4rem);
+  }
+  body.fullscreen-mode .face-front .spark{
+    font-size: clamp(11px, 1.3vw, 15px);
+  }
+
+  @media (max-width: 760px){
+    .panel-body{ grid-template-columns: 1fr; }
+    .status-pill{ margin-left:0; width:100%; text-align:center; }
+    .actions{ flex-direction:column; align-items:stretch; }
+    .btn-shuffle, .btn-ghost{ width:100%; justify-content:center; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .tile-inner, .face-front{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="marquee">
+    <span class="eyebrow">Build your own board</span>
+    <h1>🎪 Kyle's Grid</h1>
+    <p>Load your own tasks, prizes, dares and questions, pick a grid size, and shuffle before every round so the board never plays the same way twice.</p>
+  </header>
+
+  <section class="panel" id="settingsPanel">
+    <div class="panel-head" id="panelToggle">
+      <h2>⚙️ Set up your board</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="panel-body">
+      <div>
+        <label class="field-label" for="itemsInput">Your tasks, prizes, dares & questions</label>
+        <textarea id="itemsInput" placeholder="One per line, or separate with commas...
+TASK: Sing the chorus of your favourite song
+PRIZE: Skip the next round
+DARE: Talk in an accent for 2 minutes
+QUESTION: What's your most used emoji?
+Free coffee voucher
+Do 10 jumping jacks"></textarea>
+        <p class="hint">
+          Separate entries with a new line or a comma. Prefix a line with
+          <code>TASK:</code>, <code>PRIZE:</code>, <code>DARE:</code> or <code>QUESTION:</code>
+          to color-code it — otherwise it's treated as a plain task.
+        </p>
+        <div class="type-legend" style="margin-top:12px;">
+          <span class="swatch"><span class="dot" style="background:var(--c-task)"></span>Task</span>
+          <span class="swatch"><span class="dot" style="background:var(--c-prize)"></span>Prize</span>
+          <span class="swatch"><span class="dot" style="background:var(--c-dare)"></span>Dare</span>
+          <span class="swatch"><span class="dot" style="background:var(--c-question)"></span>Question</span>
+          <span class="swatch"><span class="dot" style="background:var(--c-blank)"></span>Free space</span>
+        </div>
+      </div>
+
+      <div class="side-controls">
+        <div>
+          <label class="field-label" for="gridSize">Grid size</label>
+          <select id="gridSize">
+            <option value="auto" selected>Auto (fit my items)</option>
+            <option value="3">3 × 3 — 9 tiles</option>
+            <option value="4">4 × 4 — 16 tiles</option>
+            <option value="5">5 × 5 — 25 tiles</option>
+            <option value="6">6 × 6 — 36 tiles</option>
+          </select>
+        </div>
+        <div class="count-row">
+          <span>Items entered</span>
+          <strong id="itemCount">0</strong>
+        </div>
+        <div class="count-row">
+          <span>Tiles on board</span>
+          <strong id="tileCount">0</strong>
+        </div>
+        <p class="hint" style="margin-top:-4px;">
+          If you enter fewer items than tiles, the leftovers become
+          <strong>Free Space</strong> tiles. Your list is saved in this browser automatically.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="actions">
+    <button class="btn-shuffle" id="shuffleBtn">🔀 Shuffle &amp; Reset Board</button>
+    <button class="btn-ghost" id="fullscreenBtn">⛶ Full Screen</button>
+    <button class="btn-ghost" id="revealAllBtn">👁️ Reveal all</button>
+    <button class="btn-ghost" id="clearBtn">🗑️ Clear list</button>
+    <span class="status-pill" id="statusPill">Ready when you are — enter some items and shuffle.</span>
+  </div>
+
+  <main id="board"></main>
+
+  <footer>Kyle's Grid · built for endless replays · your content never leaves this browser</footer>
+</div>
+
+<button class="btn-ghost exit-fullscreen-btn" id="exitFullscreenBtn">✕ Exit Full Screen</button>
+
+<script>
+/* =========================================================
+   BAMBOOZLE BOARD — core game logic
+   =========================================================
+   Data model: `sourceItems` is the raw list of {text, type}
+   parsed from the textarea. `boardItems` is what's actually
+   laid out on the grid for the CURRENT round (source items +
+   any "Free Space" padding, in shuffled order). Re-shuffling
+   re-derives boardItems from sourceItems, it never mutates
+   sourceItems itself, so the underlying list is stable across
+   rounds even though the board layout changes every time.
+   ========================================================= */
+
+const STORAGE_KEY = 'bamboozle-board-items-v1';
+
+const itemsInput   = document.getElementById('itemsInput');
+const gridSizeSel  = document.getElementById('gridSize');
+const board        = document.getElementById('board');
+const itemCountEl  = document.getElementById('itemCount');
+const tileCountEl  = document.getElementById('tileCount');
+const statusPill   = document.getElementById('statusPill');
+const panel        = document.getElementById('settingsPanel');
+const panelToggle  = document.getElementById('panelToggle');
+
+let boardItems = []; // current round's tiles, in play order
+
+/* ---------- parsing user input ---------- */
+
+// Recognised prefixes map to a "type" used for color-coding the tile back.
+const TYPE_PREFIXES = [
+  { re: /^task:\s*/i,     type: 'task' },
+  { re: /^prize:\s*/i,    type: 'prize' },
+  { re: /^dare:\s*/i,     type: 'dare' },
+  { re: /^question:\s*/i, type: 'question' },
+];
+
+function parseItems(raw){
+  // Split on newlines first, then on commas within each line, so a
+  // comma-separated list on one line still works alongside one-per-line input.
+  const lines = raw
+    .split('\n')
+    .flatMap(line => line.split(','))
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  return lines.map(line => {
+    let type = 'task';
+    let text = line;
+    for(const p of TYPE_PREFIXES){
+      if(p.re.test(line)){
+        type = p.type;
+        text = line.replace(p.re, '').trim();
+        break;
+      }
+    }
+    return { text, type };
+  });
+}
+
+/* ---------- Fisher–Yates shuffle ----------
+   Standard unbiased in-place shuffle: walk the array backwards,
+   and for each position swap it with a random earlier-or-equal
+   index. This guarantees every permutation is equally likely,
+   unlike naive "sort by Math.random()" approaches. */
+function shuffle(arr){
+  const a = arr.slice(); // don't mutate the caller's array
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------- grid size resolution ---------- */
+
+function resolveGridDimension(itemCount){
+  const sel = gridSizeSel.value;
+  if(sel !== 'auto') return parseInt(sel, 10);
+  // Auto mode: pick the smallest square grid that fits every item,
+  // with a sensible floor of 3x3 and ceiling of 8x8 so it never
+  // explodes if someone pastes in a huge list.
+  const n = Math.max(itemCount, 1);
+  const dim = Math.min(8, Math.max(3, Math.ceil(Math.sqrt(n))));
+  return dim;
+}
+
+/* ---------- building a round ---------- */
+
+function buildRound(){
+  const parsed = parseItems(itemsInput.value);
+  const dim = resolveGridDimension(parsed.length);
+  const totalTiles = dim * dim;
+
+  itemCountEl.textContent = parsed.length;
+  tileCountEl.textContent = totalTiles;
+
+  if(parsed.length === 0){
+    boardItems = [];
+    renderEmptyState();
+    statusPill.textContent = 'Ready when you are — enter some items and shuffle.';
+    return;
+  }
+
+  // Pad with Free Space tiles if there are fewer items than slots,
+  // or simply truncate the shuffled list if there are more items
+  // than the chosen grid can hold (extras stay in the textarea for
+  // next time, nothing is lost).
+  const shuffledSource = shuffle(parsed);
+  const padded = shuffledSource.slice(0, totalTiles);
+  while(padded.length < totalTiles){
+    padded.push({ text: 'Free Space', type: 'blank' });
+  }
+
+  boardItems = shuffle(padded); // shuffle again so padding isn't clustered at the end
+  renderBoard(dim);
+
+  statusPill.textContent = `Board shuffled — ${parsed.length} item${parsed.length===1?'':'s'} loaded across a ${dim}×${dim} grid.`;
+}
+
+/* ---------- rendering ---------- */
+
+function renderEmptyState(){
+  board.style.gridTemplateColumns = '1fr';
+  board.innerHTML = `
+    <div class="empty-state">
+      <span class="big-emoji">🎲</span>
+      <h3>Nothing on the board yet</h3>
+      <p>Add your tasks, prizes, dares or questions in the panel above, then hit Shuffle &amp; Reset to deal the board.</p>
+    </div>`;
+}
+
+function renderBoard(dim){
+  board.style.gridTemplateColumns = `repeat(${dim}, 1fr)`;
+  board.innerHTML = '';
+
+  boardItems.forEach((item, i) => {
+    const tile = document.createElement('div');
+    tile.className = `tile type-${item.type}`;
+    tile.dataset.index = i;
+
+    tile.innerHTML = `
+      <div class="tile-inner">
+        <div class="face face-front">
+          <span class="num">${i + 1}</span>
+          <span class="spark">tap to reveal</span>
+        </div>
+        <div class="face face-back">
+          <span class="tag">${labelForType(item.type)}</span>
+          <span class="body">${escapeHtml(item.text)}</span>
+        </div>
+      </div>
+    `;
+
+    tile.addEventListener('click', () => revealTile(tile));
+    board.appendChild(tile);
+  });
+}
+
+function labelForType(type){
+  switch(type){
+    case 'task': return 'Task';
+    case 'prize': return 'Prize';
+    case 'dare': return 'Dare';
+    case 'question': return 'Question';
+    default: return 'Free Space';
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ---------- interaction ---------- */
+
+function revealTile(tile){
+  if(tile.classList.contains('used')) return; // already revealed, ignore further clicks
+  tile.classList.add('revealed');
+  // Lock it in as "used" once the flip animation finishes, so the
+  // front face stays hidden and clicks stop doing anything further.
+  setTimeout(() => tile.classList.add('used'), 550);
+}
+
+function revealAll(){
+  document.querySelectorAll('.tile').forEach(t => {
+    t.classList.add('revealed');
+    t.classList.add('used');
+  });
+}
+
+/* ---------- persistence (kept local to this browser only) ---------- */
+
+function saveItems(){
+  try{ localStorage.setItem(STORAGE_KEY, itemsInput.value); }catch(e){ /* storage unavailable, ignore */ }
+}
+function loadItems(){
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved) itemsInput.value = saved;
+  }catch(e){ /* storage unavailable, ignore */ }
+}
+
+/* ---------- wiring ---------- */
+
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  saveItems();
+  buildRound();
+});
+
+document.getElementById('revealAllBtn').addEventListener('click', revealAll);
+
+/* ---------- full screen presentation mode ----------
+   Uses the real browser Fullscreen API when available (so the
+   grid takes over the whole screen, past the browser chrome),
+   and always toggles a CSS class that hides everything except
+   the board — this class is the fallback on devices/browsers
+   that block the Fullscreen API (e.g. some iPads), and is what
+   actually does the "Bamboozle-style, grid only" layout either way. */
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const exitFullscreenBtn = document.getElementById('exitFullscreenBtn');
+
+function enterFullscreenMode(){
+  document.body.classList.add('fullscreen-mode');
+  const el = document.documentElement;
+  const request = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if(request){ request.call(el).catch(() => { /* API blocked, CSS fallback still applies */ }); }
+}
+
+function exitFullscreenMode(){
+  document.body.classList.remove('fullscreen-mode');
+  if(document.fullscreenElement || document.webkitFullscreenElement){
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if(exit){ exit.call(document).catch(() => {}); }
+  }
+}
+
+fullscreenBtn.addEventListener('click', enterFullscreenMode);
+exitFullscreenBtn.addEventListener('click', exitFullscreenMode);
+
+// Keep the CSS class in sync if the user exits via Esc or browser controls.
+document.addEventListener('fullscreenchange', () => {
+  if(!document.fullscreenElement) document.body.classList.remove('fullscreen-mode');
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  if(!document.webkitFullscreenElement) document.body.classList.remove('fullscreen-mode');
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  itemsInput.value = '';
+  saveItems();
+  buildRound();
+});
+
+itemsInput.addEventListener('input', () => {
+  const parsed = parseItems(itemsInput.value);
+  itemCountEl.textContent = parsed.length;
+  saveItems();
+});
+
+gridSizeSel.addEventListener('change', () => {
+  const parsed = parseItems(itemsInput.value);
+  tileCountEl.textContent = resolveGridDimension(parsed.length) ** 2;
+});
+
+panelToggle.addEventListener('click', () => panel.classList.toggle('collapsed'));
+
+/* ---------- boot ---------- */
+loadItems();
+buildRound();
+</script>
+</body>
+</html>
