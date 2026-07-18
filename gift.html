@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
+  .gift-card {
+    width: 1012px;
+    height: 638px;
+    background: #0a0a0a;
+    border-radius: 22px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 68px 76px;
+  }
+  .corner-tl {
+    position: absolute;
+    top: 0; left: 0;
+    width: 170px; height: 170px;
+    border-top: 0.5px solid #333;
+    border-left: 0.5px solid #333;
+    border-radius: 22px 0 0 0;
+  }
+  .corner-br {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 170px; height: 170px;
+    border-bottom: 0.5px solid #333;
+    border-right: 0.5px solid #333;
+    border-radius: 0 0 22px 0;
+  }
+  .center-line {
+    position: absolute;
+    top: 50%;
+    left: 76px;
+    right: 76px;
+    height: 0.5px;
+    background: #1f1f1f;
+  }
+  .name-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 84px;
+    font-weight: 300;
+    color: #ffffff;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+    background: #0a0a0a;
+    padding: 0 32px;
+  }
+  .logo-main {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 0.22em;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .logo-sub {
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 0.35em;
+    color: #555;
+    text-transform: uppercase;
+  }
+  .gift-label {
+    position: absolute;
+    top: 68px;
+    right: 76px;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    color: #444;
+    text-transform: uppercase;
+  }
+  .bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .value-label {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: #444;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .value-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 68px;
+    font-weight: 300;
+    color: #ffffff;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .value-currency {
+    font-size: 24px;
+    font-weight: 300;
+    vertical-align: super;
+    letter-spacing: 0.1em;
+    color: #888;
+  }
+  .right-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+  .redeem-label {
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: #333;
+    text-transform: uppercase;
+  }
+  .address-label {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: #3a3a3a;
+    text-align: right;
+    line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+  <div class="gift-card">
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+    <div class="center-line"></div>
+    <div class="name-center">吳東憲</div>
+    <div>
+      <div class="logo-main">One Hand Made</div>
+      <div class="logo-sub">Barber</div>
+    </div>
+    <span class="gift-label">Gift Card</span>
+    <div class="bottom-row">
+      <div>
+        <div class="value-label">Value</div>
+        <div class="value-amount"><span class="value-currency">NT$</span> 1,300</div>
+      </div>
+      <div class="right-block">
+        <div class="address-label">
+          台北市信義區<br>忠孝東路五段165巷3弄21號1樓
+        </div>
+        <div class="redeem-label">Redeemable at any time</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
