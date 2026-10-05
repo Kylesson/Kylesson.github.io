@@ -27,6 +27,10 @@ body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);-we
 a{color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 
+.brand{display:flex;align-items:center;gap:12px;margin:0 0 clamp(20px,4vw,36px)}
+.brand img{width:48px;height:48px;display:block}
+.brand span{font:500 15px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
 .page{max-width:1180px;margin:0 auto;padding:clamp(32px,7vw,88px) var(--gutter) 96px}
 .page>header{margin-bottom:clamp(32px,6vw,72px)}
 .page h1{font:600 clamp(48px,11vw,132px)/.9 var(--display);text-transform:uppercase;letter-spacing:.005em;margin:0 0 16px;text-wrap:balance}
@@ -85,6 +89,10 @@ noscript p{padding:var(--gutter)}
 <body>
 <main class="page" id="index">
   <header>
+    <div class="brand">
+      <img src="menmian-logo.png" alt="MenMian Studio logo" width="48" height="48">
+      <span>collected by MenMian Studio</span>
+    </div>
     <h1>Building Damage Gallery</h1>
     <p class="lede" id="lede"></p>
   </header>
