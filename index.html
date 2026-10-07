@@ -1,2218 +1,706 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<!--
-=============================================================
-  CIRCLE POINTS CLASSROOM — How to Use
-=============================================================
-  1. RENAME A CLASS: Double-click any class name in the left
-     sidebar to edit it inline, then press Enter or click away.
-
-  2. ADD STUDENTS: Click "Add Student" → type a name, then
-     either upload an image file OR paste a direct image URL.
-     A circular preview appears immediately. Leave both blank
-     for an auto-generated initials avatar (no image needed).
-
-  3. AWARD POINTS: Single-click any circle → instantly awards
-     +1 point. The circle bounces and a floating "+1" pops up.
-     Right-click (or long-press) → opens the full award panel
-     with preset amounts, custom points, and history.
-
-  4. CIRCLE SIZE: Circles grow larger as points accumulate —
-     zero-point students stay small, high scorers become big
-     bubbles. Glow rings: gold=top scorer, green=high, red=negative.
-
-  5. PROJECTOR MODE: Click 📽️ in the top bar to hide controls
-     and enlarge the bubble pack for classroom display.
-
-  6. OTHER: Dark/light toggle 🌙, export CSV 📊, reset class 🔄.
-     Long-press or right-click a circle for student details.
-=============================================================
--->
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Circle Points Classroom</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet" />
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paint with sunlight · Cyanotype with Di</title>
+<meta name="description" content="Make your own cyanotype print with the Da Nang sun. A sun-print workshop by Cyanotype with Di.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Paint with sunlight · Cyanotype with Di">
+<meta property="og:description" content="Make your own cyanotype print with the Da Nang sun. A sun-print workshop by Cyanotype with Di.">
+<meta property="og:image" content="https://cyanotype-withdi.netlify.app/og-image.jpg">
+<meta property="og:url" content="https://cyanotype-withdi.netlify.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#163359">
+<link rel="preload" href="hero/water-dark.webp" as="image" fetchpriority="high">
+<link rel="preload" href="fonts/bodoni-moda.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<!-- shared/tokens.css + print-playground.css + photo-lab.css, merged and minified (command in NOTES.md) -->
+<link rel="stylesheet" href="shared/tools.min.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23163359'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23eee7cf'/%3E%3Ccircle cx='23' cy='23' r='3' fill='%23ff5a1f'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --bg: #f0f4ff;
-    --sidebar-bg: #1e1b4b;
-    --sidebar-accent: #4f46e5;
-    --card-bg: #ffffff;
-    --text: #1e1b4b;
-    --text-muted: #6b7280;
-    --border: #e0e7ff;
-    --topbar: #ffffff;
-    --shadow: 0 4px 24px rgba(99,102,241,0.10);
-    --circle-shadow: 0 8px 32px rgba(99,102,241,0.18);
-  }
-  .dark {
-    --bg: #0f0e1a;
-    --sidebar-bg: #13122b;
-    --sidebar-accent: #6366f1;
-    --card-bg: #1a1830;
-    --text: #e8e6ff;
-    --text-muted: #9ca3af;
-    --border: #2d2b55;
-    --topbar: #1a1830;
-    --shadow: 0 4px 24px rgba(0,0,0,0.35);
-    --circle-shadow: 0 8px 32px rgba(99,102,241,0.28);
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    transition: background 0.3s, color 0.3s;
-    overflow: hidden;
-  }
-  #app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+/* Fonts from gig-2: Bodoni Moda (title) + Archivo (labels, body). Latin subsets, self-hosted in fonts/. */
+@font-face { font-family: 'Bodoni Moda'; font-style: normal; font-weight: 400 900; font-display: swap; src: url(fonts/bodoni-moda.woff2) format('woff2'); }
+@font-face { font-family: 'Bodoni Moda'; font-style: italic; font-weight: 400 900; font-display: swap; src: url(fonts/bodoni-moda-italic.woff2) format('woff2'); }
+@font-face { font-family: 'Archivo'; font-style: normal; font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; src: url(fonts/archivo.woff2) format('woff2'); }
 
-  /* ── SIDEBAR ── */
-  #sidebar {
-    width: 210px; flex-shrink: 0;
-    background: var(--sidebar-bg);
-    display: flex; flex-direction: column;
-    padding: 0; transition: width 0.3s, opacity 0.3s;
-    z-index: 20; overflow: hidden;
-  }
-  .projector-mode #sidebar { width: 0; opacity: 0; pointer-events: none; }
-  #sidebar-header {
-    padding: 20px 16px 12px;
-    font-family: 'Baloo 2', cursive;
-    font-size: 1.25rem; font-weight: 800;
-    color: #a5b4fc;
-    letter-spacing: -0.5px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-  }
-  #sidebar-header span { color: #fff; }
-  #class-list { flex: 1; overflow-y: auto; padding: 8px 0; }
-  .class-tab {
-    display: flex; align-items: center; gap: 10px;
-    padding: 11px 16px; cursor: pointer;
-    transition: background 0.15s; border-radius: 0;
-    color: #a5b4fc; font-weight: 700; font-size: 0.88rem;
-    position: relative; user-select: none;
-  }
-  .class-tab:hover { background: rgba(255,255,255,0.07); }
-  .class-tab.active {
-    background: var(--sidebar-accent);
-    color: #fff;
-    border-radius: 0 24px 24px 0;
-    margin-right: 8px;
-  }
-  .class-tab .class-icon { font-size: 1.1rem; }
-  .class-tab .class-name { flex: 1; }
-  .class-tab .class-name input {
-    background: transparent; border: none; outline: none;
-    color: inherit; font: inherit; width: 100%; cursor: pointer;
-  }
-  .class-tab.active .class-name input { cursor: text; }
-  .class-tab .student-count {
-    font-size: 0.7rem; background: rgba(255,255,255,0.15);
-    border-radius: 99px; padding: 1px 7px; color: #c7d2fe;
-  }
-  .class-tab.active .student-count { background: rgba(255,255,255,0.22); color: #fff; }
-  #sidebar-footer { padding: 12px 16px 20px; border-top: 1px solid rgba(255,255,255,0.07); }
-  #sidebar-footer .footer-label { font-size: 0.72rem; color: #6b7280; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
-  .sidebar-btn {
-    width: 100%; padding: 8px 12px; border-radius: 10px;
-    font: 700 0.8rem 'Nunito', sans-serif;
-    cursor: pointer; border: none; transition: all 0.15s;
-    display: flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.08); color: #c7d2fe;
-    margin-bottom: 4px;
-  }
-  .sidebar-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
+/* Russian: gig-2 fonts have no Cyrillic, so RU uses the closest Google Fonts (Latin + Cyrillic subsets) */
+@font-face { font-family: 'Playfair Display'; font-style: normal; font-weight: 400 900; font-display: swap; src: url(fonts/playfair-display.woff2) format('woff2'); }
+@font-face { font-family: 'Playfair Display'; font-style: italic; font-weight: 400 900; font-display: swap; src: url(fonts/playfair-display-italic.woff2) format('woff2'); }
+@font-face { font-family: 'Roboto Flex'; font-style: normal; font-weight: 300 700; font-stretch: 60% 100%; font-display: swap; src: url(fonts/roboto-flex.woff2) format('woff2'); }
 
-  /* ── MAIN ── */
-  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+:root {
+  /* palette sampled from gig-2 */
+  --navy: #041a45;    /* scrims */
+  --print: #163359;   /* the print blue, lower half */
+  --mid: #2e5883;     /* lit blue around the sun */
+  --cream: #eee7cf;   /* type */
+  --pale: #a9c3f2;    /* second type tone */
+  --hot: #ff5a1f;     /* the one full stop */
+  --paper: #d6caa7;   /* the poster's paper margin */
+  --frame: #f5f2ea;   /* the whiter outline round every section */
+  --black: #000;
+  --serif: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif;
+  --sans: 'Archivo', 'Arial Narrow', system-ui, sans-serif;
+  --gut: 20px;
+  --margin: 10px;     /* paper margin round the blue "print" sections */
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--frame); color: var(--cream); font-family: var(--sans); font-size: 16px; line-height: 1.55; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; }
+h1, h2, h3, p, ul, figure { margin: 0; }
+ul { padding: 0; list-style: none; }
 
-  /* ── TOP BAR ── */
-  #topbar {
-    background: var(--topbar);
-    border-bottom: 1px solid var(--border);
-    padding: 0 20px;
-    height: 58px; flex-shrink: 0;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: var(--shadow);
-    transition: height 0.3s, opacity 0.3s;
-    z-index: 15;
-  }
-  .projector-mode #topbar { height: 0; opacity: 0; overflow: hidden; pointer-events: none; }
-  #class-title {
-    font-family: 'Baloo 2', cursive;
-    font-size: 1.35rem; font-weight: 800;
-    color: var(--text);
-  }
-  .tb-sep { flex: 1; }
-  .tb-btn {
-    padding: 7px 14px; border-radius: 12px;
-    font: 700 0.82rem 'Nunito', sans-serif;
-    cursor: pointer; border: none; transition: all 0.15s;
-    display: flex; align-items: center; gap: 5px;
-    background: var(--border); color: var(--text);
-  }
-  .tb-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
-  .tb-btn.primary { background: #6366f1; color: #fff; }
-  .tb-btn.primary:hover { background: #4f46e5; }
-  .tb-btn.danger { background: #fee2e2; color: #dc2626; }
-  .tb-btn.danger:hover { background: #fecaca; }
-  .dark .tb-btn { background: var(--border); color: var(--text); }
-  .dark .tb-btn.danger { background: #3b0e0e; color: #f87171; }
+/* ---------- the print sections (1 and 2) ---------- */
+.print { position: relative; isolation: isolate; overflow: hidden; overflow: clip; margin: var(--margin) var(--margin) 0; padding: 28px var(--gut) 56px;
+  background: radial-gradient(120% 70% at 30% 18%, var(--mid), var(--print) 70%); min-height: calc(100svh - var(--margin)); }
+.print + .print { margin-top: var(--margin); }
+/* GIF printed like a photogram: lines become bare paper on the blue */
+.print > .gif { position: absolute; inset: 0; z-index: -2; filter: invert(1) contrast(1.1); mix-blend-mode: screen; opacity: .32; background-position: center; }
+/* soft navy overlay so text reads over the GIF, like the poster's scrims */
+.print::before { content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(rgba(4,26,69,.55), rgba(4,26,69,.22) 40%, rgba(4,26,69,.62)); }
+.s1 > .gif { background: url("hero/water-dark.webp") center / cover no-repeat; filter: none; mix-blend-mode: normal; opacity: 1; }
+/* the moving background loads only when the booking section comes near (see the script at the end) */
+.s2.near > .gif { background-image: url("img/bg-2.webp"); }
+.s2 > .gif { background-size: cover; background-repeat: no-repeat; opacity: .5; }
 
-  /* ── CIRCLE PACK ── */
-  #circle-area {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
-    padding: 32px 28px 48px;
-    display: flex; flex-wrap: wrap;
-    align-content: flex-start;
-    gap: 28px;
-    transition: padding 0.3s;
-  }
-  .projector-mode #circle-area { padding: 40px 36px 64px; gap: 36px; }
 
-  /* ── STUDENT CIRCLE ── */
-  .student-circle {
-    display: flex; flex-direction: column; align-items: center;
-    cursor: pointer; user-select: none;
-    position: relative;
-    /* overflow visible so crown badge + glow halos show outside the circle */
-    overflow: visible;
-    padding-top: 18px; /* reserve space above for crown-max badge */
-  }
-  .student-circle:hover .circle-bubble { filter: brightness(1.06); }
-  .circle-bubble {
-    /* width/height set dynamically via JS inline style */
-    border-radius: 50%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    position: relative;   /* needed for absolute pts badge */
-    box-shadow: var(--circle-shadow);
-    /* smooth size transitions as points change */
-    transition: width 0.45s cubic-bezier(.34,1.56,.64,1),
-                height 0.45s cubic-bezier(.34,1.56,.64,1),
-                font-size 0.45s cubic-bezier(.34,1.56,.64,1),
-                box-shadow 0.3s, border-color 0.3s, filter 0.2s;
-    border: 3px solid transparent;
-  }
-  .circle-pts {
-    font-family: 'Baloo 2', cursive;
-    font-weight: 800;
-    line-height: 1; margin-top: 1px;
-    color: var(--text);
-    /* font-size set inline with circle size */
-    transition: font-size 0.45s cubic-bezier(.34,1.56,.64,1);
-  }
-  .circle-name {
-    font-size: 0.72rem; font-weight: 800;
-    margin-top: 5px; text-align: center;
-    color: var(--text); max-width: 110px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+/* type system from gig-2 */
+.series { font-stretch: 62%; font-weight: 300; font-size: 14px; letter-spacing: .44em; text-transform: uppercase; }
+.caps { font-stretch: 62%; font-weight: 400; font-size: 16px; line-height: 1.6; letter-spacing: .26em; text-transform: uppercase; }
+.title { font-family: var(--serif); font-weight: 500; line-height: .8; letter-spacing: -.01em; white-space: nowrap; }
+.title span { display: block; width: max-content; transform: scaleX(.62); transform-origin: 0 0; }
+.title em { font-style: italic; }
+.title b { color: var(--hot); font-weight: 500; }
+.h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(44px, 12vw, 84px); line-height: .9; letter-spacing: -.01em; }
+.h2 span { display: inline-block; transform: scaleX(.7); transform-origin: 0 0; width: max-content; }
+.h3 { font-stretch: 75%; font-weight: 600; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; }
+.rule { height: 1.5px; background: var(--cream); opacity: .9; }
+.pale { color: var(--pale); }
 
-  /* ══════════════════════════════════════════════════════════════
-     TIER SYSTEM — upgraded visual effects
-     ══════════════════════════════════════════════════════════════
-     lvl-0  :  0–4    plain — clean gray ring, minimal shadow
-     lvl-1  :  5–9    SILVER — multi-layer metallic glow, breathe pulse
-     lvl-2  : 10–19   GOLD — warm amber aura, conic shine sweep, scale breathe
-     lvl-3  : 20–29   RAINBOW — full-spectrum rotating border ring + sparkle orbs
-     lvl-max: 30+     MAX — blinding halo, fast spin, floating crown badge + text pulse
-  ══════════════════════════════════════════════════════════════ */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 26px; background: var(--cream); color: var(--navy);
+  font-stretch: 75%; font-weight: 600; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; transition: background .25s; }
+.btn:hover { background: #fff; }
+.btn:focus-visible, .thumb:focus-visible, .lb button:focus-visible { outline: 2px solid var(--pale); outline-offset: 3px; }
 
-  /* @property for smooth hue rotation (Chrome/Edge; falls back gracefully) */
-  @property --hue {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-  }
-  @property --shine-angle {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-  }
 
-  /* ── LVL 0 — plain ── */
-  .lvl-0 {
-    border: 3px solid rgba(209,213,219,0.8);
-    box-shadow:
-      0 0 0 1px rgba(209,213,219,0.3),
-      0 4px 14px rgba(0,0,0,0.08);
-    transition: box-shadow 0.4s ease;
-  }
+/* ---------- section 1 ---------- */
+.s1 .head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; }
+/* the moving print: Di over cyanotype water, 4:5. On phones it sits on top and fades into the blue; the title overlaps her coat */
+.hero-print { position: relative; z-index: 0; order: 1; width: 100%; max-width: 520px; aspect-ratio: 4 / 5; margin: 0; background: #e9ecee;
+  -webkit-mask-image: linear-gradient(#000 74%, transparent 99%); mask-image: linear-gradient(#000 74%, transparent 99%); }
+.hero-print video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.s1 .title { position: relative; z-index: 1; order: 2; font-size: clamp(88px, 25vw, 300px); margin: -26vw 0 0 -4px; text-shadow: 0 2px 30px rgba(4,26,69,.55); }
+.s1 .head .series { order: 0; }
+.s1 .side { display: contents; }
+.s1 .cta { order: 3; }
+.s1 .facts { order: 4; }
+.s1 .lead { order: 5; }
+.s1 .title span + span { margin-top: .02em; }
+.s1 .facts { display: grid; gap: 4px; }
+.s1 .lead { font-size: 18px; max-width: 30ch; }
+.s1 .cta { display: grid; gap: 10px; justify-items: start; }
 
-  /* ── LVL 1 — SILVER ── */
-  .lvl-1 {
-    border: 3px solid #d4d4d4;
-    box-shadow:
-      0 0 0 2px rgba(255,255,255,0.6),
-      0 0 0 5px rgba(192,192,192,0.45),
-      0 0 18px 4px rgba(200,200,220,0.55),
-      0 0 36px 8px rgba(180,180,200,0.25),
-      0 6px 20px rgba(0,0,0,0.18);
-    animation: silverBreathe 3s ease-in-out infinite;
-  }
-  @keyframes silverBreathe {
-    0%, 100% {
-      box-shadow:
-        0 0 0 2px rgba(255,255,255,0.6),
-        0 0 0 5px rgba(192,192,192,0.45),
-        0 0 18px 4px rgba(200,200,220,0.55),
-        0 0 36px 8px rgba(180,180,200,0.25),
-        0 6px 20px rgba(0,0,0,0.18);
-      filter: brightness(1) saturate(1);
-    }
-    50% {
-      box-shadow:
-        0 0 0 3px rgba(255,255,255,0.9),
-        0 0 0 6px rgba(220,220,235,0.65),
-        0 0 28px 8px rgba(210,210,230,0.75),
-        0 0 52px 14px rgba(200,200,220,0.38),
-        0 6px 20px rgba(0,0,0,0.18);
-      filter: brightness(1.08) saturate(1.15);
-    }
-  }
+.mini { margin-top: 44px; }
+.mini ul { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.thumb { display: block; width: 100%; padding: 0; border: 0; background: var(--cream); cursor: zoom-in; aspect-ratio: 3 / 4; overflow: hidden; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+.thumb:hover img { transform: scale(1.04); }
 
-  /* ── LVL 2 — GOLD ── */
-  /* Wrapper holds the conic shine ring; actual circle inside clips to circle */
-  .lvl-2-wrapper {
-    position: relative;
-    border-radius: 50%;
-    /* Rotating conic-gradient ring via @property --shine-angle */
-    background: conic-gradient(
-      from var(--shine-angle),
-      #fde68a 0deg, #fbbf24 40deg, #f59e0b 80deg,
-      #fff7c0 120deg, #fbbf24 160deg, #f59e0b 200deg,
-      #fde68a 240deg, #fff 280deg, #fde68a 360deg
-    );
-    padding: 3px; /* ring thickness */
-    animation: goldRotate 3s linear infinite;
-  }
-  @keyframes goldRotate {
-    to { --shine-angle: 360deg; }
-  }
-  /* Fallback for browsers without @property — just spin the whole element */
-  @supports not (background: conic-gradient(from 1deg, red, blue)) {
-    .lvl-2-wrapper { animation: wrapperSpin 3s linear infinite; }
-    @keyframes wrapperSpin { to { transform: rotate(360deg); } }
-  }
-  .lvl-2 {
-    border: none !important;
-    /* Counter-rotate the bubble so the image stays upright */
-    animation: goldBreath 2.6s ease-in-out infinite, goldCounterSpin 3s linear infinite;
-    box-shadow:
-      0 0 0 2px rgba(251,191,36,0.5),
-      0 0 22px 6px rgba(251,191,36,0.65),
-      0 0 45px 12px rgba(253,224,71,0.38),
-      0 0 70px 20px rgba(251,191,36,0.18),
-      0 10px 28px rgba(0,0,0,0.2);
-  }
-  @keyframes goldBreath {
-    0%, 100% {
-      box-shadow:
-        0 0 0 2px rgba(251,191,36,0.5),
-        0 0 22px 6px rgba(251,191,36,0.65),
-        0 0 45px 12px rgba(253,224,71,0.38),
-        0 0 70px 20px rgba(251,191,36,0.18),
-        0 10px 28px rgba(0,0,0,0.2);
-      filter: brightness(1.02) saturate(1.1);
-    }
-    50% {
-      box-shadow:
-        0 0 0 3px rgba(253,230,138,0.85),
-        0 0 32px 10px rgba(251,191,36,0.85),
-        0 0 60px 18px rgba(253,224,71,0.55),
-        0 0 90px 28px rgba(251,191,36,0.28),
-        0 10px 28px rgba(0,0,0,0.2);
-      filter: brightness(1.12) saturate(1.3);
-    }
-  }
-  @keyframes goldCounterSpin {
-    to { transform: rotate(-360deg); }
-  }
-  /* Star sparkles on lvl-2 — 3 pseudo-sparkle dots orbiting */
-  .lvl-2-wrapper::before {
-    content: '✦';
-    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-    font-size: 10px; color: #fbbf24;
-    filter: drop-shadow(0 0 4px #fbbf24);
-    animation: sparkleOrbit1 2.6s linear infinite;
-    pointer-events: none; z-index: 20;
-  }
-  .lvl-2-wrapper::after {
-    content: '✦';
-    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-    font-size: 8px; color: #fde68a;
-    filter: drop-shadow(0 0 4px #fbbf24);
-    animation: sparkleOrbit2 2.6s linear infinite;
-    pointer-events: none; z-index: 20;
-  }
-  @keyframes sparkleOrbit1 {
-    0%   { opacity: 0; transform: translateX(-50%) scale(0.5); }
-    20%  { opacity: 1; transform: translateX(-50%) scale(1.3); }
-    50%  { opacity: 0.6; }
-    100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
-  }
-  @keyframes sparkleOrbit2 {
-    0%   { opacity: 0; transform: translateX(-50%) scale(0.5); }
-    30%  { opacity: 0; }
-    60%  { opacity: 1; transform: translateX(-50%) scale(1.3); }
-    100% { opacity: 0; transform: translateX(-50%) scale(0.5); }
-  }
+.try { margin-top: 48px; display: grid; gap: 28px; }
+.play { margin-top: 24px; }
+/* phones: while the settings sheet is open, section 1 sits above everything else and the page stops scrolling */
+html.sheet-lock, html.sheet-lock body { overflow: hidden; }
+html.sheet-lock .s1 { z-index: 45; }
+.note { font-size: 16px; color: var(--pale); }
+/* after the playground: the preview hands over to the real thing */
+.nudge { display: grid; gap: 22px; justify-items: start; margin-top: 56px; padding-top: 28px; border-top: 1.5px solid var(--cream); }
+.nudge p { font-family: var(--serif); font-weight: 500; font-size: clamp(36px, 9vw, 64px); line-height: .95; }
+.nudge p { min-width: 0; }
+.nudge p span { display: block; width: calc(100% / .7); transform: scaleX(.7); transform-origin: 0 0; }
+.end { display: flex; justify-content: center; margin-top: 64px; }
+/* sticky Book bar on phones; hidden at the hero CTA and the booking section */
+.sticky-book { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(4,26,69,.9); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  transform: translateY(110%); transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.sticky-book .btn { width: 100%; }
+.sticky-book.on { transform: none; }
 
-  /* ── LVL 3 — RAINBOW ── */
-  .lvl-3-wrapper {
-    position: relative;
-    border-radius: 50%;
-    background: conic-gradient(
-      from var(--hue),
-      #f472b6, #fb923c, #facc15, #4ade80, #60a5fa, #a78bfa, #f472b6
-    );
-    padding: 4px;
-    animation: hueRotate 1.8s linear infinite;
-  }
-  @keyframes hueRotate {
-    to { --hue: 360deg; }
-  }
-  @supports not (background: conic-gradient(from 1deg, red, blue)) {
-    .lvl-3-wrapper { animation: wrapperSpin3 1.8s linear infinite; }
-    @keyframes wrapperSpin3 { to { transform: rotate(360deg); } }
-  }
-  .lvl-3 {
-    border: none !important;
-    animation: rainbowBreath 2s ease-in-out infinite, rainbowCounterSpin 1.8s linear infinite;
-    box-shadow:
-      0 0 0 2px rgba(167,139,250,0.6),
-      0 0 24px 8px rgba(244,114,182,0.55),
-      0 0 44px 14px rgba(96,165,250,0.40),
-      0 0 70px 22px rgba(74,222,128,0.25),
-      0 10px 32px rgba(0,0,0,0.22);
-  }
-  @keyframes rainbowBreath {
-    0%, 100% {
-      filter: brightness(1.05) saturate(1.2);
-      box-shadow:
-        0 0 0 2px rgba(167,139,250,0.6),
-        0 0 24px 8px rgba(244,114,182,0.55),
-        0 0 44px 14px rgba(96,165,250,0.40),
-        0 0 70px 22px rgba(74,222,128,0.25),
-        0 10px 32px rgba(0,0,0,0.22);
-    }
-    50% {
-      filter: brightness(1.18) saturate(1.5);
-      box-shadow:
-        0 0 0 3px rgba(251,191,36,0.7),
-        0 0 36px 12px rgba(244,114,182,0.75),
-        0 0 60px 20px rgba(96,165,250,0.55),
-        0 0 90px 30px rgba(167,139,250,0.38),
-        0 10px 32px rgba(0,0,0,0.22);
-    }
-  }
-  @keyframes rainbowCounterSpin {
-    to { transform: rotate(-360deg); }
-  }
-  /* Sparkle particles floating up around lvl-3 */
-  .lvl-3-wrapper::before,
-  .lvl-3-wrapper::after {
-    content: '✦';
-    position: absolute;
-    font-size: 11px;
-    pointer-events: none; z-index: 20;
-  }
-  .lvl-3-wrapper::before {
-    top: 0; left: -4px;
-    color: #f472b6;
-    filter: drop-shadow(0 0 5px #f472b6);
-    animation: sparkleFloat 2s ease-in-out infinite;
-  }
-  .lvl-3-wrapper::after {
-    top: 0; right: -4px;
-    color: #60a5fa;
-    filter: drop-shadow(0 0 5px #60a5fa);
-    animation: sparkleFloat 2s ease-in-out infinite 0.9s;
-  }
-  @keyframes sparkleFloat {
-    0%   { opacity: 0; transform: translateY(0) scale(0.6); }
-    30%  { opacity: 1; transform: translateY(-8px) scale(1.2); }
-    70%  { opacity: 0.5; transform: translateY(-16px) scale(0.9); }
-    100% { opacity: 0; transform: translateY(-24px) scale(0.4); }
-  }
+/* ---------- section 2 ---------- */
+.s2 .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; }
+.s2 .intro { display: grid; gap: 18px; margin-top: 18px; max-width: 36ch; font-size: 17px; }
+.shop-panel { display: grid; gap: 16px; }
+.contacts { display: grid; gap: 12px; }
+.contacts div { display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: baseline; }
+.contacts dt { font-stretch: 62%; letter-spacing: .26em; text-transform: uppercase; color: var(--pale); font-size: 15px; }
+.contacts dd { margin: 0; font-size: 17px; }
+.contacts a, .foot a { display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 4px; }
+.contacts div { align-items: center; }
+.tbc { display: inline-block; border: 1px dashed var(--pale); padding: 0 6px; color: var(--pale); font-size: 16px; }
 
-  /* ── LVL MAX — 30+ ── */
-  .lvl-max-wrapper {
-    position: relative;
-    border-radius: 50%;
-    /* Thick dual-layer halo: inner white ring + outer rainbow */
-    background: conic-gradient(
-      from var(--hue),
-      #fff9c4, #fbbf24, #f97316, #ef4444, #a855f7, #3b82f6, #10b981, #fbbf24, #fff9c4
-    );
-    padding: 5px;
-    animation: maxHaloSpin 1.2s linear infinite;
-    /* Outer atmospheric halo via box-shadow on wrapper */
-    box-shadow:
-      0 0 0 3px rgba(255,255,255,0.5),
-      0 0 30px 10px rgba(251,191,36,0.70),
-      0 0 60px 20px rgba(251,191,36,0.45),
-      0 0 100px 35px rgba(253,230,138,0.28);
-    filter: drop-shadow(0 0 20px rgba(251,191,36,0.8));
-  }
-  @keyframes maxHaloSpin {
-    to { --hue: 360deg; }
-  }
-  @supports not (background: conic-gradient(from 1deg, red, blue)) {
-    .lvl-max-wrapper { animation: wrapperSpinMax 1.2s linear infinite; }
-    @keyframes wrapperSpinMax { to { transform: rotate(360deg); } }
-  }
-  .lvl-max {
-    border: none !important;
-    animation: maxPulse 1.2s ease-in-out infinite, maxCounterSpin 1.2s linear infinite;
-    box-shadow:
-      0 0 0 2px rgba(255,255,255,0.9),
-      0 0 30px 10px rgba(251,191,36,0.90),
-      0 0 60px 20px rgba(253,224,71,0.65),
-      0 0 100px 35px rgba(251,191,36,0.40),
-      0 16px 48px rgba(0,0,0,0.28);
-  }
-  @keyframes maxPulse {
-    0%, 100% {
-      filter: brightness(1.08) saturate(1.3);
-      box-shadow:
-        0 0 0 2px rgba(255,255,255,0.9),
-        0 0 30px 10px rgba(251,191,36,0.90),
-        0 0 60px 20px rgba(253,224,71,0.65),
-        0 0 100px 35px rgba(251,191,36,0.40),
-        0 16px 48px rgba(0,0,0,0.28);
-    }
-    50% {
-      filter: brightness(1.22) saturate(1.6);
-      box-shadow:
-        0 0 0 3px rgba(255,255,255,1),
-        0 0 45px 16px rgba(251,191,36,1),
-        0 0 85px 30px rgba(253,224,71,0.85),
-        0 0 130px 50px rgba(251,191,36,0.55),
-        0 16px 48px rgba(0,0,0,0.28);
-    }
-  }
-  @keyframes maxCounterSpin {
-    to { transform: rotate(-360deg); }
-  }
-  /* Blinding inner lens-flare sweep */
-  .lvl-max-wrapper::before {
-    content: '';
-    position: absolute; inset: -2px;
-    border-radius: 50%;
-    background: conic-gradient(
-      transparent 0deg,
-      rgba(255,255,255,0.7) 25deg,
-      rgba(255,255,255,0.2) 55deg,
-      transparent 85deg,
-      rgba(255,255,255,0.4) 180deg,
-      rgba(255,255,255,0.1) 210deg,
-      transparent 240deg
-    );
-    animation: lensFlare 1.2s linear infinite;
-    pointer-events: none; z-index: 3;
-    border-radius: 50%;
-  }
-  @keyframes lensFlare {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-  /* Floating sparkle trio */
-  .lvl-max-wrapper::after {
-    content: '✦ ✦ ✦';
-    position: absolute;
-    top: -20px; left: 50%; transform: translateX(-50%);
-    font-size: 9px; letter-spacing: 3px;
-    color: #fde68a;
-    filter: drop-shadow(0 0 6px #fbbf24) drop-shadow(0 0 12px #f59e0b);
-    pointer-events: none; z-index: 20;
-    animation: sparkleTriFloat 1.8s ease-in-out infinite;
-  }
-  @keyframes sparkleTriFloat {
-    0%, 100% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.7); }
-    30%       { opacity: 1; transform: translateX(-50%) translateY(-6px) scale(1.1); }
-    65%       { opacity: 0.7; transform: translateX(-50%) translateY(-12px) scale(0.9); }
-  }
+.shop { display: grid; gap: 12px; }
+.price { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 13px 0; border-bottom: 1px solid rgba(238,231,207,.35); font-size: 17px; }
+.price:first-child { border-top: 1.5px solid var(--cream); }
+.price strong { font-stretch: 75%; font-weight: 600; letter-spacing: .06em; white-space: nowrap; }
+.price small { display: block; margin-top: 2px; font-size: 16px; color: var(--pale); letter-spacing: .04em; }
+.care { padding: 16px 18px; background: rgba(4,26,69,.55); border-left: 1.5px solid var(--pale); font-size: 16px; }
 
-  /* ── MAX CROWN BADGE (sits above the wrapper) ── */
-  .crown-max {
-    position: absolute;
-    top: -26px; left: 50%; transform: translateX(-50%);
-    z-index: 30; pointer-events: none;
-    display: flex; flex-direction: column; align-items: center; gap: 0;
-    animation: crownFloat 2s ease-in-out infinite;
-  }
-  .crown-max .crown-icon {
-    font-size: 1.4rem;
-    filter: drop-shadow(0 0 8px rgba(251,191,36,0.9)) drop-shadow(0 0 16px rgba(251,191,36,0.5));
-    animation: crownSpin 3s ease-in-out infinite;
-  }
-  .crown-max .crown-label {
-    font-family: 'Baloo 2', cursive;
-    font-size: 0.55rem; font-weight: 800; letter-spacing: 0.06em;
-    color: #fbbf24; line-height: 1;
-    text-shadow: 0 0 6px rgba(251,191,36,0.9), 0 0 12px rgba(251,191,36,0.5);
-    animation: crownLabelPulse 2s ease-in-out infinite;
-  }
-  @keyframes crownFloat {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50%       { transform: translateX(-50%) translateY(-4px); }
-  }
-  @keyframes crownSpin {
-    0%, 80%, 100% { transform: rotate(0deg) scale(1); }
-    90%            { transform: rotate(-18deg) scale(1.25); }
-    95%            { transform: rotate(14deg) scale(1.1); }
-  }
-  @keyframes crownLabelPulse {
-    0%, 100% { opacity: 1; letter-spacing: 0.06em; }
-    50%       { opacity: 0.7; letter-spacing: 0.12em; }
-  }
+/* ---------- section 3 ---------- */
+.s3 { background: var(--black); margin-top: var(--margin); padding: 64px var(--gut) 40px; }
+.s3 .h2 { max-width: 1240px; margin: 0 auto; }
+.gallery { display: grid; gap: 40px; margin: 40px auto 0; max-width: 1240px; }
+.gallery .thumb { aspect-ratio: auto; background: #111; }
+.gallery .thumb img { height: auto; }
+.foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; max-width: 1240px; margin: 64px auto 0; padding-top: 14px; border-top: 1px solid rgba(238,231,207,.3); color: var(--pale); }
+.foot a { color: var(--cream); text-decoration: none; }
 
-  /* ── Level pin badge (top-right of bubble for lvl-1/2/3) ── */
-  .level-badge {
-    position: absolute;
-    top: -5px; right: -5px;
-    font-size: 0.95rem; line-height: 1;
-    pointer-events: none; z-index: 10;
-    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4));
-    animation: pinPop 2.4s ease-in-out infinite;
-  }
-  @keyframes pinPop {
-    0%, 100% { transform: scale(1) rotate(0deg); }
-    50%       { transform: scale(1.25) rotate(15deg); }
-  }
+html[lang="ru"] { --serif: 'Playfair Display', Georgia, serif; --sans: 'Roboto Flex', 'Arial Narrow', system-ui, sans-serif; }
+/* Russian hero title: Playfair's descenders (ц, у, р, д, щ) drop further, so give them room below each line */
+html[lang="ru"] .s1 .title { line-height: .9; padding-bottom: .25em; }
+html[lang="ru"] .s1 .facts { position: relative; z-index: 2; }
 
-  /* ── BOUNCE ANIMATION ── */
-  @keyframes circlePulse {
-    0%   { filter: brightness(1) saturate(1); }
-    25%  { filter: brightness(1.22) saturate(1.4); transform: scale(1.18); }
-    55%  { transform: scale(0.96); }
-    80%  { transform: scale(1.06); }
-    100% { filter: brightness(1) saturate(1); transform: scale(1); }
-  }
-  .bouncing .circle-bubble { animation: circlePulse 0.65s cubic-bezier(.34,1.56,.64,1); }
+/* ---------- language switch ---------- */
+.lang { position: fixed; z-index: 40; top: calc(var(--margin) + 8px); right: calc(var(--margin) + 8px); display: flex; align-items: center; background: rgba(4,26,69,.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.lang button { min-width: 44px; min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--pale); font: 400 14px var(--sans); font-stretch: 62%; letter-spacing: .26em; text-indent: .26em; cursor: pointer; }
+.lang button[aria-pressed="true"] { color: var(--cream); font-weight: 600; }
+.lang button:hover { color: var(--cream); }
+.lang button:focus-visible { outline: 2px solid var(--pale); outline-offset: -4px; }
+.lang i { width: 1px; height: 14px; background: rgba(238,231,207,.35); }
 
-  /* ── FLOATING SCORE ── */
-  .float-score {
-    position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
-    font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800;
-    pointer-events: none; z-index: 100; white-space: nowrap;
-    animation: floatUp 1.1s ease forwards;
-  }
-  @keyframes floatUp {
-    0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
-    60%  { opacity: 1; transform: translate(-50%, -38px) scale(1.1); }
-    100% { opacity: 0; transform: translate(-50%, -60px) scale(0.8); }
-  }
+/* ---------- lightbox ---------- */
+.lb { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; background: rgba(0,0,0,.94); padding: 56px 12px 72px; }
+.lb.open { display: grid; }
+.lb img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+.lb button { position: absolute; width: 48px; height: 48px; border: 0; background: none; color: var(--cream); font: 300 30px/1 var(--sans); cursor: pointer; }
+.lb .x { top: 6px; right: 6px; }
+.lb .prev { bottom: 12px; left: calc(50% - 64px); }
+.lb .next { bottom: 12px; left: calc(50% + 16px); }
+.lb .count { position: absolute; top: 18px; left: 18px; font-size: 14px; color: var(--pale); }
 
-  /* ── AWARD MENU ── */
-  #award-menu {
-    position: fixed; z-index: 500;
-    background: var(--card-bg);
-    border: 1.5px solid var(--border);
-    border-radius: 20px;
-    padding: 14px 16px 10px;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.18);
-    min-width: 260px;
-    display: none;
-    animation: menuPop 0.22s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes menuPop {
-    from { opacity: 0; transform: scale(0.85); }
-    to   { opacity: 1; transform: scale(1); }
-  }
-  #award-menu .menu-header {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 10px;
-  }
-  #award-menu .menu-avatar { font-size: 1.6rem; }
-  #award-menu .menu-name {
-    font-family: 'Baloo 2', cursive; font-size: 1rem; font-weight: 800; color: var(--text);
-  }
-  #award-menu .menu-pts-label { font-size: 0.75rem; color: var(--text-muted); }
-  #award-menu .close-btn {
-    margin-left: auto; cursor: pointer; font-size: 1.2rem;
-    color: var(--text-muted); background: none; border: none; line-height: 1;
-  }
-  .award-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
-  .award-btn {
-    padding: 8px 6px; border-radius: 12px; border: none; cursor: pointer;
-    font: 700 0.78rem 'Nunito', sans-serif;
-    transition: all 0.15s; text-align: center;
-  }
-  .award-btn.pos { background: #d1fae5; color: #065f46; }
-  .award-btn.pos:hover { background: #6ee7b7; }
-  .award-btn.neg { background: #fee2e2; color: #991b1b; }
-  .award-btn.neg:hover { background: #fca5a5; }
-  .dark .award-btn.pos { background: #064e3b; color: #6ee7b7; }
-  .dark .award-btn.neg { background: #450a0a; color: #fca5a5; }
-  .custom-row { display: flex; gap: 6px; margin-top: 4px; }
-  .custom-row input {
-    flex: 1; padding: 7px 10px; border-radius: 10px;
-    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
-    font: 700 0.85rem 'Nunito', sans-serif; outline: none;
-  }
-  .custom-row input:focus { border-color: #6366f1; }
-  .custom-row button {
-    padding: 7px 12px; border-radius: 10px;
-    background: #6366f1; color: #fff; border: none; cursor: pointer;
-    font: 700 0.82rem 'Nunito', sans-serif;
-    transition: background 0.15s;
-  }
-  .custom-row button:hover { background: #4f46e5; }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 600;
-    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .modal-box {
-    background: var(--card-bg); border-radius: 22px;
-    padding: 28px 30px; min-width: 320px; max-width: 480px; width: 90%;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.25);
-    animation: menuPop 0.22s cubic-bezier(.34,1.56,.64,1);
-  }
-  .modal-title {
-    font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800;
-    color: var(--text); margin-bottom: 16px;
-  }
-  .modal-field { margin-bottom: 12px; }
-  .modal-field label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
-  .modal-field input, .modal-field select {
-    width: 100%; padding: 9px 12px; border-radius: 12px;
-    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
-    font: 700 0.9rem 'Nunito', sans-serif; outline: none;
-  }
-  .modal-field input:focus, .modal-field select:focus { border-color: #6366f1; }
-  /* ── AVATAR UPLOAD UI ── */
-  .avatar-section {
-    display: flex; align-items: flex-start; gap: 16px; margin-bottom: 4px;
-  }
-  /* Circular preview — shows either <img> or initials SVG */
-  .avatar-preview-ring {
-    flex-shrink: 0;
-    width: 72px; height: 72px; border-radius: 50%;
-    border: 3px solid var(--border);
-    overflow: hidden; background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    transition: border-color 0.2s;
-    position: relative;
-  }
-  .avatar-preview-ring.has-image { border-color: #6366f1; }
-  .avatar-preview-ring img {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-    display: block;
-  }
-  .avatar-preview-ring .initials-svg {
-    width: 100%; height: 100%;
-  }
-  .avatar-controls { flex: 1; display: flex; flex-direction: column; gap: 7px; }
-  /* Upload button styled as a pill */
-  .upload-btn-label {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border-radius: 11px; cursor: pointer;
-    background: var(--border); color: var(--text);
-    font: 700 0.82rem 'Nunito', sans-serif;
-    transition: background 0.15s; width: fit-content;
-    border: 1.5px dashed #a5b4fc;
-  }
-  .upload-btn-label:hover { background: #ede9fe; border-color: #6366f1; }
-  .dark .upload-btn-label:hover { background: #312e81; }
-  input[type="file"]#avatar-file-input { display: none; }
-  .avatar-divider {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 0.72rem; color: var(--text-muted); font-weight: 700;
-  }
-  .avatar-divider::before, .avatar-divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
-  /* URL input row */
-  .url-input-row { display: flex; gap: 6px; align-items: center; }
-  .url-input-row input {
-    flex: 1; padding: 7px 10px; border-radius: 10px;
-    border: 1.5px solid var(--border); background: var(--bg); color: var(--text);
-    font: 600 0.8rem 'Nunito', sans-serif; outline: none;
-    transition: border-color 0.2s;
-  }
-  .url-input-row input:focus { border-color: #6366f1; }
-  .url-input-row input.url-valid   { border-color: #34d399; }
-  .url-input-row input.url-invalid { border-color: #f87171; }
-  .url-check-btn {
-    padding: 7px 11px; border-radius: 10px;
-    background: #6366f1; color: #fff; border: none; cursor: pointer;
-    font: 700 0.78rem 'Nunito', sans-serif; transition: background 0.15s; white-space: nowrap;
-  }
-  .url-check-btn:hover { background: #4f46e5; }
-  .avatar-hint {
-    font-size: 0.7rem; color: var(--text-muted); line-height: 1.4;
-  }
-  .avatar-hint.warn { color: #f59e0b; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
-  .modal-actions button {
-    padding: 9px 20px; border-radius: 12px; border: none; cursor: pointer;
-    font: 700 0.88rem 'Nunito', sans-serif; transition: all 0.15s;
-  }
-  .btn-cancel { background: var(--border); color: var(--text); }
-  .btn-confirm { background: #6366f1; color: #fff; }
-  .btn-confirm:hover { background: #4f46e5; }
-  .btn-danger { background: #ef4444; color: #fff; }
-  .btn-danger:hover { background: #dc2626; }
-
-  /* ── DETAILS PANEL ── */
-  #details-panel {
-    position: fixed; right: 0; top: 0; bottom: 0; z-index: 400;
-    width: 300px; background: var(--card-bg);
-    border-left: 1.5px solid var(--border);
-    box-shadow: -8px 0 40px rgba(0,0,0,0.12);
-    padding: 24px 20px; overflow-y: auto;
-    transform: translateX(100%); transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
-  }
-  #details-panel.open { transform: translateX(0); }
-  .detail-avatar {
-    display: flex; justify-content: center; margin-bottom: 10px;
-  }
-  .detail-avatar-ring {
-    width: 88px; height: 88px; border-radius: 50%;
-    overflow: hidden; border: 3px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    background: var(--bg);
-  }
-  .detail-avatar-ring img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .detail-name {
-    font-family: 'Baloo 2', cursive; font-size: 1.4rem; font-weight: 800;
-    text-align: center; color: var(--text); margin-bottom: 2px;
-  }
-  .detail-pts {
-    text-align: center; font-size: 1.1rem; font-weight: 800;
-    color: #6366f1; margin-bottom: 16px;
-  }
-  .history-title { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .history-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 7px 10px; border-radius: 10px; margin-bottom: 4px;
-    background: var(--bg); font-size: 0.8rem;
-  }
-  .history-item .h-delta { font-weight: 800; min-width: 36px; }
-  .h-pos { color: #059669; }
-  .h-neg { color: #dc2626; }
-  .history-item .h-reason { flex: 1; color: var(--text); }
-  .history-item .h-time { font-size: 0.68rem; color: var(--text-muted); }
-  .close-detail {
-    position: absolute; top: 16px; right: 16px;
-    font-size: 1.3rem; cursor: pointer; color: var(--text-muted); background: none; border: none;
-  }
-
-  /* ── LEADERBOARD ── */
-  #leaderboard {
-    position: fixed; bottom: 18px; right: 18px;
-    z-index: 200; background: var(--card-bg);
-    border: 1.5px solid var(--border);
-    border-radius: 18px; padding: 12px 16px;
-    min-width: 180px; box-shadow: var(--shadow);
-    transition: opacity 0.3s;
-  }
-  .projector-mode #leaderboard { opacity: 0; pointer-events: none; }
-  .lb-title { font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .lb-item {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 5px; font-size: 0.82rem; font-weight: 700; color: var(--text);
-  }
-  .lb-rank { font-size: 0.72rem; color: var(--text-muted); min-width: 14px; }
-  .lb-avatar {
-    width: 24px; height: 24px; border-radius: 50%;
-    overflow: hidden; flex-shrink: 0; background: var(--border);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .lb-avatar svg { width: 100%; height: 100%; }
-  .lb-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .lb-pts { font-family: 'Baloo 2', cursive; color: #6366f1; font-size: 0.9rem; }
-
-  /* ── CONFETTI ── */
-  .confetti-piece {
-    position: fixed; pointer-events: none; z-index: 9999;
-    width: 9px; height: 9px; border-radius: 2px;
-    animation: confettiFall 1.4s ease-in forwards;
-  }
-  @keyframes confettiFall {
-    0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
-    100% { opacity: 0; transform: translateY(200px) rotate(720deg); }
-  }
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    width: 100%; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 60px 20px; color: var(--text-muted);
-    text-align: center;
-  }
-  .empty-state .es-icon { font-size: 3.5rem; margin-bottom: 12px; }
-  .empty-state h3 { font-family: 'Baloo 2', cursive; font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: 6px; }
-  .empty-state p { font-size: 0.85rem; }
-  /* ═══════════════════════════════════════════════════════════
-     67 CELEBRATION OVERLAY — gamified bubble aesthetic
-     8-second show: staggered digits → bounce → pulse → fade
-  ═══════════════════════════════════════════════════════════ */
-
-  #celebration-overlay {
-    position: fixed; inset: 0; z-index: 10000;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    pointer-events: none;
-    /* Deep space backdrop with radial corona */
-    background:
-      radial-gradient(ellipse 70% 55% at 50% 48%,
-        rgba(251,191,36,0.18) 0%,
-        rgba(99,102,241,0.22) 38%,
-        rgba(10,8,30,0.88) 100%);
-  }
-
-  /* ── DIGIT ROW: "6" and "7" animate in independently ── */
-  #celebration-digits {
-    display: flex; align-items: center; justify-content: center;
-    gap: 0.04em;
-    line-height: 1;
-    position: relative;
-  }
-
-  /* Each digit shares these base styles */
-  .cel-digit {
-    font-family: 'Baloo 2', cursive;
-    font-size: clamp(130px, 24vw, 290px);
-    font-weight: 800;
-    line-height: 1;
-    display: inline-block;
-    opacity: 0;
-    position: relative;
-    /* will-change keeps GPU layers ready */
-    will-change: transform, opacity, filter;
-  }
-
-  /* "6" — drops in from above with a big overshoot bounce */
-  .cel-digit-6 {
-    background: linear-gradient(160deg, #fff7c0 0%, #fbbf24 30%, #f97316 60%, #ef4444 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    filter:
-      drop-shadow(0 0 18px rgba(251,191,36,1))
-      drop-shadow(0 0 42px rgba(251,191,36,0.8))
-      drop-shadow(0 0 80px rgba(249,115,22,0.6));
-    animation: digit6Drop 0.7s cubic-bezier(.34,1.7,.64,1) 0.08s forwards,
-               digitPulse  1.1s ease-in-out 1.1s infinite;
-  }
-  @keyframes digit6Drop {
-    0%   { opacity: 0; transform: translateY(-160px) rotate(-14deg) scale(0.4); }
-    55%  { opacity: 1; transform: translateY(18px)   rotate(6deg)  scale(1.18); }
-    75%  { transform: translateY(-10px) rotate(-3deg) scale(0.96); }
-    88%  { transform: translateY(6px)  rotate(1deg)  scale(1.04); }
-    100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-  }
-
-  /* "7" — launches up from below, slight delay so digits feel staggered */
-  .cel-digit-7 {
-    background: linear-gradient(160deg, #e0f2fe 0%, #38bdf8 30%, #6366f1 65%, #a855f7 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    filter:
-      drop-shadow(0 0 18px rgba(56,189,248,1))
-      drop-shadow(0 0 42px rgba(99,102,241,0.85))
-      drop-shadow(0 0 80px rgba(168,85,247,0.6));
-    animation: digit7Rise 0.7s cubic-bezier(.34,1.7,.64,1) 0.32s forwards,
-               digitPulse  1.1s ease-in-out 1.35s infinite;
-  }
-  @keyframes digit7Rise {
-    0%   { opacity: 0; transform: translateY(160px) rotate(14deg) scale(0.4); }
-    55%  { opacity: 1; transform: translateY(-18px) rotate(-6deg) scale(1.18); }
-    75%  { transform: translateY(10px) rotate(3deg) scale(0.96); }
-    88%  { transform: translateY(-5px) rotate(-1deg) scale(1.04); }
-    100% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-  }
-
-  /* Shared breathing pulse once both digits are settled */
-  @keyframes digitPulse {
-    0%, 100% { transform: scale(1)    rotate(0deg); }
-    30%       { transform: scale(1.07) rotate(1.5deg); }
-    65%       { transform: scale(0.97) rotate(-0.8deg); }
-  }
-
-  /* ── "×" separator that pops in between digits ── */
-  .cel-sep {
-    font-family: 'Baloo 2', cursive;
-    font-size: clamp(40px, 7vw, 90px);
-    font-weight: 800;
-    color: rgba(255,255,255,0.55);
-    display: inline-block;
-    opacity: 0;
-    transform: scale(0) rotate(90deg);
-    animation: sepPop 0.45s cubic-bezier(.34,1.9,.64,1) 0.62s forwards;
-    text-shadow: 0 0 14px rgba(255,255,255,0.5);
-    margin: 0 0.05em;
-    align-self: center;
-    margin-bottom: 0.12em;
-  }
-  @keyframes sepPop {
-    to { opacity: 1; transform: scale(1) rotate(0deg); }
-  }
-
-  /* ── Subtitle label ── */
-  #celebration-label {
-    font-family: 'Baloo 2', cursive;
-    font-size: clamp(15px, 2.8vw, 32px);
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-top: 10px;
-    opacity: 0;
-    transform: translateY(22px) scale(0.9);
-    animation: labelPop 0.5s cubic-bezier(.34,1.56,.64,1) 0.85s forwards;
-    text-shadow:
-      0 0 12px rgba(251,191,36,1),
-      0 0 28px rgba(251,191,36,0.7),
-      0 0 55px rgba(99,102,241,0.5),
-      0 2px 6px rgba(0,0,0,0.7);
-  }
-  @keyframes labelPop {
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  /* ── Sub-subtitle: scrolling emoji ticker ── */
-  #celebration-ticker {
-    font-size: clamp(20px, 3.5vw, 40px);
-    letter-spacing: 0.1em;
-    opacity: 0;
-    margin-top: 6px;
-    animation: labelPop 0.4s ease 1.1s forwards;
-    /* gentle left-right shimmy */
-    animation: labelPop 0.4s ease 1.1s forwards, tickerShimmy 2.2s ease-in-out 1.6s infinite;
-  }
-  @keyframes tickerShimmy {
-    0%, 100% { transform: translateX(0); }
-    25%       { transform: translateX(-6px) rotate(-2deg); }
-    75%       { transform: translateX(6px)  rotate(2deg); }
-  }
-
-  /* ── Neon ring: a conic halo that expands outward once ── */
-  #celebration-halo {
-    position: absolute;
-    width: 0; height: 0;
-    border-radius: 50%;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: haloExpand 1.4s cubic-bezier(.2,.8,.3,1) 0.5s forwards;
-    opacity: 0;
-    box-shadow:
-      0 0 0 6px  rgba(251,191,36,0.9),
-      0 0 0 14px rgba(99,102,241,0.6),
-      0 0 0 28px rgba(244,114,182,0.35),
-      0 0 0 50px rgba(56,189,248,0.18);
-  }
-  @keyframes haloExpand {
-    0%   { opacity: 1; width: 0; height: 0; }
-    60%  { opacity: 0.9; width: 70vmin; height: 70vmin; }
-    100% { opacity: 0; width: 95vmin; height: 95vmin; }
-  }
-
-  /* ── Second delayed halo pulse ── */
-  #celebration-halo2 {
-    position: absolute;
-    width: 0; height: 0;
-    border-radius: 50%;
-    left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: haloExpand2 1.2s cubic-bezier(.2,.8,.3,1) 1.6s forwards;
-    opacity: 0;
-    box-shadow:
-      0 0 0 5px  rgba(244,114,182,0.95),
-      0 0 0 12px rgba(251,191,36,0.55),
-      0 0 0 26px rgba(99,102,241,0.3),
-      0 0 0 48px rgba(56,189,248,0.12);
-  }
-  @keyframes haloExpand2 {
-    0%   { opacity: 1; width: 0; height: 0; }
-    65%  { opacity: 0.8; width: 60vmin; height: 60vmin; }
-    100% { opacity: 0; width: 88vmin; height: 88vmin; }
-  }
-
-  /* ── Spark particles ── */
-  .spark-ring {
-    position: absolute; left: 50%; top: 50%;
-    width: 0; height: 0;
-    pointer-events: none;
-  }
-  .spark {
-    position: absolute;
-    border-radius: 50%;
-    transform-origin: 0 0;
-    animation: sparkBurst var(--dur, 1s) cubic-bezier(.15,.8,.35,1) var(--del, 0s) forwards;
-  }
-  @keyframes sparkBurst {
-    0%   { opacity: 1; transform: rotate(var(--a)) translateX(0)              scale(1.2); }
-    55%  { opacity: 1; transform: rotate(var(--a)) translateX(var(--d))        scale(1.5); }
-    100% { opacity: 0; transform: rotate(var(--a)) translateX(calc(var(--d)*1.35)) scale(0.2); }
-  }
-  /* Elongated dart sparks */
-  .spark.dart {
-    border-radius: 40%;
-    animation: dartBurst var(--dur, 1s) cubic-bezier(.1,.9,.3,1) var(--del, 0s) forwards;
-  }
-  @keyframes dartBurst {
-    0%   { opacity: 1; transform: rotate(var(--a)) translateX(0)               scaleX(2.5) scaleY(0.5); }
-    50%  { opacity: 1; transform: rotate(var(--a)) translateX(var(--d))        scaleX(1.8) scaleY(0.7); }
-    100% { opacity: 0; transform: rotate(var(--a)) translateX(calc(var(--d)*1.4)) scaleX(0.3) scaleY(0.3); }
-  }
-
-  /* ── Star glitter that floats up ── */
-  .glitter {
-    position: fixed;
-    font-size: 1.1rem; line-height: 1;
-    pointer-events: none; z-index: 10001;
-    animation: glitterFloat var(--dur,2s) ease-out var(--del,0s) forwards;
-  }
-  @keyframes glitterFloat {
-    0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-    60%  { opacity: 1; transform: translateY(var(--up,-120px)) rotate(var(--rot,240deg)) scale(1.2); }
-    100% { opacity: 0; transform: translateY(var(--up2,-220px)) rotate(var(--rot2,480deg)) scale(0.3); }
-  }
-
-  /* ── Overlay fade-out ── */
-  #celebration-overlay.fading {
-    animation: overlayFadeOut 1.1s cubic-bezier(.4,0,1,1) forwards;
-  }
-  @keyframes overlayFadeOut {
-    0%   { opacity: 1; transform: scale(1); }
-    60%  { opacity: 0.6; transform: scale(1.04); }
-    100% { opacity: 0; transform: scale(1.1); }
-  }
+/* ---------- tablet / desktop ---------- */
+@media (min-width: 720px) {
+  :root { --gut: 44px; --margin: 18px; }
+  .series { font-size: 16px; }
+  .print { padding-top: 40px; padding-bottom: 80px; }
+  .mini ul { gap: 14px; }
+  .sticky-book { display: none; }
+  .nudge { grid-template-columns: 1fr auto; align-items: end; margin-top: 80px; }
+  .gallery { grid-template-columns: 1fr 1fr; gap: 56px 48px; align-items: start; }
+  .gallery li:nth-child(2) { margin-top: 120px; }
+  .gallery li:nth-child(4) { margin-top: 60px; }
+}
+@media (min-width: 1000px) {
+  :root { --gut: 64px; --margin: 26px; }
+  html { scroll-snap-type: y proximity; }
+  .print, .s3 { scroll-snap-align: start; }
+  .s1 .head { grid-template-columns: minmax(0, 1fr) min(40vw, 540px); grid-template-rows: auto auto auto 1fr; align-items: start; column-gap: 48px; }
+  .s1 .head .series { grid-column: 1; grid-row: 1; }
+  .hero-print { grid-column: 2; grid-row: 1 / span 4; margin-top: 56px; max-width: none; -webkit-mask-image: none; mask-image: none; box-shadow: 0 30px 60px -24px rgba(2,12,34,.7); }
+  .s1 .title { grid-column: 1; grid-row: 2; font-size: min(17vw, 240px); margin: 18px 0 0 -4px; text-shadow: none; }
+  .s1 .facts { grid-column: 1; grid-row: 3; }
+  .s1 .side { grid-column: 1; grid-row: 4; display: grid; gap: 22px; align-content: start; }
+  .play { margin-top: 48px; }
+  .s2 .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 72px; align-items: start; }
+  .mini ul { max-width: 560px; }
+  .mini .thumb { aspect-ratio: 1; }
+  .lb { padding: 64px 96px; }
+  .lb .prev, .lb .next { bottom: auto; top: 50%; margin-top: -24px; }
+  .lb .prev { left: 24px; }
+  .lb .next { left: auto; right: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .s2 > .gif { background-image: none !important; }
+  .thumb img { transition: none; }
+  .sticky-book { transition: none; }
+}
 </style>
 </head>
 <body>
+<nav class="lang" aria-label="Language" data-i18n-attr="aria-label:ui_lang">
+  <button type="button" data-lang="en" lang="en" aria-pressed="true">EN</button><i aria-hidden="true"></i><button type="button" data-lang="ru" lang="ru" aria-pressed="false">RU</button>
+</nav>
 
-<div id="app">
-  <!-- SIDEBAR -->
-  <aside id="sidebar">
-    <div id="sidebar-header">🍎 <span>Kyle's Class</span></div>
-    <div id="class-list"></div>
-    <div id="sidebar-footer">
-      <div class="footer-label">Quick Actions</div>
-      <button class="sidebar-btn" onclick="openAddStudentModal()">➕ Add Student</button>
-      <button class="sidebar-btn" onclick="confirmReset('class')">🔄 Reset Class</button>
-      <button class="sidebar-btn" onclick="exportCSV()">📊 Export CSV</button>
+<!-- SECTION 1: try it yourself + mini gallery -->
+<section class="print s1" id="top" aria-labelledby="t1">
+  <div class="gif" aria-hidden="true"></div>
+
+  <header class="head">
+    <p class="series">Cyanotype with Di</p>
+    <figure class="hero-print">
+      <video muted loop playsinline preload="none" poster="hero/di-water-poster.webp" width="1080" height="1350" aria-label="Cyanotype print of Di over water ripples" data-i18n-attr="aria-label:hero_v">
+        <source src="hero/di-water-720.mp4" type="video/mp4" media="(max-width: 700px)">
+        <source src="hero/di-water-1080.webm" type='video/webm; codecs="av01.0.08M.08"'>
+        <source src="hero/di-water-1080.mp4" type="video/mp4">
+      </video>
+    </figure>
+    <h1 class="title" id="t1" data-i18n-html="h1"><span>Paint with</span><span><em>sunlight</em><b>.</b></span></h1>
+    <div class="facts caps">
+      <span data-i18n="f_kind">Sun-print workshop</span>
+      <span class="pale">Da Nang, Vietnam</span>
+      <span><span data-i18n="f_dates">Dates:</span> 10/10, 17/10, 24/10</span>
     </div>
-  </aside>
-
-  <!-- MAIN -->
-  <div id="main">
-    <!-- TOP BAR -->
-    <div id="topbar">
-      <div id="class-title">Loading...</div>
-      <div class="tb-sep"></div>
-      <button class="tb-btn primary" onclick="openAddStudentModal()">➕ Add Student</button>
-      <button class="tb-btn" onclick="toggleDark()" id="dark-btn">🌙</button>
-      <button class="tb-btn" onclick="toggleProjector()" id="proj-btn">📽️</button>
-      <button class="tb-btn danger" onclick="confirmReset('class')">🔄 Reset</button>
+    <div class="side">
+      <p class="lead" data-i18n="lead">Make your own cyanotype print with the Da Nang sun. You make it yourself and take it home.</p>
+      <div class="cta">
+        <a class="btn" href="https://www.instagram.com/cyanotypewithdi/" target="_blank" rel="noopener" data-i18n="cta">Book a workshop</a>
+      </div>
     </div>
+  </header>
 
-    <!-- CIRCLE PACK -->
-    <div id="circle-area"></div>
+  <div class="mini" aria-label="Example prints" data-i18n-attr="aria-label:mini_l">
+    <ul>
+      <li><button class="thumb" data-i="0" aria-label="Open example print 1" data-i18n-attr="aria-label:mini_o1"><img data-i18n-attr="alt:alt1" src="img/print-1-sm.webp" alt="Cyanotype grid of close-up face and hand photos" width="360" height="529"></button></li>
+      <li><button class="thumb" data-i="1" aria-label="Open example print 2" data-i18n-attr="aria-label:mini_o2"><img data-i18n-attr="alt:alt2" src="img/print-2-sm.webp" alt="Patchwork of cyanotype fabric squares with dancing figures" width="360" height="640"></button></li>
+      <li><button class="thumb" data-i="2" aria-label="Open example print 3" data-i18n-attr="aria-label:mini_o3"><img data-i18n-attr="alt:alt3" src="img/print-3-sm.webp" alt="Cyanotype prints of eyes and figures pinned to a rack" width="360" height="480"></button></li>
+      <li><button class="thumb" data-i="3" aria-label="Open example print 4" data-i18n-attr="aria-label:mini_o4"><img data-i18n-attr="alt:alt4" src="img/print-4-sm.webp" alt="Layered cyanotype portrait on torn paper strips" width="360" height="480"></button></li>
+    </ul>
   </div>
-</div>
 
-<!-- LEADERBOARD -->
-<div id="leaderboard">
-  <div class="lb-title">🏆 Top Students</div>
-  <div id="lb-list"></div>
-</div>
+  <div class="try">
+    <div class="play cy-section" id="try">
+    <h2 data-i18n-html="try_h2">Make a print <em>right here.</em></h2>
 
-<!-- AWARD MENU -->
-<div id="award-menu">
-  <div class="menu-header">
-    <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border);" id="menu-avatar-ring">
-      <span class="menu-avatar" id="menu-avatar"></span>
+      <div class="play-grid">
+        <div class="stage">
+          <div class="sheet-box">
+          <div class="sheet-wrap">
+          <svg id="sheet" viewBox="0 0 400 500" role="img" aria-label="Cyanotype paper" data-i18n-attr="aria-label:a_sheet">
+            <defs>
+              <pattern id="weave" width="5" height="5" patternUnits="userSpaceOnUse">
+                <path d="M0 .5H5M0 3H5" stroke="rgba(255,255,255,.22)" stroke-width="1.1"/>
+                <path d="M.5 0V5M3 0V5" stroke="rgba(0,0,0,.16)" stroke-width="1.1"/>
+              </pattern>
+              <!-- ragged brush edge for the empty, freshly coated sheet -->
+              <filter id="coat" x="-5%" y="-5%" width="110%" height="110%">
+                <feTurbulence type="fractalNoise" baseFrequency=".035 .09" numOctaves="3" seed="4"/>
+                <feDisplacementMap in="SourceGraphic" scale="22"/>
+              </filter>
+            </defs>
+            <rect id="paperRect" width="400" height="500" fill="#d4d98f"/>
+            <rect id="overlay" width="400" height="500" fill="#1b4fa8" style="opacity:0"/>
+            <image id="photoImg" width="400" height="500" preserveAspectRatio="none" style="display:none"/>
+            <rect id="weaveRect" width="400" height="500" fill="url(#weave)" style="opacity:0;pointer-events:none"/>
+          </svg>
+          <div class="sheet-hint" id="sheetHint">
+            <p data-i18n="sheet_hint">Add a photo to begin.</p>
+            <button type="button" class="btn btn-dark" id="sheetSample" data-i18n="sample">Try a sample</button>
+          </div>
+          </div>
+          </div>
+          <!-- phones: opens the settings as a bottom sheet, the print stays in view above it -->
+          <button type="button" class="btn btn-dark adjust-btn" id="adjustBtn" aria-controls="panel" aria-expanded="false" data-i18n="adjust">Adjust</button>
+          <p class="warn warn-inline"><b data-i18n="warn_tag">Preview only.</b> <span data-i18n="warn_short">Real prints vary with sun, rinse and materials.</span></p>
+        </div>
+
+        <div class="panel" id="panel">
+          <div class="sheet-head"><span class="grab" aria-hidden="true"></span><button type="button" class="btn btn-dark btn-sm" id="sheetDone" data-i18n="done">Done</button></div>
+          <div class="panel-body">
+          <div class="step-label" style="margin-top:0"><b>1</b><span data-i18n="p_step0">Choose your conditions</span></div>
+          <div class="conds">
+            <div class="cond"><span data-i18n="cd_size">Size</span>
+              <div class="seg" role="radiogroup" data-cond="size">
+                <button role="radio" aria-checked="false" data-v="tote" data-i18n="sz_tote">Shopper bag</button>
+                <button role="radio" aria-checked="true" data-v="a4" data-i18n="sz_a4">A4 portrait</button>
+                <button role="radio" aria-checked="false" data-v="a4l" data-i18n="sz_a4l">A4 landscape</button>
+              </div>
+            </div>
+            <p class="hint" id="sizeInfo" style="margin-top:-4px;min-height:0"></p>
+            <div class="cond"><span data-i18n="cd_sun">Sun</span>
+              <div class="seg" role="radiogroup" data-cond="sun">
+                <button role="radio" aria-checked="true" data-v="bright" data-i18n="cd_bright">Bright</button>
+                <button role="radio" aria-checked="false" data-v="hazy" data-i18n="cd_hazy">Hazy</button>
+                <button role="radio" aria-checked="false" data-v="cloud" data-i18n="cd_cloud">Overcast</button>
+              </div>
+            </div>
+            <div class="cond"><span data-i18n="cd_surface">Surface</span>
+              <div class="seg" role="radiogroup" data-cond="surface">
+                <button role="radio" aria-checked="true" data-v="paper" data-i18n="cd_paper">Cotton paper</button>
+                <button role="radio" aria-checked="false" data-v="fabric" data-i18n="cd_fabric">Fabric</button>
+              </div>
+            </div>
+            <div class="cond"><span data-i18n="cd_rinse">Rinse</span>
+              <div class="seg" role="radiogroup" data-cond="rinse">
+                <button role="radio" aria-checked="false" data-v="quick" data-i18n="cd_quick">Quick</button>
+                <button role="radio" aria-checked="true" data-v="full" data-i18n="cd_full">Thorough</button>
+              </div>
+            </div>
+          </div>
+          <p class="hint" id="sunHint"></p>
+
+          <div class="step-label"><b>2</b><span data-i18n="p_step1">Your photo</span></div>
+          <!-- the sample button sits outside the label: a button inside a <label> can trigger the file picker instead on some phones -->
+          <div class="drop" id="drop">
+            <label class="drop-pick">
+              <input type="file" id="photoFile" accept="image/*" hidden>
+              <svg viewBox="0 0 48 48" width="32" height="32" aria-hidden="true"><path d="M24 33V13m0 0-8 8m8-8 8 8M9 37h30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="drop-text"><b data-i18n="drop_t">Drop a photo or tap to choose</b>
+              <small data-i18n="drop_s">JPG, PNG or WebP</small></span>
+            </label>
+            <button type="button" class="btn btn-line btn-sm" id="sampleBtn" data-i18n="sample">Try a sample</button>
+          </div>
+          <div class="photo-ctl">
+            <div class="seg wide" role="radiogroup" data-lab="mode">
+              <button role="radio" aria-checked="true" data-v="tones" data-i18n="m_tones">Photo tones</button>
+              <button role="radio" aria-checked="false" data-v="sil" data-i18n="m_sil">Silhouette</button>
+            </div>
+            <div class="sliders">
+              <label class="slider"><span data-i18n="l_exp">Exposure</span><input type="range" id="lExp" min="-100" max="100" value="0"></label>
+              <label class="slider"><span data-i18n="l_con">Contrast</span><input type="range" id="lCon" min="40" max="220" value="120"></label>
+              <label class="slider"><span data-i18n="l_soft">Softness</span><input type="range" id="lSoft" min="0" max="40" value="6"></label>
+            </div>
+            <div class="toggles">
+              <label><input type="checkbox" id="lBrush" checked> <span data-i18n="l_brush">Brushed edges</span></label>
+              <label><input type="checkbox" id="lInv"> <span data-i18n="l_inv">Flip light/dark</span></label>
+              <button type="button" class="btn btn-line btn-sm" id="labClear" disabled data-i18n="lab_clear">Remove photo</button>
+            </div>
+          </div>
+          </div>
+
+          <div class="panel-foot">
+          <div class="step-label"><b>3</b><span data-i18n="p_step2">Press and hold to expose to sun</span></div>
+          <button class="btn sun-btn" id="sunBtn"><span aria-hidden="true">☀</span> <span data-i18n="sun">Hold for sunlight</span></button>
+          <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+
+          <div class="step-label"><b>4</b><span data-i18n="p_step3">Rinse in water</span></div>
+          <div class="final-actions">
+            <button class="btn btn-dark btn-sm" id="rinseBtn" disabled data-i18n="rinse">Rinse</button>
+            <button class="btn btn-line btn-sm" id="saveBtn" disabled data-i18n="save">Save as image</button>
+            <button class="btn btn-line btn-sm" id="resetBtn" data-i18n="reset">Start over</button>
+          </div>
+          <p class="status" id="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-box" id="labGuide">
+        <h3 data-i18n="lg_t">What photos work best</h3>
+        <div class="tips" id="labTips"></div>
+        <details class="tips-more">
+          <summary data-i18n="lg_more">All tips</summary>
+          <div class="gb-cols">
+            <div><b class="good" data-i18n="lg_good">Works well</b>
+              <ul>
+                <li data-i18n="lg_g1">Strong contrast between light and dark</li>
+                <li data-i18n="lg_g2">A clear subject on a simple background</li>
+                <li data-i18n="lg_g3">Portraits lit from the side or by a window</li>
+                <li data-i18n="lg_g4">Silhouettes, shadows, shapes and architecture</li>
+                <li data-i18n="lg_g5">Plants, flowers and landscapes with clear layers</li>
+                <li data-i18n="lg_g6">Black and white or low-colour photos</li>
+                <li data-i18n="lg_g7">Bold text, logos and line drawings (use Silhouette)</li>
+                <li data-i18n="lg_g8">Sharp, high resolution images (1000 px or more)</li>
+              </ul>
+            </div>
+            <div><b class="bad" data-i18n="lg_bad">Works poorly</b>
+              <ul>
+                <li data-i18n="lg_b1">Very colourful photos: colours of similar brightness turn into the same blue</li>
+                <li data-i18n="lg_b2">Subject and background of similar brightness, like a red flower on green leaves</li>
+                <li data-i18n="lg_b3">Flat, foggy or low-contrast images</li>
+                <li data-i18n="lg_b4">Very dark, night or washed-out bright photos</li>
+                <li data-i18n="lg_b5">Busy scenes with lots of small detail</li>
+                <li data-i18n="lg_b6">Soft gradients and fine textures, especially on fabric</li>
+                <li data-i18n="lg_b7">Small text and thin lines</li>
+                <li data-i18n="lg_b8">Blurry or low resolution pictures</li>
+                <li data-i18n="lg_b9">Colour portraits in flat light: faces look grey and blocked up</li>
+              </ul>
+            </div>
+          </div>
+        </details>
+        <p class="gb-note" data-i18n="lg_note">Cyanotype prints in one colour. Your photo stays on your device.</p>
+      </div>
+  </div>
+    <div class="nudge">
+      <p data-i18n-html="nudge"><span>The real one is made <em>in the sun.</em></span></p>
     </div>
+  </div>
+</section>
+
+<!-- SECTION 2: registration, shop, contacts -->
+<section class="print s2" id="register" aria-labelledby="t2">
+  <div class="gif" aria-hidden="true"></div>
+
+  <div class="grid">
     <div>
-      <div class="menu-name" id="menu-name"></div>
-      <div class="menu-pts-label"><span id="menu-pts"></span> pts</div>
+      <h2 class="h2" id="t2" data-i18n-html="reg_t"><span>Save your <em>spot</em></span></h2>
+      <div class="intro">
+        <p data-i18n="reg_p">Send Di a message on Instagram with the date you want and how many people are coming. Di replies to confirm.</p>
+        <p class="caps pale" style="font-size:15px" data-i18n="facts2">About 2 hours · up to 6 people · materials included</p>
+        <div><a class="btn" href="https://www.instagram.com/cyanotypewithdi/" target="_blank" rel="noopener" data-i18n="cta">Book a workshop</a></div>
+      </div>
+      <dl class="contacts" style="margin-top:36px">
+        <div><dt>Instagram</dt><dd><a href="https://www.instagram.com/cyanotypewithdi/" target="_blank" rel="noopener">@cyanotypewithdi</a></dd></div>
+        <div><dt data-i18n="c_where">Where</dt><dd>Da Nang, Vietnam <span class="tbc" data-i18n="tbc_addr">Address TBC</span></dd></div>
+        <div><dt data-i18n="c_dates">Dates</dt><dd>10/10, 17/10, 24/10</dd></div>
+        <div><dt data-i18n="c_price">Price</dt><dd><span class="tbc" data-i18n="tbc_one">TBC</span></dd></div>
+      </dl>
     </div>
-    <button class="close-btn" onclick="closeAwardMenu()">✕</button>
-  </div>
-  <div class="award-grid" id="award-grid"></div>
-  <div class="custom-row">
-    <input type="number" id="custom-pts" placeholder="Custom pts (e.g. -2)" />
-    <input type="text" id="custom-reason" placeholder="Reason..." style="flex:2" />
-    <button onclick="applyCustom()">✓</button>
-  </div>
-  <div style="display:flex;gap:6px;margin-top:8px;">
-    <button onclick="openDetails(activeStudentId)" style="flex:1;padding:7px;border-radius:10px;background:var(--border);color:var(--text);border:none;cursor:pointer;font:700 0.78rem 'Nunito',sans-serif;">📋 History</button>
-    <button onclick="closeAwardMenu();openAddStudentModal(activeStudentId)" style="flex:1;padding:7px;border-radius:10px;background:var(--border);color:var(--text);border:none;cursor:pointer;font:700 0.78rem 'Nunito',sans-serif;">✏️ Edit</button>
-    <button onclick="removeStudentConfirm(activeStudentId)" style="flex:1;padding:7px;border-radius:10px;background:#fee2e2;color:#dc2626;border:none;cursor:pointer;font:700 0.78rem 'Nunito',sans-serif;">🗑️</button>
-  </div>
-</div>
 
-<!-- DETAILS PANEL -->
-<div id="details-panel">
-  <button class="close-detail" onclick="closeDetails()">✕</button>
-  <div class="detail-avatar"><div class="detail-avatar-ring" id="detail-avatar"></div></div>
-  <div class="detail-name" id="detail-name"></div>
-  <div class="detail-pts" id="detail-pts"></div>
-  <div class="history-title">Recent History</div>
-  <div id="detail-history"></div>
-</div>
+    <div class="shop-panel">
+      <h3 class="h3" data-i18n="shop_t">Available at the workshop</h3>
+      <ul class="shop" style="gap:0">
+        <li class="price"><span><span data-i18n="i_bag">Workshop shopper bag</span><small>M/L</small></span><strong>250k</strong></li>
+        <li class="price"><span><span data-i18n="i_a4">Poster A4</span><small data-i18n="i_a4_s">Landscape or portrait</small></span><strong>200k</strong></li>
+      </ul>
+      <p class="care">
+        <span data-i18n="care">Every guest gets care instructions, so your prints and pieces keep their blue for longer.</span>
+      </p>
+    </div>
+  </div>
+</section>
 
-<!-- MODAL CONTAINER -->
-<div id="modal-container"></div>
+<!-- SECTION 3: gallery -->
+<section class="s3" id="gallery" aria-labelledby="t3">
+  <h2 class="h2" id="t3"><span data-i18n-html="g_t"><em>Prints</em></span></h2>
+  <ul class="gallery">
+    <li><button class="thumb" data-i="0" aria-label="Open print 1 larger" data-i18n-attr="aria-label:gal_o1"><img data-i18n-attr="alt:alt1" src="img/print-1.webp" alt="Cyanotype grid of close-up face and hand photos" width="735" height="1080" loading="lazy"></button></li>
+    <li><button class="thumb" data-i="1" aria-label="Open print 2 larger" data-i18n-attr="aria-label:gal_o2"><img data-i18n-attr="alt:alt2" src="img/print-2.webp" alt="Patchwork of cyanotype fabric squares with dancing figures" width="736" height="1308" loading="lazy"></button></li>
+    <li><button class="thumb" data-i="2" aria-label="Open print 3 larger" data-i18n-attr="aria-label:gal_o3"><img data-i18n-attr="alt:alt3" src="img/print-3.webp" alt="Cyanotype prints of eyes and figures pinned to a rack" width="736" height="981" loading="lazy"></button></li>
+    <li><button class="thumb" data-i="3" aria-label="Open print 4 larger" data-i18n-attr="aria-label:gal_o4"><img data-i18n-attr="alt:alt4" src="img/print-4.webp" alt="Layered cyanotype portrait on torn paper strips" width="900" height="1200" loading="lazy"></button></li>
+  </ul>
+  <div class="end"><a class="btn" href="https://www.instagram.com/cyanotypewithdi/" target="_blank" rel="noopener" data-i18n="cta">Book a workshop</a></div>
+  <footer class="foot caps" style="font-size:14px">
+    <span>Cyanotype with Di · Da Nang</span>
+    <a href="https://www.instagram.com/cyanotypewithdi/" target="_blank" rel="noopener">@cyanotypewithdi</a>
+  </footer>
+</section>
+
+<!-- phones: booking stays one tap away between the hero and the booking section -->
+<div class="sticky-book" aria-hidden="true"><a class="btn" href="https://www.instagram.com/cyanotypewithdi/" target="_blank" rel="noopener" tabindex="-1" data-i18n="cta">Book a workshop</a></div>
+
+<div class="lb" role="dialog" aria-modal="true" aria-label="Print viewer" data-i18n-attr="aria-label:lb_l" hidden>
+  <span class="count caps"></span>
+  <img alt="">
+  <button class="x" aria-label="Close" data-i18n-attr="aria-label:lb_x">&times;</button>
+  <button class="prev" aria-label="Previous print" data-i18n-attr="aria-label:lb_p">&larr;</button>
+  <button class="next" aria-label="Next print" data-i18n-attr="aria-label:lb_n">&rarr;</button>
+</div>
 
 <script>
-// ============================================================
-//  DATA MODEL
-// ============================================================
-//
-// IMPORTANT — localStorage size note:
-//   Each base64-encoded image is roughly 1.33× the original file size.
-//   A single 200KB photo becomes ~270KB of base64 in localStorage.
-//   With 30 students × 200KB each = ~8 MB — near the typical 5–10 MB
-//   browser quota. Warn users to use small/compressed images (<100KB)
-//   or prefer URL references, which store only a short string.
-//   We call checkStorageUsage() after each save to surface warnings early.
-//
-const PALETTE = ['#fde68a','#bfdbfe','#a7f3d0','#fca5a5','#ddd6fe','#fed7aa','#fce7f3','#e0f2fe','#d1fae5','#fef9c3'];
-const AWARDS = [
-  { label:'Great job! ⭐', delta:5, type:'pos' },
-  { label:'Helping ❤️', delta:4, type:'pos' },
-  { label:'Focused 🚀', delta:3, type:'pos' },
-  { label:'Teamwork 🤝', delta:5, type:'pos' },
-  { label:'+1 Point', delta:1, type:'pos' },
-  { label:'+2 Points', delta:2, type:'pos' },
-  { label:'Off-task 😕', delta:-3, type:'neg' },
-  { label:'Disruption 🔇', delta:-2, type:'neg' },
-];
-const CLASS_ICONS = ['📘','📗','📙','📕','📓'];
-const CLASS_NAMES = ['Class 1A','Class 2B','Class 3C','Class 4D','Class 5E'];
-
-let state = { classes: [], activeClassId: null, dark: false, projector: false };
-let activeStudentId = null;
-let longPressTimer = null;
-
-function loadState() {
-  const saved = localStorage.getItem('circlepoints_v3');
-  if (saved) {
-    state = JSON.parse(saved);
-  } else {
-    state.classes = CLASS_NAMES.map((name, i) => ({
-      id: 'class_' + i,
-      name,
-      icon: CLASS_ICONS[i],
-      students: generateDefaultStudents(i),
-    }));
-    state.activeClassId = state.classes[0].id;
-  }
-  if (state.dark) document.body.classList.add('dark');
-}
-
-function saveState() {
-  try {
-    localStorage.setItem('circlepoints_v3', JSON.stringify(state));
-    checkStorageUsage();
-  } catch(e) {
-    // QuotaExceededError — base64 images have filled localStorage
-    showStorageWarning('⚠️ Storage full! Remove some students or use image URLs instead of uploads.');
-  }
-}
-
-// Warn when approaching ~4 MB used (conservative threshold)
-function checkStorageUsage() {
-  try {
-    const used = new Blob([JSON.stringify(state)]).size;
-    if (used > 4 * 1024 * 1024) {
-      showStorageWarning(`⚠️ Storage at ${(used/1024/1024).toFixed(1)} MB. Consider using image URLs instead of uploads to save space.`);
-    }
-  } catch(e) {}
-}
-
-function showStorageWarning(msg) {
-  let el = document.getElementById('storage-warn');
-  if (!el) {
-    el = document.createElement('div');
-    el.id = 'storage-warn';
-    el.style.cssText = `
-      position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-      background:#fef3c7;color:#92400e;border:1.5px solid #fbbf24;
-      border-radius:12px;padding:9px 18px;font:700 0.8rem 'Nunito',sans-serif;
-      z-index:9000;box-shadow:0 4px 20px rgba(0,0,0,0.12);
-      animation:menuPop 0.2s ease;max-width:400px;text-align:center;`;
-    document.body.appendChild(el);
-    setTimeout(() => el?.remove(), 6000);
-  }
-  el.textContent = msg;
-}
-
-function generateDefaultStudents(classIdx) {
-  const names = [
-    ['Alex','Blake','Casey','Dana','Eli','Finn','Grace','Harper','Iris','Jay','Kim','Leo','Maya','Noah'],
-    ['Olivia','Parker','Quinn','Riley','Sam','Tyler','Uma','Violet','Will','Xena','Yara','Zoe'],
-    ['Aiden','Brynn','Cole','Dylan','Eden','Faye','Gabe','Hana','Ivan','Jade'],
-    ['Kai','Lena','Milo','Nora','Owen','Piper','Reed','Sage','Theo','Vera','West'],
-    ['Aria','Beau','Cleo','Drew','Emile','Flora','Gus','Hale','Ivy','Jules'],
-  ];
-  const pool = names[classIdx % names.length];
-  return pool.map((name, i) => ({
-    id: `s_${classIdx}_${i}`,
-    name,
-    // avatar: null means "use initials fallback"
-    avatar: null,   // string: base64 data URL or https:// URL, or null
-    bg: PALETTE[(classIdx * 3 + i) % PALETTE.length],
-    points: 0,
-    history: [],
-  }));
-}
-
-function getActiveClass() {
-  return state.classes.find(c => c.id === state.activeClassId);
-}
-
-// ============================================================
-//  AVATAR HELPERS
-// ============================================================
-
-// Generate initials from name (up to 2 chars), returns an SVG data URL
-function initialsAvatar(name, bg) {
-  const parts  = name.trim().split(/\s+/);
-  const chars  = parts.length >= 2
-    ? (parts[0][0] + parts[parts.length-1][0]).toUpperCase()
-    : (name.slice(0,2).toUpperCase());
-  // Pick a readable contrasting text color relative to the bg
-  const textColor = '#1e1b4b';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-    <circle cx="50" cy="50" r="50" fill="${bg || '#ddd6fe'}"/>
-    <text x="50" y="50" dy=".35em" text-anchor="middle"
-      font-family="'Nunito',sans-serif" font-weight="800"
-      font-size="${chars.length > 1 ? 36 : 44}"
-      fill="${textColor}">${chars}</text>
-  </svg>`;
-  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-}
-
-// Returns the src string to use for a student's avatar <img>
-function getAvatarSrc(student) {
-  if (student.avatar) return student.avatar;
-  return initialsAvatar(student.name, student.bg);
-}
-
-// Rough URL validation: must start with http(s):// and end with image extension
-function isValidImageUrl(url) {
-  return /^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg|avif)(\?.*)?$/i.test(url.trim());
-}
-
-// Build a circular <img> element string for use in innerHTML
-function avatarImgHtml(src, alt, extraClass) {
-  return `<img src="${src}" alt="${alt || ''}" ${extraClass ? `class="${extraClass}"` : ''}
-    style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
-    onerror="this.src='${initialsAvatar(alt||'?','#ddd6fe')}'" />`;
-}
-
-// ============================================================
-//  RENDER
-// ============================================================
-function render() {
-  renderSidebar();
-  renderCircles();
-  renderLeaderboard();
-  document.getElementById('class-title').textContent = getActiveClass()?.name || '';
-  saveState();
-}
-
-function renderSidebar() {
-  const list = document.getElementById('class-list');
-  list.innerHTML = state.classes.map(cls => `
-    <div class="class-tab ${cls.id === state.activeClassId ? 'active' : ''}" 
-         onclick="switchClass('${cls.id}')" ondblclick="startRenameClass('${cls.id}')">
-      <span class="class-icon">${cls.icon}</span>
-      <span class="class-name">
-        <input type="text" value="${cls.name}" id="class-input-${cls.id}"
-          onfocus="event.stopPropagation()"
-          onblur="finishRenameClass('${cls.id}', this.value)"
-          onkeydown="if(event.key==='Enter')this.blur()"
-          onclick="event.stopPropagation()" readonly />
-      </span>
-      <span class="student-count">${cls.students.length}</span>
-    </div>
-  `).join('');
-}
-
-function renderCircles() {
-  const area = document.getElementById('circle-area');
-  const cls = getActiveClass();
-  if (!cls) return;
-  if (cls.students.length === 0) {
-    area.innerHTML = `<div class="empty-state"><div class="es-icon">🫧</div><h3>No students yet!</h3><p>Click "Add Student" to get started.</p></div>`;
-    return;
-  }
-  // Size scaling: base=72px at 0pts, max=160px, with an extra bump at lvl-max.
-  const BASE_SIZE = 72;
-  const MAX_SIZE  = 155;
-
-  function getCircleSize(pts) {
-    if (pts <= 0) return BASE_SIZE;
-    // Use absolute thresholds for size steps, sqrt within each band
-    if (pts >= 30) return Math.min(MAX_SIZE + 10, Math.round(BASE_SIZE + Math.sqrt(pts / 30) * (MAX_SIZE - BASE_SIZE + 10)));
-    const ratio = Math.sqrt(Math.min(pts, 29) / 29);
-    return Math.round(BASE_SIZE + ratio * (MAX_SIZE - BASE_SIZE));
-  }
-
-  area.innerHTML = cls.students.map(s => {
-    const { cls: tierCls, badge } = getTier(s.points);
-    const isMax     = s.points >= 30;
-    const isRainbow = s.points >= 20 && !isMax;
-    const isGold    = s.points >= 10 && s.points < 20;
-    const sz        = getCircleSize(s.points);
-    const ptsSz     = Math.max(10, Math.round(sz * 0.155));
-    const src       = getAvatarSrc(s);
-
-    // Determine wrapper class (lvl-2/3/max use a conic-gradient ring wrapper)
-    let wrapperOpen = '', wrapperClose = '';
-    if      (isMax)     { wrapperOpen = `<div class="lvl-max-wrapper" style="border-radius:50%;flex-shrink:0;">`; wrapperClose = `</div>`; }
-    else if (isRainbow) { wrapperOpen = `<div class="lvl-3-wrapper"  style="border-radius:50%;flex-shrink:0;">`; wrapperClose = `</div>`; }
-    else if (isGold)    { wrapperOpen = `<div class="lvl-2-wrapper"  style="border-radius:50%;flex-shrink:0;">`; wrapperClose = `</div>`; }
-
-    // Crown for MAX tier — sits above the whole wrapper
-    const crownBadge = isMax
-      ? `<div class="crown-max"><span class="crown-icon">👑</span><span class="crown-label">MAX</span></div>`
-      : '';
-    // Pin badge for lvl-1/2/3 (not max, max has crown above)
-    const pinBadge = (!isMax && badge)
-      ? `<div class="level-badge">${badge}</div>`
-      : '';
-
-    return `
-    <div class="student-circle" id="circ-${s.id}"
-         onclick="handleCircleClick(event,'${s.id}')"
-         oncontextmenu="onRightClick(event,'${s.id}')"
-         onmousedown="startLongPress('${s.id}')"
-         onmouseup="cancelLongPress()"
-         onmouseleave="cancelLongPress()"
-         style="position:relative;">
-      ${crownBadge}
-      ${wrapperOpen}
-        <div class="circle-bubble ${tierCls}"
-             style="background:${s.bg};width:${sz}px;height:${sz}px;overflow:hidden;padding:0;position:relative;display:block;border-radius:50%;">
-          ${pinBadge}
-          <img src="${src}" alt="${s.name}"
-            style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;pointer-events:none;"
-            onerror="this.src='${initialsAvatar(s.name, s.bg).replace(/'/g,"\\'")}'"/>
-          <div class="circle-pts" style="font-size:${ptsSz}px;position:absolute;bottom:${Math.round(sz*0.07)}px;
-            left:50%;transform:translateX(-50%);
-            background:rgba(255,255,255,0.82);border-radius:99px;
-            padding:0 ${Math.round(sz*0.06)}px;backdrop-filter:blur(2px);
-            color:#1e1b4b;line-height:1.4;">${s.points}</div>
-        </div>
-      ${wrapperClose}
-      <div class="circle-name">${s.name}</div>
-    </div>`;
-  }).join('');
-}
-
-// Returns { cls, badge } for a student's points tier
-function getTier(pts) {
-  if (pts >= 30) return { cls: 'lvl-max', badge: '🌟' };
-  if (pts >= 20) return { cls: 'lvl-3',   badge: '✨' };
-  if (pts >= 10) return { cls: 'lvl-2',   badge: '⭐' };
-  if (pts >= 5)  return { cls: 'lvl-1',   badge: '💫' };
-  return           { cls: 'lvl-0',   badge: null };
-}
-
-function renderLeaderboard() {
-  const cls = getActiveClass();
-  if (!cls) return;
-  const top = [...cls.students].sort((a,b) => b.points - a.points).slice(0,5);
-  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-  document.getElementById('lb-list').innerHTML = top.map((s,i) => {
-    const src = getAvatarSrc(s);
-    const { badge } = getTier(s.points);
-    const tierBadge = s.points >= 30 ? '👑' : (badge || '');
-    return `
-    <div class="lb-item">
-      <span class="lb-rank">${medals[i]}</span>
-      <span class="lb-avatar"><img src="${src}" alt="${s.name}"
-        style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
-        onerror="this.src='${initialsAvatar(s.name,s.bg).replace(/'/g,"\\'")}'" /></span>
-      <span class="lb-name">${s.name}</span>
-      ${tierBadge ? `<span style="font-size:0.85rem;">${tierBadge}</span>` : ''}
-      <span class="lb-pts">${s.points}</span>
-    </div>`;
-  }).join('');
-}
-
-// ============================================================
-//  INTERACTIONS
-// ============================================================
-function switchClass(id) {
-  state.activeClassId = id;
-  closeAwardMenu();
-  closeDetails();
-  render();
-}
-
-function startRenameClass(id) {
-  const input = document.getElementById('class-input-' + id);
-  if (input) { input.removeAttribute('readonly'); input.focus(); input.select(); }
-}
-
-function finishRenameClass(id, val) {
-  const cls = state.classes.find(c => c.id === id);
-  if (cls) cls.name = val.trim() || cls.name;
-  const input = document.getElementById('class-input-' + id);
-  if (input) input.setAttribute('readonly', true);
-  render();
-}
-
-function handleCircleClick(e, sid) {
-  e.stopPropagation();
-  lastClickedId = sid;
-  // Single click = instant +1 point
-  awardPoints(sid, 1, 'Click +1');
-}
-
-function onRightClick(e, sid) {
-  e.preventDefault();
-  lastClickedId = sid;
-  openAwardMenu(e, sid);
-}
-
-function startLongPress(sid) {
-  longPressTimer = setTimeout(() => {
-    lastClickedId = sid;
-    // Synthesize a fake event position near the circle
-    const circ = document.getElementById('circ-' + sid);
-    const rect = circ ? circ.getBoundingClientRect() : {left:0,top:0,width:0,height:0};
-    openAwardMenu({ clientX: rect.left + rect.width/2, clientY: rect.top }, sid);
-  }, 600);
-}
-function cancelLongPress() { clearTimeout(longPressTimer); }
-
-// ── AWARD MENU (opened via right-click / long-press only) ──
-function openAwardMenu(e, sid) {
-  const cls = getActiveClass();
-  const s = cls.students.find(x => x.id === sid);
-  if (!s) return;
-  activeStudentId = sid;
-  document.getElementById('menu-avatar').textContent = s.emoji;
-  document.getElementById('menu-name').textContent = s.name;
-  document.getElementById('menu-pts').textContent = s.points;
-  document.getElementById('custom-pts').value = '';
-  document.getElementById('custom-reason').value = '';
-
-  const grid = document.getElementById('award-grid');
-  grid.innerHTML = AWARDS.map(a => `
-    <button class="award-btn ${a.type}" onclick="applyAward(${a.delta},'${a.label}')">
-      ${a.label} <strong>${a.delta > 0 ? '+'+a.delta : a.delta}</strong>
-    </button>
-  `).join('');
-
-  const menu = document.getElementById('award-menu');
-  menu.style.display = 'block';
-  // Position near circle
-  const circ = document.getElementById('circ-' + sid);
-  const rect = circ ? circ.getBoundingClientRect() : null;
-  if (rect) {
-    let left = rect.left + rect.width / 2 - 130;
-    let top = rect.top - 320;
-    if (top < 10) top = rect.bottom + 10;
-    if (left < 8) left = 8;
-    if (left + 270 > window.innerWidth) left = window.innerWidth - 275;
-    menu.style.left = left + 'px';
-    menu.style.top = top + 'px';
-  }
-}
-
-function closeAwardMenu() {
-  document.getElementById('award-menu').style.display = 'none';
-  activeStudentId = null;
-}
-
-function applyAward(delta, reason) {
-  if (!activeStudentId) return;
-  awardPoints(activeStudentId, delta, reason);
-  document.getElementById('menu-pts').textContent =
-    getActiveClass().students.find(s=>s.id===activeStudentId)?.points;
-}
-
-function applyCustom() {
-  const delta = parseInt(document.getElementById('custom-pts').value);
-  const reason = document.getElementById('custom-reason').value.trim() || 'Custom';
-  if (isNaN(delta)) return;
-  applyAward(delta, reason);
-  closeAwardMenu();
-}
-
-function awardPoints(sid, delta, reason) {
-  const cls = getActiveClass();
-  const s = cls.students.find(x => x.id === sid);
-  if (!s) return;
-  s.points += delta;
-  s.history.unshift({
-    delta, reason,
-    time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+/* Language: English by default, Russian on request. The choice is remembered (storage may be blocked, so try/catch). */
+(() => {
+  let lang = 'en';
+  try { const s = localStorage.getItem('di-lang'); if (s === 'en' || s === 'ru') lang = s; } catch (e) {}
+  window.getLang = () => lang;
+  window.setLang = l => { lang = l; try { localStorage.setItem('di-lang', l); } catch (e) {} };
+})();
+</script>
+<script src="shared/shapes.js"></script>
+<script src="shared/portable-core.js"></script>
+<script src="print-playground/print-playground.i18n.js"></script>
+<script src="photo-lab/photo-lab.i18n.js"></script>
+<script src="photo-lab/photo-lab.js"></script>
+<script src="print-playground/print-playground.js"></script>
+<script>
+/* Page text, English + Russian. The tools' English comes from their .i18n.js files; their Russian is here. */
+(() => {
+  const I = window.I18N; I.ru = I.ru || {};
+  Object.assign(I.en, {
+    doc_title: 'Paint with sunlight · Cyanotype with Di',
+    doc_desc: 'Make your own cyanotype print with the Da Nang sun. A sun-print workshop by Cyanotype with Di.',
+    ui_lang: 'Language',
+    h1: '<span>Paint with</span><span><em>sunlight</em><b>.</b></span>',
+    f_kind: 'Sun-print workshop', f_dates: 'Dates:', tbc_one: 'TBC', tbc_addr: 'Address TBC',
+    lead: 'Make your own cyanotype print with the Da Nang sun. You make it yourself and take it home.',
+    cta: 'Book a workshop',
+    mini_l: 'Example prints',
+    mini_o1: 'Open example print 1', mini_o2: 'Open example print 2', mini_o3: 'Open example print 3', mini_o4: 'Open example print 4',
+    alt1: 'Cyanotype grid of close-up face and hand photos',
+    alt2: 'Patchwork of cyanotype fabric squares with dancing figures',
+    alt3: 'Cyanotype prints of eyes and figures pinned to a rack',
+    alt4: 'Layered cyanotype portrait on torn paper strips',
+    sz_tote: 'Shopper bag', sz_a4: 'A4 portrait', sz_a4l: 'A4 landscape',
+    adjust: 'Adjust', done: 'Done',
+    nudge: '<span>The real one is made <em>in the sun.</em></span>',
+    a_sheet: 'Cyanotype paper', u_cm: 'cm',
+    reg_t: '<span>Save your <em>spot</em></span>',
+    reg_p: 'Send Di a message on Instagram with the date you want and how many people are coming. Di replies to confirm.',
+    facts2: 'About 2 hours · up to 6 people · materials included',
+    c_where: 'Where', c_dates: 'Dates', c_price: 'Price',
+    shop_t: 'Available at the workshop',
+    i_bag: 'Workshop shopper bag', i_a4: 'Poster A4', i_a4_s: 'Landscape or portrait',
+    care: 'Every guest gets care instructions, so your prints and pieces keep their blue for longer.',
+    g_t: '<em>Prints</em>',
+    gal_o1: 'Open print 1 larger', gal_o2: 'Open print 2 larger', gal_o3: 'Open print 3 larger', gal_o4: 'Open print 4 larger',
+    lb_l: 'Print viewer', lb_x: 'Close', lb_p: 'Previous print', lb_n: 'Next print',
+    hero_v: 'Cyanotype print of Di over water ripples'
   });
-  if (s.history.length > 10) s.history.pop();
-  saveState();
-  renderCircles();
-  renderLeaderboard();
-  animateCircle(sid, delta);
-  if (Math.abs(delta) >= 5) spawnConfetti(sid);
+  Object.assign(I.ru, {
+    doc_title: 'Рисуйте солнцем · Cyanotype with Di',
+    doc_desc: 'Мастер-класс по солнечной печати от Cyanotype with Di. Вы делаете цианотипию сами и забираете её домой.',
+    ui_lang: 'Язык',
+    h1: '<span>Рисуйте</span><span><em>солнцем</em><b>.</b></span>',
+    f_kind: 'Мастер-класс по солнечной печати', f_dates: 'Даты:', tbc_one: 'уточняется', tbc_addr: 'адрес уточняется',
+    lead: 'Сделайте свою цианотипию под южным солнцем. Вы всё делаете сами и забираете работу домой.',
+    cta: 'Записаться',
+    mini_l: 'Примеры работ',
+    mini_o1: 'Открыть пример 1', mini_o2: 'Открыть пример 2', mini_o3: 'Открыть пример 3', mini_o4: 'Открыть пример 4',
+    alt1: 'Цианотипия: сетка из крупных снимков лица и рук',
+    alt2: 'Лоскутное полотно из цианотипных квадратов ткани с танцующими фигурами',
+    alt3: 'Цианотипные отпечатки глаз и фигур на стойке',
+    alt4: 'Многослойный цианотипный портрет на рваных полосках бумаги',
+    nudge: '<span>Настоящий отпечаток делают <em>на солнце.</em></span>',
+    a_sheet: 'Бумага для цианотипии', u_cm: 'см',
+    reg_t: '<span>Займите <em>место</em></span>',
+    reg_p: 'Напишите Ди в Instagram: какая дата вам удобна и сколько вас будет. Ди ответит и подтвердит запись.',
+    facts2: 'Около 2 часов · до 6 человек · материалы включены',
+    c_where: 'Где', c_dates: 'Даты', c_price: 'Цена',
+    shop_t: 'Можно купить на мастер-классе',
+    i_bag: 'Шоппер с мастер-класса', i_a4: 'Постер A4', i_a4_s: 'Горизонтальный или вертикальный',
+    care: 'Каждый гость получает памятку по уходу, чтобы отпечатки и вещи дольше оставались синими.',
+    g_t: '<em>Работы</em>',
+    gal_o1: 'Открыть работу 1 крупнее', gal_o2: 'Открыть работу 2 крупнее', gal_o3: 'Открыть работу 3 крупнее', gal_o4: 'Открыть работу 4 крупнее',
+    lb_l: 'Просмотр работ', lb_x: 'Закрыть', lb_p: 'Предыдущая работа', lb_n: 'Следующая работа',
+    hero_v: 'Цианотипия: Ди на фоне ряби на воде',
 
-  // ── CHECK 67-POINT MILESTONE ──
-  checkClassTotal67(cls);
-}
+    /* print playground */
+    try_h2: 'Сделайте отпечаток <em>прямо здесь.</em>',
+    p_step0: 'Условия', p_step1: 'Ваше фото', p_step2: 'Засветка', p_step3: 'Промывка',
+    sheet_hint: 'Добавьте фото, чтобы начать.',
+    cd_size: 'Размер', sz_tote: 'Шоппер', sz_a4: 'A4 вертикальный', sz_a4l: 'A4 горизонтальный', sz_area: 'Область печати',
+    adjust: 'Настроить', done: 'Готово',
+    cd_sun: 'Солнце', cd_bright: 'Яркое', cd_hazy: 'В дымке', cd_cloud: 'Пасмурно',
+    cd_surface: 'Основа', cd_paper: 'Бумага', cd_fabric: 'Ткань',
+    cd_rinse: 'Промывка', cd_quick: 'Быстрая', cd_full: 'Тщательная',
+    hint_bright: 'На настоящем солнце: примерно от 5 до 10 минут.',
+    hint_hazy: 'Примерно от 10 до 20 минут. Синий бледнее.',
+    hint_cloud: '20 минут и дольше. Синий слабее.',
+    sun: 'Зажмите и держите', rinse: 'Промыть', save: 'Сохранить', reset: 'Начать заново',
+    warn_tag: 'Это только превью.', warn_short: 'Настоящий отпечаток зависит от солнца, промывки и материалов.',
+    st_compose0: 'Добавьте фото, затем зажмите кнопку солнца.',
+    st_compose1: 'Фото на месте. Зажмите кнопку солнца.',
+    st_expose: 'Держите ещё...',
+    st_pause: 'Пауза. Зажмите снова, чтобы продолжить.',
+    st_done: 'Засвечено. Теперь промойте.',
+    st_rinsed_full: 'Готово. Настоящий отпечаток будет немного другим.',
+    st_rinsed_quick: 'После быстрой промывки остаётся жёлтый оттенок.',
+    st_img_bad: 'Не получилось открыть эту картинку.',
 
-// Fires the full-screen 67 celebration exactly once per class
-function checkClassTotal67(cls) {
-  const total = cls.students.reduce((sum, s) => sum + s.points, 0);
-  if (total !== 67) return;
-  const flagKey = 'celebrated67-' + cls.id;
-  if (localStorage.getItem(flagKey)) return; // already celebrated
-  localStorage.setItem(flagKey, '1');
-  triggerCelebration67();
-}
+    /* photo step */
+    lg_t: 'Какие фото подходят лучше', lg_good: 'Выходит хорошо', lg_bad: 'Выходит плохо',
+    lg_g1: 'Сильный контраст светлого и тёмного',
+    lg_g2: 'Чёткий объект на простом фоне',
+    lg_g3: 'Портреты при боковом свете или у окна',
+    lg_g4: 'Силуэты, тени, формы и архитектура',
+    lg_g5: 'Растения, цветы и пейзажи с ясными планами',
+    lg_g6: 'Чёрно-белые или неяркие по цвету фото',
+    lg_g7: 'Крупный текст, логотипы и рисунки линией (режим «Силуэт»)',
+    lg_g8: 'Резкие снимки в хорошем разрешении (от 1000 px)',
+    lg_b1: 'Очень цветные фото: цвета одной яркости сливаются в один синий',
+    lg_b2: 'Объект и фон одной яркости, например красный цветок на зелёных листьях',
+    lg_b3: 'Плоские, туманные или малоконтрастные снимки',
+    lg_b4: 'Очень тёмные, ночные или пересвеченные фото',
+    lg_b5: 'Пёстрые сцены с кучей мелких деталей',
+    lg_b6: 'Мягкие переходы и тонкие текстуры, особенно на ткани',
+    lg_b7: 'Мелкий текст и тонкие линии',
+    lg_b8: 'Размытые снимки или низкое разрешение',
+    lg_b9: 'Цветные портреты при плоском свете: лица выходят серыми',
+    lg_note: 'Цианотипия печатает одним цветом. Ваше фото остаётся на вашем устройстве.',
+    drop_t: 'Перетащите фото или нажмите, чтобы выбрать', drop_s: 'JPG, PNG или WebP', sample: 'Попробовать на примере',
+    m_tones: 'Полутона', m_sil: 'Силуэт',
+    l_exp: 'Экспозиция', l_con: 'Контраст', l_soft: 'Мягкость',
+    l_brush: 'Края мазками кисти', l_inv: 'Инверсия',
+    lab_clear: 'Убрать фото',
+    lg_more: 'Все советы',
+    tp1: 'Сильный контраст, а не плоский свет', tp2: 'Простой фон, а не пёстрый', tp3: 'Резко, а не размыто', tp4: 'Крупные формы, а не тонкие линии'
+  });
 
-// ── ANIMATIONS ──
-function animateCircle(sid, delta) {
-  const circ = document.getElementById('circ-' + sid);
-  if (!circ) return;
-  // Bounce the bubble (CSS targets .bouncing .circle-bubble)
-  circ.classList.remove('bouncing');
-  void circ.offsetWidth;
-  circ.classList.add('bouncing');
-  circ.addEventListener('animationend', () => circ.classList.remove('bouncing'), { once: true });
-
-  // Floating score indicator
-  const float = document.createElement('div');
-  float.className = 'float-score';
-  float.textContent = (delta > 0 ? '+' : '') + delta;
-  float.style.color = delta > 0 ? '#059669' : '#dc2626';
-  circ.appendChild(float);
-  float.addEventListener('animationend', () => float.remove());
-
-  // Sound
-  playDing(delta);
-}
-
-function spawnConfetti(sid) {
-  const circ = document.getElementById('circ-' + sid);
-  const rect = circ ? circ.getBoundingClientRect() : {left:200,top:200,width:88,height:88};
-  const colors = ['#fbbf24','#34d399','#60a5fa','#f472b6','#a78bfa','#fb923c'];
-  for (let i = 0; i < 22; i++) {
-    const el = document.createElement('div');
-    el.className = 'confetti-piece';
-    el.style.background = colors[i % colors.length];
-    el.style.left = (rect.left + rect.width/2 + (Math.random()-0.5)*60) + 'px';
-    el.style.top = (rect.top + (Math.random()-0.5)*20) + 'px';
-    el.style.animationDuration = (0.9 + Math.random()*0.7) + 's';
-    el.style.animationDelay = (Math.random()*0.3) + 's';
-    document.body.appendChild(el);
-    el.addEventListener('animationend', () => el.remove());
+  const meta = document.querySelector('meta[name="description"]');
+  const btns = document.querySelectorAll('.lang button');
+  window.onLang(() => {
+    const L = window.getLang();
+    document.documentElement.lang = L;
+    document.title = window.t('doc_title');
+    meta.setAttribute('content', window.t('doc_desc'));
+    document.querySelectorAll('[data-i18n-attr]').forEach(el => el.dataset.i18nAttr.split(';').forEach(pair => {
+      const [attr, key] = pair.split(':'); el.setAttribute(attr, window.t(key));
+    }));
+    btns.forEach(b => b.setAttribute('aria-pressed', b.dataset.lang === L));
+  });
+  btns.forEach(b => b.addEventListener('click', () => { if (b.dataset.lang !== window.getLang()) Cyano.setLang(b.dataset.lang); }));
+  Cyano.applyLang();
+})();
+</script>
+<script>
+new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { es[0].target.classList.add('near'); o.disconnect(); } }, { rootMargin: '800px 0px' }).observe(document.getElementById('register'));
+/* the sample button on the empty sheet loads the sample itself (no synthetic click on the step 2 button) */
+document.getElementById('sheetSample').addEventListener('click', () => window.PhotoLab.sample());
+/* phones (under 768px): "Adjust" opens the settings as a bottom sheet; the print stays visible above it */
+(() => {
+  const play = document.querySelector('.play'), grid = play.querySelector('.play-grid'), panel = document.getElementById('panel');
+  const adj = document.getElementById('adjustBtn'), done = document.getElementById('sheetDone'), head = panel.querySelector('.sheet-head');
+  const mq = matchMedia('(max-width: 767.98px)'), calm = matchMedia('(prefers-reduced-motion: reduce)');
+  let open = false, y0 = null;
+  function show() {
+    if (open || !mq.matches) return;
+    open = true;
+    grid.style.minHeight = grid.offsetHeight + 'px';   // the page behind keeps its height, so nothing jumps on close
+    play.classList.add('sheet-open'); document.documentElement.classList.add('sheet-lock');
+    adj.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(() => requestAnimationFrame(() => play.classList.add('sheet-in')));
+    done.focus({ preventScroll: true });
   }
-}
-
-// ── 67 CELEBRATION — 8-second gamified bubble show ──────────
-function triggerCelebration67() {
-  // ── BUILD DOM ────────────────────────────────────────────
-  const overlay = document.createElement('div');
-  overlay.id = 'celebration-overlay';
-
-  // Expanding neon halos (CSS animated)
-  const halo  = document.createElement('div'); halo.id  = 'celebration-halo';
-  const halo2 = document.createElement('div'); halo2.id = 'celebration-halo2';
-
-  // Spark ring (populated below)
-  const sparkRing = document.createElement('div');
-  sparkRing.className = 'spark-ring';
-
-  // Digit row: "6" ✦ "7"
-  const digitRow = document.createElement('div');
-  digitRow.id = 'celebration-digits';
-
-  const d6  = document.createElement('span');
-  d6.className  = 'cel-digit cel-digit-6';
-  d6.textContent = '6';
-
-  const sep = document.createElement('span');
-  sep.className  = 'cel-sep';
-  sep.textContent = '✦';
-
-  const d7  = document.createElement('span');
-  d7.className  = 'cel-digit cel-digit-7';
-  d7.textContent = '7';
-
-  digitRow.append(d6, sep, d7);
-
-  // Label
-  const label = document.createElement('div');
-  label.id = 'celebration-label';
-  label.textContent = '🏆 CLASS TOTAL: 67! 🏆';
-
-  // Emoji ticker
-  const ticker = document.createElement('div');
-  ticker.id = 'celebration-ticker';
-  ticker.textContent = '🎉✨🌟💥🎊🚀⭐🎯';
-
-  overlay.append(halo, halo2, sparkRing, digitRow, label, ticker);
-  document.body.appendChild(overlay);
-
-  // ── SPARK RING: 28 particles in two waves ────────────────
-  const sparkPalette = [
-    '#fbbf24','#fde68a','#f97316','#ef4444',
-    '#f472b6','#a855f7','#6366f1','#38bdf8',
-    '#34d399','#fff','#fb923c','#e879f9',
-  ];
-  // Wave 1: round dots (immediate)
-  for (let i = 0; i < 20; i++) {
-    const sp  = document.createElement('div');
-    const ang = (i / 20) * 360;
-    const d   = 140 + Math.random() * 160;
-    const sz  = 5 + Math.random() * 9;
-    sp.className = 'spark';
-    sp.style.cssText = `
-      --a:${ang}deg; --d:${d}px;
-      --dur:${(0.7 + Math.random()*0.55).toFixed(2)}s;
-      --del:${(Math.random()*0.22).toFixed(2)}s;
-      background:${sparkPalette[i % sparkPalette.length]};
-      width:${sz}px; height:${sz}px;
-    `;
-    sparkRing.appendChild(sp);
+  function hide() {
+    if (!open) return;
+    open = false;
+    play.classList.remove('sheet-in'); adj.setAttribute('aria-expanded', 'false');
+    const fin = () => { play.classList.remove('sheet-open'); grid.style.minHeight = ''; document.documentElement.classList.remove('sheet-lock'); adj.focus({ preventScroll: true }); };
+    if (calm.matches || !mq.matches) fin(); else setTimeout(fin, 360);
   }
-  // Wave 2: elongated darts (slight delay)
-  for (let i = 0; i < 16; i++) {
-    const sp  = document.createElement('div');
-    const ang = (i / 16) * 360 + 11;
-    const d   = 110 + Math.random() * 130;
-    const sz  = 6 + Math.random() * 6;
-    sp.className = 'spark dart';
-    sp.style.cssText = `
-      --a:${ang}deg; --d:${d}px;
-      --dur:${(0.6 + Math.random()*0.5).toFixed(2)}s;
-      --del:${(0.28 + Math.random()*0.25).toFixed(2)}s;
-      background:${sparkPalette[(i+3) % sparkPalette.length]};
-      width:${sz*2.2}px; height:${sz*0.6}px;
-    `;
-    sparkRing.appendChild(sp);
-  }
-
-  // ── GLITTER STARS: 22 emoji stars floating upward ────────
-  const glitterEmoji = ['⭐','✨','💫','🌟','🎊','💥','🎉','⚡'];
-  for (let i = 0; i < 22; i++) {
-    const g = document.createElement('div');
-    g.className = 'glitter';
-    const x   = 10 + Math.random() * 80; // % of viewport width
-    const up  = -(100 + Math.random() * 200);
-    const rot = 120 + Math.random() * 480;
-    g.textContent = glitterEmoji[i % glitterEmoji.length];
-    g.style.cssText = `
-      left:${x}vw; top:${50 + (Math.random()-0.5)*28}vh;
-      --up:${up}px; --up2:${up*1.6}px;
-      --rot:${rot}deg; --rot2:${rot*2}deg;
-      --dur:${(1.4 + Math.random()*1.8).toFixed(2)}s;
-      --del:${(Math.random()*1.4).toFixed(2)}s;
-    `;
-    document.body.appendChild(g);
-    g.addEventListener('animationend', () => g.remove());
-  }
-
-  // ── CANVAS-CONFETTI: 5 staggered volleys ─────────────────
-  const COLORS = ['#fbbf24','#f97316','#ef4444','#f472b6',
-                  '#a855f7','#6366f1','#38bdf8','#34d399',
-                  '#fff','#fb923c'];
-
-  function burst(cfg) {
-    if (typeof confetti !== 'function') return;
-    confetti(cfg);
-  }
-
-  // Volley 1 — central explosion (on digits appear)
-  setTimeout(() => {
-    burst({ particleCount:150, spread:100, startVelocity:65,
-            origin:{x:0.5,y:0.48}, colors:COLORS,
-            ticks:260, gravity:0.85, scalar:1.25,
-            shapes:['circle','square'] });
-  }, 280);
-
-  // Volley 2 — side cannons
-  setTimeout(() => {
-    burst({ particleCount:90, angle:55,  spread:60, startVelocity:70,
-            origin:{x:0,y:0.58}, colors:COLORS.slice(0,6), ticks:220 });
-    burst({ particleCount:90, angle:125, spread:60, startVelocity:70,
-            origin:{x:1,y:0.58}, colors:COLORS.slice(4), ticks:220 });
-  }, 650);
-
-  // Volley 3 — top firework arcs
-  setTimeout(() => {
-    burst({ particleCount:80, angle:70,  spread:50, startVelocity:80,
-            origin:{x:0.2,y:0.3}, colors:COLORS, ticks:300, gravity:1 });
-    burst({ particleCount:80, angle:110, spread:50, startVelocity:80,
-            origin:{x:0.8,y:0.3}, colors:COLORS, ticks:300, gravity:1 });
-  }, 1350);
-
-  // Volley 4 — second central burst
-  setTimeout(() => {
-    burst({ particleCount:120, spread:360, startVelocity:30,
-            origin:{x:0.5,y:0.5}, colors:COLORS,
-            ticks:200, gravity:0.5, scalar:0.9,
-            shapes:['circle'] });
-  }, 2200);
-
-  // Volley 5 — final shower from top
-  setTimeout(() => {
-    burst({ particleCount:200, spread:120, startVelocity:50,
-            origin:{x:0.5,y:0.0}, colors:COLORS,
-            ticks:350, gravity:1.1, scalar:1.0 });
-  }, 3800);
-
-  // ── SOUND ────────────────────────────────────────────────
-  playCelebrationSound();
-
-  // ── DISMISS after 8 seconds ──────────────────────────────
-  setTimeout(() => {
-    overlay.classList.add('fading');
-    overlay.addEventListener('animationend', () => {
-      overlay.remove();
-      // clean up any lingering glitter
-      document.querySelectorAll('.glitter').forEach(g => g.remove());
-    }, { once: true });
-  }, 7200);
-}
-
-// 8-second triumphant fanfare — C-major chord arpeggio
-// + rising pentatonic run + bright shimmer trill
-function playCelebrationSound() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = audioCtx;
-    const now = ctx.currentTime;
-
-    // Master gain (prevents clipping)
-    const master = ctx.createGain();
-    master.gain.value = 0.55;
-    master.connect(ctx.destination);
-
-    function note(freq, type, start, dur, vol) {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      osc.connect(gain); gain.connect(master);
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(vol, start + 0.04);
-      gain.gain.setValueAtTime(vol, start + dur * 0.7);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-      osc.start(start); osc.stop(start + dur + 0.05);
-    }
-
-    // 1. Bass thud  C3
-    note(130.81, 'triangle', now,        0.55, 0.9);
-
-    // 2. Rising arpeggio C4-E4-G4-C5-E5
-    [261.63, 329.63, 392.00, 523.25, 659.25].forEach((f,i) => {
-      note(f, 'sine', now + 0.06 + i*0.1, 0.9, 0.35);
-    });
-
-    // 3. Full chord stab at peak (C4+E4+G4+C5)
-    [261.63, 329.63, 392.00, 523.25].forEach(f => {
-      note(f, 'sine', now + 0.55, 1.6, 0.22);
-    });
-
-    // 4. Pentatonic sparkle run (C5→D5→E5→G5→A5→C6)
-    [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50].forEach((f,i) => {
-      note(f, 'sine', now + 0.7 + i*0.075, 0.4, 0.14);
-    });
-
-    // 5. High shimmer trill (repeated)
-    [1046.50, 1318.51, 1567.98, 2093.00].forEach((f,i) => {
-      note(f, 'sine', now + 1.1 + i*0.07, 0.45, 0.09);
-      note(f, 'sine', now + 2.2 + i*0.07, 0.35, 0.06);
-    });
-
-    // 6. Final resolve chord at ~3.8s
-    [261.63, 392.00, 523.25, 659.25].forEach(f => {
-      note(f, 'sine', now + 3.8, 1.8, 0.18);
-    });
-
-  } catch(e) {}
-}
-let audioCtx = null;
-function playDing(delta) {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.frequency.value = delta > 0 ? (delta >= 5 ? 880 : 660) : 330;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-  } catch(e) {}
-}
-
-// ── DETAILS PANEL ──
-function openDetails(sid) {
-  closeAwardMenu();
-  const cls = getActiveClass();
-  const s = cls?.students.find(x => x.id === sid);
-  if (!s) return;
-  const src = getAvatarSrc(s);
-  document.getElementById('detail-avatar').innerHTML =
-    `<img src="${src}" alt="${s.name}"
-      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
-      onerror="this.src='${initialsAvatar(s.name,s.bg).replace(/'/g,"\\'")}'" />`;
-  document.getElementById('detail-name').textContent = s.name;
-  document.getElementById('detail-pts').textContent = s.points + ' points';
-  document.getElementById('detail-history').innerHTML = s.history.length === 0
-    ? '<div style="font-size:0.82rem;color:var(--text-muted)">No history yet.</div>'
-    : s.history.map(h => `
-      <div class="history-item">
-        <span class="h-delta ${h.delta>=0?'h-pos':'h-neg'}">${h.delta>0?'+':''}${h.delta}</span>
-        <span class="h-reason">${h.reason}</span>
-        <span class="h-time">${h.time}</span>
-      </div>`).join('');
-  document.getElementById('details-panel').classList.add('open');
-}
-
-function closeDetails() {
-  document.getElementById('details-panel').classList.remove('open');
-}
-
-// ── ADD / EDIT STUDENT MODAL ──
-// pendingAvatar: holds the chosen avatar src (base64 or URL) during modal session
-let pendingAvatar = null;
-
-function openAddStudentModal(editSid) {
-  pendingAvatar = null;
-  const isEdit = !!editSid;
-  const cls    = getActiveClass();
-  const s      = isEdit ? cls?.students.find(x => x.id === editSid) : null;
-  if (isEdit && !s) return;
-
-  if (isEdit) {
-    // Pre-load existing avatar into pendingAvatar
-    pendingAvatar = s.avatar || null;
-  }
-
-  const initSrc = s ? getAvatarSrc(s) : initialsAvatar('?', '#ddd6fe');
-  const initName = s?.name || '';
-
-  const html = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal-box">
-        <div class="modal-title">${isEdit ? '✏️ Edit Student' : '➕ Add Student'}</div>
-
-        <!-- Name -->
-        <div class="modal-field">
-          <label>Name</label>
-          <input type="text" id="modal-student-name"
-            placeholder="Student name..." value="${initName}"
-            oninput="updateInitialsPreview()" />
-        </div>
-
-        <!-- Avatar section -->
-        <div class="modal-field">
-          <label>Avatar</label>
-          <div class="avatar-section">
-
-            <!-- Live circular preview -->
-            <div class="avatar-preview-ring ${pendingAvatar ? 'has-image' : ''}" id="avatar-preview-ring">
-              <img id="avatar-preview-img" src="${initSrc}" alt="preview"
-                style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />
-            </div>
-
-            <div class="avatar-controls">
-              <!-- Upload button -->
-              <label class="upload-btn-label" for="avatar-file-input">
-                📁 Upload Image
-              </label>
-              <input type="file" id="avatar-file-input" accept="image/*"
-                onchange="handleAvatarFileUpload(this)" />
-              <div class="avatar-hint">
-                JPG, PNG, GIF, WebP — small files recommended (&lt;100 KB)<br>
-                <span id="file-size-hint"></span>
-              </div>
-
-              <!-- OR divider -->
-              <div class="avatar-divider">or paste URL</div>
-
-              <!-- URL input -->
-              <div class="url-input-row">
-                <input type="text" id="avatar-url-input"
-                  placeholder="https://example.com/photo.jpg"
-                  oninput="onAvatarUrlInput()" />
-                <button class="url-check-btn" onclick="applyAvatarUrl()">Preview</button>
-              </div>
-              <div class="avatar-hint" id="url-hint"></div>
-
-              <!-- Clear avatar -->
-              <button onclick="clearAvatar()"
-                style="background:none;border:none;cursor:pointer;font:600 0.75rem 'Nunito',sans-serif;color:var(--text-muted);padding:2px 0;text-align:left;">
-                ✕ Remove avatar (use initials)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-          <button class="btn-confirm" onclick="confirmStudentModal('${editSid || ''}')">
-            ${isEdit ? 'Save Changes' : 'Add Student'}
-          </button>
-        </div>
-      </div>
-    </div>`;
-
-  document.getElementById('modal-container').innerHTML = html;
-  setTimeout(() => document.getElementById('modal-student-name')?.focus(), 50);
-}
-
-// Update the preview to show initials when name changes and no image chosen yet
-function updateInitialsPreview() {
-  if (pendingAvatar) return; // custom image takes priority
-  const name = document.getElementById('modal-student-name')?.value.trim() || '?';
-  const bg = PALETTE[getActiveClass()?.students.length % PALETTE.length] || '#ddd6fe';
-  const img = document.getElementById('avatar-preview-img');
-  if (img) img.src = initialsAvatar(name, bg);
-}
-
-// FILE UPLOAD → FileReader → base64 data URL
-function handleAvatarFileUpload(input) {
-  const file = input?.files?.[0];
-  if (!file) return;
-
-  // Warn about large files (>150KB raw → ~200KB base64)
-  const hint = document.getElementById('file-size-hint');
-  if (hint) {
-    const kb = Math.round(file.size / 1024);
-    hint.textContent = `File: ${kb} KB${kb > 150 ? ' ⚠️ Large — may fill storage quickly' : ' ✓'}`;
-    hint.style.color = kb > 150 ? '#f59e0b' : '#059669';
-  }
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target.result;  // full base64 data URL
-    pendingAvatar = dataUrl;
-    setAvatarPreview(dataUrl);
-  };
-  reader.readAsDataURL(file);  // → "data:image/jpeg;base64,/9j/4AAQ..."
-}
-
-// URL input live feedback
-function onAvatarUrlInput() {
-  const val = document.getElementById('avatar-url-input')?.value.trim();
-  const hint = document.getElementById('url-hint');
-  const inp  = document.getElementById('avatar-url-input');
-  if (!val) {
-    inp?.classList.remove('url-valid','url-invalid');
-    if (hint) hint.textContent = '';
-    return;
-  }
-  if (isValidImageUrl(val)) {
-    inp?.classList.replace('url-invalid','url-valid') || inp?.classList.add('url-valid');
-    if (hint) { hint.textContent = '✓ Valid image URL'; hint.style.color = '#059669'; }
-  } else {
-    inp?.classList.replace('url-valid','url-invalid') || inp?.classList.add('url-invalid');
-    if (hint) { hint.textContent = 'Must start with https:// and end with .jpg/.png/.webp etc.'; hint.style.color = '#f87171'; }
-  }
-}
-
-// Apply URL to preview
-function applyAvatarUrl() {
-  const val = document.getElementById('avatar-url-input')?.value.trim();
-  if (!val) return;
-  if (!isValidImageUrl(val)) {
-    const hint = document.getElementById('url-hint');
-    if (hint) { hint.textContent = '⚠️ URL doesn\'t look like a valid image link.'; hint.style.color = '#f87171'; }
-    return;
-  }
-  // Store just the URL string — much smaller than base64
-  pendingAvatar = val;
-  setAvatarPreview(val);
-}
-
-function setAvatarPreview(src) {
-  const img  = document.getElementById('avatar-preview-img');
-  const ring = document.getElementById('avatar-preview-ring');
-  if (img)  { img.src = src; img.onerror = () => { img.src = initialsAvatar('?','#ddd6fe'); }; }
-  if (ring) ring.classList.add('has-image');
-}
-
-function clearAvatar() {
-  pendingAvatar = null;
-  const name = document.getElementById('modal-student-name')?.value.trim() || '?';
-  const bg   = PALETTE[getActiveClass()?.students.length % PALETTE.length] || '#ddd6fe';
-  const img  = document.getElementById('avatar-preview-img');
-  const ring = document.getElementById('avatar-preview-ring');
-  const urlInp = document.getElementById('avatar-url-input');
-  if (img)  img.src = initialsAvatar(name, bg);
-  if (ring) ring.classList.remove('has-image');
-  if (urlInp) urlInp.value = '';
-  const hint = document.getElementById('url-hint');
-  if (hint) hint.textContent = '';
-}
-
-function confirmStudentModal(editSid) {
-  const name = document.getElementById('modal-student-name')?.value.trim();
-  if (!name) {
-    document.getElementById('modal-student-name')?.focus();
-    return;
-  }
-  const cls = getActiveClass();
-  if (editSid) {
-    // Edit existing
-    const s = cls.students.find(x => x.id === editSid);
-    if (s) { s.name = name; s.avatar = pendingAvatar; }
-  } else {
-    // Add new
-    const id = 's_' + Date.now();
-    const bg = PALETTE[cls.students.length % PALETTE.length];
-    cls.students.push({ id, name, avatar: pendingAvatar, bg, points: 0, history: [] });
-  }
-  pendingAvatar = null;
-  closeModal();
-  render();
-}
-
-// ── REMOVE STUDENT ──
-function removeStudentConfirm(sid) {
-  const cls = getActiveClass();
-  const s = cls?.students.find(x => x.id === sid);
-  if (!s) return;
-  closeAwardMenu();
-  const src = getAvatarSrc(s);
-  const html = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal-box">
-        <div class="modal-title">🗑️ Remove Student?</div>
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
-          <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border);">
-            <img src="${src}" alt="${s.name}" style="width:100%;height:100%;object-fit:cover;"
-              onerror="this.src='${initialsAvatar(s.name,s.bg).replace(/'/g,"\\'")}'" />
-          </div>
-          <p style="color:var(--text-muted);font-size:0.88rem;">
-            Remove <strong>${s.name}</strong>? Their points history will be lost.
-          </p>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-          <button class="btn-danger" onclick="doRemoveStudent('${sid}')">Remove</button>
-        </div>
-      </div>
-    </div>`;
-  document.getElementById('modal-container').innerHTML = html;
-}
-
-function doRemoveStudent(sid) {
-  const cls = getActiveClass();
-  cls.students = cls.students.filter(s => s.id !== sid);
-  closeModal();
-  render();
-}
-
-// ── RESET ──
-function confirmReset(scope) {
-  const msg = scope === 'all'
-    ? 'Reset ALL classes? Every student\'s points will be cleared.'
-    : `Reset all points in <strong>${getActiveClass()?.name}</strong>?`;
-  const html = `
-    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-      <div class="modal-box">
-        <div class="modal-title">🔄 Confirm Reset</div>
-        <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:18px;">${msg}</p>
-        <div class="modal-actions">
-          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-          <button class="btn-danger" onclick="doReset('${scope}')">Reset</button>
-        </div>
-      </div>
-    </div>`;
-  document.getElementById('modal-container').innerHTML = html;
-}
-
-function doReset(scope) {
-  const reset = cls => cls.students.forEach(s => { s.points = 0; s.history = []; });
-  if (scope === 'all') state.classes.forEach(reset);
-  else reset(getActiveClass());
-  closeModal();
-  render();
-}
-
-// ── DARK MODE ──
-function toggleDark() {
-  state.dark = !state.dark;
-  document.body.classList.toggle('dark', state.dark);
-  document.getElementById('dark-btn').textContent = state.dark ? '☀️' : '🌙';
-  saveState();
-}
-
-// ── PROJECTOR MODE ──
-function toggleProjector() {
-  state.projector = !state.projector;
-  document.body.classList.toggle('projector-mode', state.projector);
-  document.getElementById('proj-btn').textContent = state.projector ? '🪟' : '📽️';
-  saveState();
-}
-
-// ── EXPORT CSV ──
-function exportCSV() {
-  const cls = getActiveClass();
-  if (!cls) return;
-  const rows = [['Name','Points','Emoji']];
-  cls.students.forEach(s => rows.push([s.name, s.points, s.emoji]));
-  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
-  const blob = new Blob([csv], { type:'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = cls.name.replace(/\s/g,'_') + '_points.csv';
-  a.click();
-}
-
-// ── CLOSE MODAL ──
-function closeModal() {
-  document.getElementById('modal-container').innerHTML = '';
-}
-
-// ── KEYBOARD SHORTCUTS ──
-// After clicking a circle, keyboard shortcuts apply to that student
-let lastClickedId = null;
-document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-  const sid = lastClickedId || activeStudentId;
-  if (sid) {
-    const map = { '1':1, '2':2, '3':5, '4':10, 'q':-1, 'w':-3 };
-    if (map[e.key] !== undefined) {
-      const label = map[e.key] > 0 ? `Keyboard +${map[e.key]}` : `Keyboard ${map[e.key]}`;
-      awardPoints(sid, map[e.key], label);
-    }
-  }
-  if (e.key === 'Escape') { closeDetails(); closeModal(); }
-});
-
-// ── CLOSE ON OUTSIDE CLICK ──
-document.addEventListener('click', e => {
-  const menu = document.getElementById('award-menu');
-  if (menu.style.display === 'block' && !menu.contains(e.target) && !e.target.closest('.student-circle')) {
-    closeAwardMenu();
-  }
-  // Clear lastClickedId when clicking outside a circle
-  if (!e.target.closest('.student-circle')) lastClickedId = null;
-});
-
-// ── INIT ──
-loadState();
-render();
+  adj.addEventListener('click', show);
+  done.addEventListener('click', hide);
+  document.addEventListener('keydown', e => { if (open && e.key === 'Escape') hide(); });
+  mq.addEventListener('change', () => { if (!mq.matches) hide(); });
+  // drag the handle down to close
+  head.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; y0 = e.clientY; panel.style.transition = 'none'; try { head.setPointerCapture(e.pointerId); } catch (err) {} });
+  head.addEventListener('pointermove', e => { if (y0 !== null) panel.style.transform = `translateY(${Math.max(0, e.clientY - y0)}px)`; });
+  const up = e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null; panel.style.transition = ''; panel.style.transform = ''; if (dy > 70) hide(); };
+  head.addEventListener('pointerup', up); head.addEventListener('pointercancel', up);
+})();
+/* phones: show the Book bar once the hero button has scrolled away, hide it at the booking section and the closing button */
+(() => {
+  const bar = document.querySelector('.sticky-book'), st = { cta: true, reg: false, end: false };
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => { const k = e.target.dataset.k; st[k] = e.isIntersecting || (k === 'cta' && e.boundingClientRect.top > 0); });
+    bar.classList.toggle('on', !st.cta && !st.reg && !st.end);
+  });
+  [['.s1 .cta', 'cta'], ['#register', 'reg'], ['.end', 'end']].forEach(([s, k]) => { const el = document.querySelector(s); el.dataset.k = k; io.observe(el); });
+})();
+</script>
+<script>
+(() => {
+  const v = document.querySelector('.hero-print video');
+  if (!v || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const play = () => { const p = v.play(); if (p) p.catch(() => {}); };
+  v.preload = 'auto';
+  new IntersectionObserver(([e]) => e.isIntersecting ? play() : v.pause()).observe(v);
+})();
+</script>
+<script>
+(() => {
+  const srcs = [...document.querySelectorAll('.gallery img')];
+  const lb = document.querySelector('.lb'), img = lb.querySelector('img'), count = lb.querySelector('.count');
+  let i = 0, opener = null;
+  const show = n => { i = (n + srcs.length) % srcs.length; img.src = srcs[i].src; img.alt = srcs[i].alt; count.textContent = (i + 1) + ' / ' + srcs.length; };
+  const open = (n, el) => { opener = el; show(n); lb.hidden = false; lb.classList.add('open'); document.body.style.overflow = 'hidden'; lb.querySelector('.x').focus(); };
+  const close = () => { lb.classList.remove('open'); lb.hidden = true; document.body.style.overflow = ''; opener && opener.focus(); };
+  document.querySelectorAll('.thumb').forEach(b => b.addEventListener('click', () => open(+b.dataset.i, b)));
+  lb.querySelector('.x').onclick = close;
+  lb.querySelector('.prev').onclick = () => show(i - 1);
+  lb.querySelector('.next').onclick = () => show(i + 1);
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  document.addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') close();
+    else if (e.key === 'ArrowLeft') show(i - 1);
+    else if (e.key === 'ArrowRight') show(i + 1);
+    else if (e.key === 'Tab') { const f = [...lb.querySelectorAll('button')]; const k = f.indexOf(document.activeElement); if (e.shiftKey ? k <= 0 : k === f.length - 1) { e.preventDefault(); f[e.shiftKey ? f.length - 1 : 0].focus(); } }
+  });
+  let x0 = null;
+  lb.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  lb.addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1)); x0 = null; });
+})();
 </script>
 </body>
 </html>
