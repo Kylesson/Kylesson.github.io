@@ -957,7 +957,7 @@ function renderStrip(){
   if(on){ const l=on.offsetLeft, r=l+on.offsetWidth; if(l<chips.scrollLeft || r>chips.scrollLeft+chips.clientWidth) chips.scrollLeft = l - 40; }
 }
 function select(id){
-  current=id;
+  current=id; store.set("curpaper", id);
   papers.forEach(p=>{ const el=document.getElementById("paper-"+p.id); if(el) el.classList.toggle("off", p.id!==current); });
   renderStrip();
   const el=document.getElementById("paper-"+id), strip=$("#strip");
@@ -1064,7 +1064,7 @@ async function processPaper(p){
       }catch(e){ if(e && e.code==="rate_limited") throw e; if(data._rotated) p.noCrop=true; /* otherwise keep the first result */ }
     }
     normalize(data, s);
-    p.data = data;
+    p.data = data; p.blob = useBlob;
     if(data.student && data.student!=="null"){ p.name = data.student; p.nameFromPaper = true; }
     p.status="done";
   }catch(e){
@@ -1351,6 +1351,54 @@ async function runSelfTest(){
 }
 
 window.__tcTest = { normalize:(d,s)=>{ normalize(d,s); return d; }, parseJSON, parseRot, cleanName, toUS, expandC };
+
+/* ---------- keep papers after a refresh: photo + result saved in this browser (IndexedDB) ---------- */
+const PStore = (()=>{
+  let dbp=null;
+  const open=()=> dbp || (dbp=new Promise((res,rej)=>{ try{ const r=indexedDB.open("tc_papers",1); r.onupgradeneeded=()=>r.result.createObjectStore("p",{keyPath:"id"}); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); r.onblocked=()=>rej(new Error("blocked")); }catch(e){ rej(e); } }));
+  const tx=async(mode,fn)=>{ const db=await open(); return new Promise((res,rej)=>{ try{ const t=db.transaction("p",mode); const r=fn(t.objectStore("p")); t.oncomplete=()=>res(r&&r.result); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error||new Error("aborted")); }catch(e){ rej(e); } }); };
+  return { put:rec=>tx("readwrite",s=>s.put(rec)), del:id=>tx("readwrite",s=>s.delete(id)), clear:()=>tx("readwrite",s=>s.clear()), all:()=>tx("readonly",s=>s.getAll()) };
+})();
+let persistWarned=false;
+const persistT={};
+function persistSoon(p){
+  if(!p || p.silent || typeof p.id!=="number") return;
+  clearTimeout(persistT[p.id]);
+  persistT[p.id]=setTimeout(()=>persistPaper(p),300);
+}
+function persistPaper(p){
+  if(!papers.includes(p)) return;
+  const blob=p.blob||p.file; if(!blob) return;
+  const st = p.status==="done" && p.data ? "done" : p.status==="error" ? "error" : "interrupted";
+  const rec={id:p.id,name:p.name,nameFromPaper:!!p.nameFromPaper,view:p.view||"marks",status:st,data:st==="done"?p.data:null,
+    error:p.error||"",retake:!!p.retake,rotatedBy:p.rotatedBy||0,noCrop:!!p.noCrop,filed:p.filed||null,entryId:p.entryId||null,
+    checkedAt:p.checkedAt||null,sheet:p.sheet||null,sheetState:(p.sheetState==="ready"||p.sheetState==="none")?p.sheetState:null,blob,saved:Date.now()};
+  PStore.put(rec).catch(()=>{ if(!persistWarned){ persistWarned=true; toast("This browser can't keep papers after a refresh"); } });
+}
+async function restorePapers(){
+  let recs=[]; try{ recs=await PStore.all(); }catch(e){ return; }
+  recs=(recs||[]).filter(r=>r && r.blob && typeof r.id==="number").sort((a,b)=>a.id-b.id);
+  if(!recs.length) return;
+  seq=Math.max(seq, ...recs.map(r=>r.id));
+  for(const r of recs){
+    if(papers.some(x=>x.id===r.id)) continue;
+    const done = r.status==="done" && r.data;
+    const p={id:r.id, name:r.name||("Paper "+r.id), nameFromPaper:!!r.nameFromPaper, view:r.view||"marks",
+      status: done ? "done" : "error", data: done ? r.data : null,
+      error: done ? null : (r.status==="error" ? (r.error||"Something went wrong.") : "This paper was still being checked when the page closed. Tap Retry."),
+      retake:!!r.retake, rotatedBy:r.rotatedBy||0, noCrop:!!r.noCrop, filed:r.filed||null, entryId:r.entryId||null, checkedAt:r.checkedAt||null,
+      sheet:r.sheet||null, sheetState:r.sheetState||null, saveState:r.filed?"saved":null, crops:{}, file:r.blob, blob:r.blob};
+    try{ const li=await loadImage(r.blob); p.img=li.img; p.url=li.url; }catch(e){ continue; }
+    papers.push(p); renderPaper(p);
+  }
+  if(papers.length){
+    const want=store.get("curpaper",null);
+    if(current===null || current===undefined || !papers.some(x=>x.id===current)) select(papers.some(x=>x.id===want) ? want : papers[papers.length-1].id);
+    $("#sticky").classList.remove("hidden");
+    toast(papers.length>1 ? papers.length+" papers restored" : "Paper restored");
+  }
+}
+setTimeout(restorePapers, 0);
 /* grading: rubric 1-5 per area, weighted to a 0-100 score, then shown on the chosen scale */
 const RUBRIC = [["task","Task",25],["grammar","Grammar",30],["vocab","Words & spelling",25],["mechanics","Capitals & punctuation",20]];
 function computeGrade(g, s, d){
@@ -1437,7 +1485,7 @@ function renderPaper(p){
       </div>
     </div>
     ${body ? `<div class="pbody">${body}</div>` : ""}`;
-  bindPaper(el,p); if(boardOn) renderBoard();
+  bindPaper(el,p); if(boardOn) renderBoard(); persistSoon(p);
   renderStrip();
 }
 
@@ -1612,7 +1660,7 @@ function bindPaper(el,p){
       if(act==="sheet"){ if(p.sheet) openSheet(p.sheet,{name:isDefaultName(p.name)?"":p.name, cls:(classes.find(c=>c.id===(p.filed?p.filed.cid:currentClass))||{}).code||""}, p.filed?{cid:p.filed.cid, sid:p.filed.sid}:null); else { sheetQ = sheetQ.then(()=>sheetForPaper(p)); } }
       if(act==="retry"){ p.noCrop=false; p.retake=false; p.sheet=null; p.sheetState=null; p.data=null; p.crops={}; p.error=null; p.status="waiting"; renderPaper(p); queue=queue.then(()=>processPaper(p)); }
       if(act==="remove"){
-        const i=papers.indexOf(p); if(i>=0) papers.splice(i,1); el.remove();
+        const i=papers.indexOf(p); if(i>=0) papers.splice(i,1); el.remove(); PStore.del(p.id).catch(()=>{});
         if(!papers.length){ current=null; renderStrip(); $("#sticky").classList.add("hidden"); $("#summaryCard").classList.add("hidden"); }
         else select(papers[Math.min(i, papers.length-1)].id);
       }
@@ -1690,7 +1738,7 @@ $("#sumBtn").addEventListener("click", runSummary);
 $("#clearBtn").addEventListener("click", ()=>{
   const btn=$("#clearBtn");
   if(btn.dataset.armed!=="1"){ btn.dataset.armed="1"; btn.textContent="Tap again to clear"; setTimeout(()=>{btn.dataset.armed="";btn.textContent="Clear all";},2500); return; }
-  papers.splice(0); current=null; renderStrip(); $("#papers").innerHTML=""; $("#summaryCard").classList.add("hidden"); $("#sticky").classList.add("hidden");
+  papers.splice(0); current=null; PStore.clear().catch(()=>{}); renderStrip(); $("#papers").innerHTML=""; $("#summaryCard").classList.add("hidden"); $("#sticky").classList.add("hidden");
   btn.dataset.armed=""; btn.textContent="Clear all";
 });
 
