@@ -112,7 +112,12 @@ textarea{resize:vertical;min-height:44px}
 .fix .arrow{color:var(--muted);margin:0 6px}
 .fix .corr{font-size:17px;font-weight:700;color:var(--red);line-height:1.3}
 .fix .corr.del{font-family:Inter;font-size:13px;font-weight:600}
-.why{font-size:12.5px;color:var(--muted);margin-top:2px}
+.why{font-size:13.5px;color:#444;margin-top:2px}
+.fline .whys{margin-top:5px}
+.fline .wy{font-size:13.5px;color:#444;padding:1px 0;line-height:1.5}
+.fline .wy .wn{font-size:10.5px;font-weight:700;color:#fff;background:var(--red);border-radius:8px;padding:1px 5px;margin-right:5px;vertical-align:baseline}
+.fline .wy b{font-weight:600}
+.fline .wy .wc{color:var(--red)}
 .prio{font-size:11px;font-weight:600;color:var(--muted);margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
 .transcript{font-size:15px;line-height:2.1;background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;white-space:pre-wrap}
 .transcript .e{color:var(--red);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
@@ -520,6 +525,8 @@ const CODES = {SP:"spelling",GR:"grammar",WW:"wrong word",P:"punctuation",C:"cap
 const RULES = ["past tense","verb tense","3rd person -s","be verb","plural -s","countable/uncountable","articles","prepositions","pronouns","there is/are","-ing form","word form","comparatives","questions","word order","missing word","extra word","word choice","spelling","capital letters","end punctuation","comma splice","commas","other grammar"];
 const RULE_ZH = {"past tense":"過去式","verb tense":"動詞時態","3rd person -s":"第三人稱單數加 s","be verb":"be 動詞","plural -s":"複數加 s","countable/uncountable":"可數與不可數名詞","articles":"冠詞 a / an / the","prepositions":"介系詞","pronouns":"代名詞","there is/are":"there is / there are","-ing form":"動名詞 -ing","word form":"詞性（形容詞、名詞、副詞）","comparatives":"比較級","questions":"問句語序","word order":"語序","missing word":"漏字","extra word":"多餘的字","word choice":"用字","spelling":"拼字","capital letters":"大寫","end punctuation":"句尾標點","comma splice":"兩句之間用逗號連接","commas":"逗號","other grammar":"其他文法"};
 const CODE_RULE = {SP:"spelling",C:"capital letters",P:"end punctuation",X:"extra word","^":"missing word",WO:"word order",WW:"word choice",GR:"other grammar"};
+/* short fallback reason, used only when Claude leaves "why" empty */
+const RULE_WHY = {"past tense":"Finished action: use the past form","verb tense":"Use the tense that fits the time","3rd person -s":"He/she/it: verb + s","be verb":"Need the right be verb (am/is/are)","plural -s":"More than one: add -s","countable/uncountable":"Check countable or uncountable","articles":"Check a / an / the","prepositions":"Wrong or missing small word (in/on/at/to)","pronouns":"Use the right pronoun","there is/are":"Use there is / there are","-ing form":"Use the -ing form here","word form":"Use the right word type","comparatives":"Use the right comparative form","questions":"Question word order and do/does","word order":"Put the words in the right order","missing word":"A word is missing","extra word":"This word is not needed","word choice":"Use a word that fits the meaning","spelling":"Spelling","capital letters":"Needs a capital letter","end punctuation":"Needs correct end punctuation","comma splice":"Two sentences: use a period, not a comma","commas":"Check the comma","other grammar":"Grammar fix"};
 function ruleOf(e){ const r=String((e&&e.rule)||"").toLowerCase().trim(); return RULES.includes(r) ? r : (CODE_RULE[e&&e.code]||"other grammar"); }
 
 /* ---------- settings persistence ---------- */
@@ -859,7 +866,7 @@ Do this carefully:
    - For X : "original" is the extra word, "correction" is "".
    - For WO : "original" is the words in the wrong order, "correction" is the same words in the right order.
 6. priority: 1 = must fix (core, taught, or changes meaning), 2 = should fix, 3 = small.${s.top5 ? "\n   For writing papers, return AT MOST 5 errors in total: the 5 most important for this level." : ""}
-7. "why": a very short teacher note (max 10 words).
+7. "why": REQUIRED for every error. A very short, plain reason a child can understand, max 8 words, with the rule and the right form. Especially for grammar (GR, WW, ^, X, WO): name the rule. Good examples: "Past tense: go → went", "Two or more: add -s", "He/she/it: verb + s", "Uncountable: use much, not many", "Need a be verb: She is tall". Never just "wrong" or "incorrect". For spelling or capitals 3 words is fine ("Names need a capital").
 7b. "rule": the rule behind the mistake, exactly one from this list: ${RULES.join(", ")}.
 8. "positive": ONE short, specific, encouraging comment about something real the student did well. Simple English this student can read. Max 12 words.
 9. For each line, give "fixed": that line fully corrected for this level with the smallest changes. Fix ALL its mistakes here, even ones not in "errors". Keep the student's words and meaning. Leave unclear words as read. If the line is correct, "fixed" equals "text".
@@ -901,7 +908,7 @@ ${first && first._rotated ? "The photo has now been turned upright. Give y0 and 
 2. Remove any error that is not truly wrong in standard English, is too advanced for this level, or sits on an unclear word.
 3. Go through every sentence against rule list B one item at a time. Add real mistakes that were missed. Pay special attention to: comma splices, tense drift across the whole text, plural after "one of / each of", -ing forms, and word form (happy/happiness).
 3b. Remove anything rule list G says not to mark, and any correction that rewrites the student's sentence or changes their meaning instead of making the smallest fix.
-4. Check each correction is right, natural, and fixes the real problem. Each "original" must appear exactly in its line's "text".
+4. Check each correction is right, natural, and fixes the real problem. Each "original" must appear exactly in its line's "text". Every error needs a short "why" (max 8 words, plain, with the rule and the right form, e.g. "Past tense: go → went"). Add or shorten it where it is missing, long or vague.
 5. Make sure every "fixed" line is fully correct and agrees with the errors.
    Check every "also" example: correct, natural, at this level, and using the SAME meaning of the focus word as in the student's sentence. Remove or replace any that change the meaning or could confuse a child.${s.top5 ? "\n6. For writing papers keep AT MOST 5 errors: the 5 most important for this level. Exercises keep a mark on every wrong item." : ""}
 ${s.grading==="off" ? "" : "7. Check the grade is fair for this level, using all mistakes."}
@@ -1169,7 +1176,7 @@ function normalize(d, s){
     // never mark a word we said we can't read
     const lu = unc.filter(u=>u.line===e.line).map(u=>u.read_as.toLowerCase());
     if(lu.some(w=>new RegExp("(^|[^\\p{L}])"+w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"($|[^\\p{L}])","iu").test(e.original))){ drop(e,"unclear word"); continue; }
-    e.rule = ruleOf(e);
+    e.rule = ruleOf(e); if(!e.why) e.why = RULE_WHY[e.rule] || "";
     keep.push(e);
   }
   // duplicates and overlapping marks on the same words: keep the most important one
@@ -1517,6 +1524,7 @@ function renderTranscript(d){
       <div>
         <div class="stu">${markLine(l.text, errs, unc)}</div>
         ${f.changed ? `<div class="cor">${f.html}</div>` : `<div class="ok">✓ correct</div>`}
+        ${errs.length ? `<div class="whys">${errs.map(e=>`<div class="wy"><span class="wn">${e.num}</span><b>${esc(e.original)||"·"}</b> → <b class="wc">${e.correction?esc(e.correction):"delete"}</b>${e.why?`: ${esc(e.why)}`:""}</div>`).join("")}</div>` : ""}
         ${f.changed && l.also && l.also.length ? `<div class="also"><div class="alh">You can also say</div>${l.also.map(a=>a.examples.map(x=>`<div class="alx">${highlightFocus(x, a.focus)}</div>`).join("")).join("")}</div>` : ""}
       </div>
     </div>`;
@@ -1580,7 +1588,7 @@ function marksAsText(p){
   const d=p.data; const lines=[p.name + (d.grade?`   Grade: ${d.grade.display}${d.grade.scale==="100" && !d.grade.items && !d.grade.rubric?"/100":""}`:"")];
   if(d.grade && d.grade.rubric) d.grade.parts.forEach(x=>lines.push(`   ${x.label}: ${x.score}/${x.max}${x.note?` (${x.note})`:""}`));
   if(d.task_note) lines.push("Note: "+d.task_note);
-  d.errors.forEach(e=>lines.push(`${e.num}. [${e.code}] line ${e.line}: ${e.original} → ${e.correction||"(delete)"}`));
+  d.errors.forEach(e=>lines.push(`${e.num}. [${e.code}] line ${e.line}: ${e.original} → ${e.correction||"(delete)"}${e.why?` (${e.why})`:""}`));
   d.unclear.forEach(u=>lines.push(`?  line ${u.line}: "${u.read_as}" is hard to read`));
   if(d.positive) lines.push("", "⭐ "+d.positive);
   return lines.join("\n");
