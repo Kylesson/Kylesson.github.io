@@ -1,0 +1,2750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Teacher&#39;s Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf8f3; --card:#ffffff; --ink:#1f2328; --muted:#6b7280; --line:#e7e3d8;
+  --red:#d62828; --red-soft:#fde8e8; --amber:#b7791f; --amber-soft:#fdf3dc;
+  --green:#2f7d4f; --green-soft:#e3f3e8; --blue:#2b5cab;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:18px 14px 80px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center;font-family:Caveat;font-size:30px;font-weight:700;line-height:1}
+h1{font-size:20px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:620px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff}
+textarea{resize:vertical;min-height:44px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer;margin:0}
+.toggle input{width:18px;height:18px;accent-color:var(--red)}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;background:var(--ink);color:#fff}
+.btn.red{background:var(--red)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.small{padding:6px 11px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.drop{border:2px dashed #d8d2c2;border-radius:var(--radius);padding:26px 16px;text-align:center;background:#fffdf8;cursor:pointer}
+.drop.over{border-color:var(--red);background:var(--red-soft)}
+.drop strong{display:block;font-size:16px;margin-bottom:4px}
+.drop span{color:var(--muted);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.code{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:2px 7px;border-radius:6px;font-size:12px;font-weight:700;background:var(--red-soft);color:var(--red);letter-spacing:.02em}
+.code.q{background:var(--amber-soft);color:var(--amber)}
+.legend .item{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-right:6px}
+.notice{font-size:13px;padding:10px 12px;border-radius:10px;background:var(--amber-soft);color:#7a5414;margin-top:10px}
+.hidden{display:none!important}
+
+/* paper results */
+.paper{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.phead{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);background:#fffdf8}
+.thumb{width:48px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:pointer;flex:none}
+.pmeta{flex:1;min-width:0}
+.pname{border:0;background:transparent;font-weight:700;font-size:16px;padding:2px 0;width:100%;outline:none;border-bottom:1px dashed transparent}
+.pname:focus{border-bottom-color:var(--muted)}
+.namerow{display:flex;align-items:center;gap:6px}
+.namerow .pname{flex:1;min-width:0;width:auto}
+.namehide{display:inline-flex;align-items:center;gap:8px;border:1px dashed #c9c2ae;background:#f6f3ea;border-radius:8px;padding:5px 10px;font-weight:600;font-size:14px;cursor:pointer;color:var(--ink)}
+.namehide span{font-weight:500;font-size:12px;color:var(--muted)}
+.namehide:hover{border-color:var(--red)}
+.chip .cn.lock{color:var(--muted);font-style:italic;font-weight:500}
+.pstat{font-size:12.5px;color:var(--muted)}
+.counts{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.pbody{padding:14px}
+.spinner{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-3px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{color:var(--red);font-size:13.5px}
+.lineblock{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.lineblock .crop{display:block;width:100%;background:#f3f1ea;border-bottom:1px solid var(--line)}
+.lineblock .lt{font-size:12px;color:var(--muted);padding:8px 12px 0}
+.mark{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:start;padding:9px 12px;border-top:1px dashed var(--line)}
+.mark .dismiss{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:13px}
+.mark .dismiss:hover{color:var(--red);border-color:var(--red)}
+.rtag{display:inline-block;font-size:11px;color:var(--blue);background:#eef3fb;border-radius:6px;padding:0 6px;margin-left:4px}
+.st{display:inline-block;font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 7px}
+.st.new{background:#eef3fb;color:var(--blue)} .st.rep{background:var(--red-soft);color:var(--red)} .st.imp{background:var(--amber-soft);color:var(--amber)} .st.fix{background:var(--green-soft);color:var(--green)}
+.spark{font-family:ui-monospace,monospace;letter-spacing:1px;color:var(--red)}
+.headline{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;background:#fffdf8}
+.headline .rubric{border:0;padding:0;margin:0;flex:1}
+.rc{width:100%;border-collapse:collapse;font-size:13px}
+.rc th,.rc td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:center}
+.rc th:first-child,.rc td:first-child{text-align:left}
+.up{color:var(--green);font-weight:700} .down{color:var(--red);font-weight:700}
+.report{white-space:pre-wrap;background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14.5px;line-height:1.7;margin:10px 0}
+.qrbox{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--line);padding:12px 14px}
+.qrbox .qr{width:132px;height:132px;flex:none}
+.qrbox .qr img,.qrbox .qr canvas{width:132px!important;height:132px!important}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi .v{font-size:24px;font-weight:700}
+.kpi .l{font-size:12.5px;color:var(--muted)}
+/* on-screen worksheet */
+.do{max-width:720px;margin:0 auto;padding:18px 14px 80px}
+.do .q{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.do .q.ok{border-color:var(--green);background:var(--green-soft)} .do .q.no{border-color:var(--red);background:var(--red-soft)}
+.do .qt{font-size:16px;margin-bottom:8px}
+.do .opt{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 16px;margin:0 6px 6px 0;font-size:15px;cursor:pointer}
+.do .opt.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.do .wbtn{border:1px dashed #999;background:#fff;border-radius:8px;padding:5px 10px;margin:0 6px 6px 0;font-size:15px;cursor:pointer}
+.do .wbtn.used{opacity:.3}
+.do .built{min-height:40px;border-bottom:2px solid var(--line);padding:6px 0;font-size:16px;margin-bottom:6px}
+.do .fb{font-size:13.5px;margin-top:6px}
+.do input[type=text],.do textarea{font-size:16px}
+.lineblock .lt + .mark{border-top:0}
+.num{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-weight:700;font-size:12.5px;display:grid;place-items:center}
+.num.q{background:var(--amber)}
+.fix{font-size:15px}
+.fix .orig{text-decoration:line-through;text-decoration-color:var(--red);color:#555}
+.fix .arrow{color:var(--muted);margin:0 6px}
+.fix .corr{font-size:17px;font-weight:700;color:var(--red);line-height:1.3}
+.fix .corr.del{font-family:Inter;font-size:13px;font-weight:600}
+.why{font-size:12.5px;color:var(--muted);margin-top:2px}
+.prio{font-size:11px;font-weight:600;color:var(--muted);margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
+.transcript{font-size:15px;line-height:2.1;background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;white-space:pre-wrap}
+.transcript .e{color:var(--red);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.transcript .u{background:var(--amber-soft);border-radius:4px;padding:0 2px}
+.transcript sup{font-size:10.5px;font-weight:700;color:#fff;background:var(--red);border-radius:8px;padding:1px 5px;margin-left:1px}
+.transcript .u sup{background:var(--amber)}
+.ftext{background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin-bottom:14px}
+.fline{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:10px 0;border-top:1px dashed var(--line)}
+.fline:first-child{border-top:0}
+.fline .ln{font-size:12px;color:var(--muted);padding-top:3px}
+.fline .stu{font-size:15.5px;line-height:1.9}
+.fline .stu .e{color:var(--ink);text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:2px;text-underline-offset:3px}
+.fline .stu .u{background:var(--amber-soft);border-radius:4px;padding:0 2px}
+.fline .stu sup{font-size:10.5px;font-weight:700;color:#fff;background:var(--red);border-radius:8px;padding:1px 5px;margin-left:1px}
+.fline .stu .u sup{background:var(--amber)}
+.fline .cor{font-size:16.5px;font-weight:600;color:var(--red);line-height:1.6;margin-top:2px}
+.fline .cor .chg{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.fline .also{margin-top:6px;border-left:3px solid var(--red-soft);padding:2px 0 2px 10px}
+.fline .alh{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.fline .alx{font-size:14px;color:#3a3a3a;padding:1px 0}
+.fline .alx::before{content:"→ ";color:var(--red)}
+.fline .alx b{color:var(--red);font-weight:600}
+.fline .ok{font-size:12.5px;color:var(--green);font-weight:600}
+.gbadge{flex:none;min-width:58px;height:58px;padding:0 8px;border:2.5px solid var(--red);border-radius:50%;display:grid;place-items:center;font-family:Caveat,cursive;font-size:30px;font-weight:700;color:var(--red);transform:rotate(-6deg)}
+.gbadge.stars{border-radius:12px;font-family:Inter;font-size:13px;letter-spacing:1px;height:36px}
+.rubric{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:12px}
+.rrow{display:grid;grid-template-columns:150px 70px 1fr;gap:8px;align-items:center;font-size:13px;padding:4px 0}
+.rrow .rl{font-weight:600}
+.rrow .dots{color:var(--red);letter-spacing:1px;font-size:12px}
+.rrow .rn{color:var(--muted)}
+.tasknote{background:var(--amber-soft);border:1px solid #f0d9a0;border-radius:12px;padding:9px 12px;margin-bottom:12px;font-size:14px}
+.rubed{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:#fffdf8}
+.rubed .crow{display:grid;grid-template-columns:1.2fr 70px 2fr 30px;gap:6px;margin-bottom:6px;align-items:center}
+@media (max-width:620px){.rubed .crow{grid-template-columns:1fr 64px 30px}.rubed .crow .cd{grid-column:1/-1}}
+.rubed .crow input{padding:7px 9px}
+.rubed .x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px}
+@media (max-width:520px){.rrow{grid-template-columns:1fr auto}.rrow .rn{grid-column:1/-1;margin-top:-2px}}
+.dropall{position:fixed;inset:0;background:rgba(214,40,40,.12);border:4px dashed var(--red);z-index:70;display:none;place-items:center;font-weight:700;font-size:20px;color:var(--red);pointer-events:none}
+.dropall.on{display:grid}
+.positive{display:flex;gap:10px;align-items:center;background:var(--green-soft);border-radius:12px;padding:12px 14px;margin-top:4px}
+.positive .txt{flex:1;font-size:16px;font-weight:600;color:var(--green);line-height:1.4}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.clean{padding:14px;border-radius:12px;background:var(--green-soft);color:var(--green);font-weight:600}
+
+/* paper tabs */
+.strip{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:6px;background:var(--paper);padding:8px 0 10px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.chips{display:flex;gap:8px;overflow-x:auto;flex:1;scroll-behavior:smooth;padding:2px;scrollbar-width:thin}
+.chip{display:flex;align-items:center;gap:8px;flex:none;border:1px solid var(--line);background:#fff;border-radius:12px;padding:5px 10px 5px 5px;cursor:pointer;max-width:190px;text-align:left}
+.chip.on{border-color:var(--red);box-shadow:0 0 0 2px var(--red-soft)}
+.chip img,.chip .ph{width:30px;height:38px;object-fit:cover;border-radius:5px;background:#f3f1ea;flex:none}
+.chip .cn{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip .cs{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.chip .cs.bad{color:var(--red)}
+.chip .cs .spinner{width:10px;height:10px;border-width:2px;margin-right:4px;vertical-align:-1px}
+.nav{flex:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:20px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0 0 2px}
+.nav:disabled{opacity:.35;cursor:default}
+.paper.off{display:none}
+
+/* views + classes */
+.views{display:flex;gap:6px;margin:0 0 14px}
+.vtab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.vtab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.classrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.newclass{background:#fffdf8;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+.saved{display:inline-block;font-size:11.5px;font-weight:600;color:var(--green);background:var(--green-soft);border-radius:6px;padding:1px 7px;margin-left:6px}
+.saved.warn{color:var(--amber);background:var(--amber-soft)}
+.clist{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.cfolder{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;cursor:pointer;text-align:left;position:relative}
+.cfolder:hover{border-color:var(--red)}
+.cfolder .ccode{font-size:20px;font-weight:700}
+.cfolder .cmeta{font-size:12.5px;color:var(--muted)}
+.cfolder .tabtop{position:absolute;top:-7px;left:14px;width:54px;height:9px;background:#fff;border:1px solid var(--line);border-bottom:0;border-radius:6px 6px 0 0}
+.crumbs{font-size:13.5px;margin-bottom:12px;color:var(--muted)}
+.crumbs a{color:var(--blue);cursor:pointer;text-decoration:none}
+.stable{width:100%;border-collapse:collapse;font-size:14px}
+.stable th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+.stable td{padding:9px 8px;border-bottom:1px solid var(--line)}
+.stable tr.click{cursor:pointer}
+.stable tr.click:hover td{background:#fffdf8}
+.hist{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.hist .hd{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);margin-bottom:6px}
+.hist .hl{font-size:14px;padding:2px 0}
+.rep{font-size:11px;font-weight:700;color:#fff;background:var(--red);border-radius:8px;padding:1px 6px;margin-left:4px}
+.empty{padding:22px;text-align:center;color:var(--muted);background:#fff;border:1px dashed var(--line);border-radius:var(--radius)}
+
+/* worksheet */
+.wsbox{background:#e9e6de;border-radius:14px;max-width:820px;width:100%;margin:10px auto;overflow:hidden}
+.wsbar{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;padding:10px 14px;border-bottom:1px solid var(--line);z-index:2}
+#wsPreview{padding:16px;display:grid;gap:16px;justify-items:center;overflow-x:auto}
+.ws{width:718px;background:#fff;color:#1b1b1b;font-family:Inter,sans-serif;padding:34px 38px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.ws h1{font-family:Caveat,cursive;font-size:40px;margin:0;line-height:1;color:#c62828}
+.ws .wsh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1b1b1b;padding-bottom:10px;margin-bottom:16px}
+.ws .who{font-size:13px;line-height:1.9;text-align:right}
+.ws .who span{display:inline-block;min-width:130px;border-bottom:1px solid #999;text-align:left;padding-left:4px}
+.ws .intro{font-size:13px;color:#555;margin:0 0 14px}
+.ws .sec{margin-bottom:18px;break-inside:avoid;page-break-inside:avoid}
+.ws .sech{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15.5px;margin-bottom:6px}
+.ws .secn{width:24px;height:24px;border-radius:50%;background:#c62828;color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+.ws .tip{background:#fff6e0;border:1px solid #f0d9a0;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:8px}
+.ws .tip .w{color:#c62828;text-decoration:line-through}
+.ws .tip .r{color:#2f7d4f;font-weight:600}
+.ws .ex{font-size:14.5px;padding:7px 0 7px 4px;break-inside:avoid;page-break-inside:avoid}
+.ws .ex .n{display:inline-block;width:22px;font-weight:600;color:#555}
+.ws .ex .opts{display:inline-flex;gap:14px;margin-left:8px}
+.ws .ex .opts span{border:1px solid #bbb;border-radius:999px;padding:1px 10px}
+.ws .wl{border-bottom:1px solid #9a9a9a;height:30px;margin:2px 0 0 26px}
+.ws .wbank{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px 26px;overflow:visible}
+.ws .wbank span{border:1px dashed #999;border-radius:6px;padding:2px 8px;font-size:13.5px}
+.ws .foot{font-size:11px;color:#888;margin-top:18px;text-align:center}
+.ws.key h1{color:#1b1b1b;font-size:34px}
+.ws.key .ans{font-size:13.5px;padding:3px 0}
+.ws.key .ans b{color:#c62828}
+
+/* summary */
+.bars{display:grid;gap:7px;margin:6px 0 14px}
+.bar{display:grid;grid-template-columns:44px 1fr 34px;gap:8px;align-items:center;font-size:13px}
+.bar .track{height:12px;background:#f1eee6;border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;background:var(--red);border-radius:6px}
+.common{border-left:3px solid var(--red);padding:6px 0 6px 12px;margin-bottom:12px}
+.common b{display:block}
+.common .ex{font-size:13px;color:var(--muted)}
+.warm{background:#eef3fb;border-radius:12px;padding:12px 14px;color:#1e3a6b}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:50;padding:16px}
+.modal img{max-width:100%;max-height:90vh;border-radius:8px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:999px;font-size:13.5px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.stickybar{position:sticky;bottom:10px;display:flex;justify-content:center;gap:8px;margin-top:6px;z-index:5}
+.stickybar .btn{box-shadow:0 6px 18px rgba(0,0,0,.15)}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">✓</div>
+      <div>
+        <h1>Teacher's Check</h1>
+        <p class="sub">Snap student work. Get marks you can copy in red.</p>
+      </div>
+    </div>
+  </header>
+  <nav class="views">
+    <button class="vtab on" data-view="check">📝 Check papers</button>
+    <button class="vtab" data-view="classes">📁 Classes</button>
+    <button class="vtab" data-view="overview">📊 Overview</button>
+  </nav>
+  <div id="viewCheck">
+
+  <!-- Settings -->
+  <div class="card" id="settings">
+    <h2>Class settings</h2>
+    <div class="classrow">
+      <div style="flex:1;min-width:180px">
+        <label for="classSel">Class folder</label>
+        <select id="classSel"><option value="">No class (don't save)</option></select>
+      </div>
+      <button class="btn ghost small" id="newClassBtn" style="align-self:flex-end">+ New class</button>
+    </div>
+    <div id="newClassForm" class="newclass hidden">
+      <div class="grid">
+        <div><label for="ncCode">Class code</label><input type="text" id="ncCode" placeholder="e.g. DZ-3A"></div>
+        <div><label for="ncName">Class name (optional)</label><input type="text" id="ncName" placeholder="e.g. Tue/Thu 5pm"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn small red" id="ncSave">Create class</button>
+        <button class="btn ghost small" id="ncCancel">Cancel</button>
+        <span class="sub">The level, book and unit below are saved with the class.</span>
+      </div>
+    </div>
+    <div id="storeNote" class="sub" style="margin:-4px 0 12px"></div>
+    <div class="grid">
+      <div>
+        <label for="level">Level</label>
+        <select id="level">
+          <option>Grade 1 (beginner)</option>
+          <option>Grade 2</option>
+          <option selected>Grade 3</option>
+          <option>Grade 4</option>
+          <option>Grade 5</option>
+          <option>Grade 6</option>
+          <option>Junior high</option>
+          <option>CEFR Pre-A1</option>
+          <option>CEFR A1</option>
+          <option>CEFR A2</option>
+          <option>CEFR B1</option>
+        </select>
+      </div>
+      <div>
+        <label for="task">Task (optional)</label>
+        <input type="text" id="task" placeholder="e.g. Write 5 sentences about your weekend">
+      </div>
+      <div>
+        <label for="book">Book</label>
+        <input type="text" id="book" list="bookList" placeholder="e.g. Let's Go 3">
+        <datalist id="bookList"></datalist>
+      </div>
+      <div>
+        <label for="unit">Unit / lesson now</label>
+        <input type="text" id="unit" placeholder="e.g. Unit 5">
+      </div>
+      <div style="grid-column:1/-1">
+        <label for="taught">What they have learned so far (book, unit, grammar)</label>
+        <textarea id="taught" rows="2" placeholder="e.g. Unit 1-5: present simple, plural -s, can/can't, there is/are. Not yet: past tense."></textarea>
+      </div>
+      <div style="grid-column:1/-1" class="row">
+        <button class="btn ghost small" id="scanBookBtn">📘 Scan the book's contents page</button>
+        <span class="sub" id="bookHint" style="flex:1;min-width:200px"></span>
+        <input type="file" id="bookFile" accept="image/*" multiple class="hidden">
+      </div>
+    </div>
+    <details style="margin-top:12px" id="styleBox">
+      <summary>✏️ My marking style <span class="sub" id="styleCount"></span></summary>
+      <div style="margin-top:8px">
+        <label for="styleNotes">Your own rules, in plain words. The checker follows these first.</label>
+        <textarea id="styleNotes" rows="3" placeholder="e.g. Don't mark contractions. Accept 'gonna' in diaries. Always mark missing periods. Grade 2: don't mark the/a yet."></textarea>
+        <p class="sub" style="margin:6px 0 0">When you tap <b>✕ Not a mistake</b> on a mark, the app remembers it and stops marking that kind of thing. <a href="#" id="styleReset">Forget removed marks</a></p>
+      </div>
+    </details>
+    <div class="row" style="margin-top:12px;justify-content:space-between">
+      <div class="row">
+        <label class="toggle"><input type="checkbox" id="top5" checked> Top 5 only</label>
+        <label class="toggle"><input type="checkbox" id="caps" checked> Mark capitals and periods</label>
+        <label class="toggle"><input type="checkbox" id="verify" checked> Double-check (slower, more accurate)</label>
+        <label class="toggle"><input type="checkbox" id="autosheet" checked> Make a practice sheet for each paper</label>
+        <label class="toggle"><input type="checkbox" id="hideNames" checked> Hide student names until tapped</label>
+      </div>
+      <div class="row">
+        <label for="quality" style="margin:0">Reading</label>
+        <select id="quality" style="width:auto">
+          <option value="quick">Fast</option>
+          <option value="default">Standard</option>
+          <option value="complex" selected>Most careful</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;gap:16px">
+      <div class="row">
+        <label for="grading" style="margin:0">Grade</label>
+        <select id="grading" style="width:auto">
+          <option value="100" selected>Score out of 100</option>
+          <option value="letter">Letter (A to D)</option>
+          <option value="stars">Stars (1 to 5)</option>
+          <option value="off">No grade</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="rubric" style="margin:0">Rubric</label>
+        <select id="rubric" style="width:auto;max-width:260px"><option value="">Standard (Task, Grammar, Words, Capitals)</option></select>
+        <button class="btn ghost small" id="rubAdd">+ Add rubric</button>
+        <button class="btn ghost small hidden" id="rubEdit">Edit</button>
+      </div>
+      <div class="row">
+        <label for="spelling" style="margin:0">Spelling</label>
+        <select id="spelling" style="width:auto">
+          <option value="us" selected>American</option>
+          <option value="uk">British</option>
+        </select>
+      </div>
+    </div>
+    <div id="rubEditor" class="rubed hidden">
+      <div class="row" style="justify-content:space-between;margin-bottom:8px">
+        <b id="rubTitle">New rubric</b>
+        <div class="row">
+          <button class="btn ghost small" id="rubScan">📷 Scan a rubric</button>
+          <input type="file" id="rubFile" accept="image/*" multiple class="hidden">
+        </div>
+      </div>
+      <label for="rubName">Rubric name</label>
+      <input type="text" id="rubName" placeholder="e.g. G3 Story Test summary">
+      <div class="crow sub" style="margin:10px 0 4px;font-weight:600"><span>Part</span><span>Points</span><span class="cd">What full points looks like (optional)</span><span></span></div>
+      <div id="rubRows"></div>
+      <button class="btn ghost small" id="rubRow">+ Add a part</button>
+      <details style="margin-top:10px"><summary>Or paste the rubric as text</summary>
+        <textarea id="rubPaste" rows="4" style="margin-top:6px" placeholder="e.g. Main idea 4 pts: tells what the section is about. Signal words 4 pts: uses the bold words. Details 4 pts. Grammar 4 pts. Spelling and capitals 4 pts."></textarea>
+        <button class="btn ghost small" id="rubParse" style="margin-top:6px">Read this rubric</button>
+      </details>
+      <div class="row" style="margin-top:12px;justify-content:space-between">
+        <div class="row"><button class="btn small red" id="rubSave">Save rubric</button><button class="btn ghost small" id="rubCancel">Cancel</button></div>
+        <button class="btn ghost small hidden" id="rubDel">Delete</button>
+      </div>
+      <p class="sub" style="margin:8px 0 0">Saved to your account. Pick it for any test, and it is saved with the class. Marks are still made as usual; the grade uses your parts and points.</p>
+    </div>
+    <div class="legend">
+      <span class="item"><span class="code">SP</span>spelling</span>
+      <span class="item"><span class="code">GR</span>grammar</span>
+      <span class="item"><span class="code">WW</span>wrong word</span>
+      <span class="item"><span class="code">P</span>punctuation</span>
+      <span class="item"><span class="code">C</span>capital letter</span>
+      <span class="item"><span class="code">^</span>missing word</span>
+      <span class="item"><span class="code">X</span>extra word</span>
+      <span class="item"><span class="code">WO</span>word order</span>
+      <span class="item"><span class="code q">?</span>can't read</span>
+    </div>
+    <p class="sub" style="margin:10px 0 0"><a href="#selftest" id="stLink">🧪 Self-test: check the checker on 20 real papers</a></p>
+    <div id="keyBox" class="hidden" style="margin-top:14px">
+      <label for="apikey">Anthropic API key (only needed when this page is opened outside Claude)</label>
+      <input type="password" id="apikey" placeholder="sk-ant-...">
+    </div>
+    <div id="noAI" class="notice hidden"></div>
+  </div>
+
+  <!-- Upload -->
+  <div class="drop" id="drop">
+    <strong>📷 Scan papers</strong>
+    <span>Tap to take photos, drop photos anywhere, or paste with Ctrl+V. One photo per page.</span>
+    <input type="file" id="file" accept="image/*" multiple class="hidden">
+  </div>
+  <p class="sub" style="margin:8px 2px 16px">Tip: shoot straight down, in good light, with the whole page in frame.</p>
+
+  <div class="strip hidden" id="strip">
+    <button class="nav" id="prevBtn" aria-label="Previous paper">‹</button>
+    <div class="chips" id="chips"></div>
+    <button class="nav" id="nextBtn" aria-label="Next paper">›</button>
+  </div>
+  <div id="papers"></div>
+
+  <div id="summaryCard" class="card hidden">
+    <h2>Class summary</h2>
+    <div id="summaryBody"></div>
+  </div>
+
+  <div class="stickybar hidden" id="sticky">
+    <button class="btn red" id="sumBtn">Class summary</button>
+    <button class="btn ghost" id="clearBtn" style="background:#fff">Clear all</button>
+  </div>
+  </div><!-- /viewCheck -->
+  <div id="viewClasses" class="hidden"></div>
+  <div id="viewOverview" class="hidden"></div>
+  <div id="viewTest" class="hidden"></div>
+</div>
+<div id="viewDo" class="hidden"></div>
+
+<div class="modal hidden" id="wsModal" style="place-items:start center;overflow:auto">
+  <div class="wsbox">
+    <div class="wsbar">
+      <b id="wsTitle">Practice sheet</b>
+      <div class="row">
+        <button class="btn red small" id="wsPdf">Download PDF</button>
+        <button class="btn small" id="wsShare">🔗 Share</button>
+        <button class="btn small" id="wsDo">📱 Do it on screen</button>
+        <button class="btn small" id="wsCheck">✓ Check finished sheet</button>
+        <button class="btn ghost small" id="wsCopy" style="background:#fff">Copy text</button>
+        <button class="btn ghost small" id="wsClose" style="background:#fff">Close</button>
+        <input type="file" id="wsFile" accept="image/*" class="hidden">
+      </div>
+    </div>
+    <div id="wsPanel"></div>
+    <div id="wsPreview"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="dropall" id="dropall">Drop papers to check</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- small helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem("tc_"+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("tc_"+k, JSON.stringify(v)); }catch(e){} }
+};
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),1800); }
+async function copyText(text){
+  try{ await navigator.clipboard.writeText(text); toast("Copied"); }
+  catch(e){
+    const ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select();
+    let ok=false; try{ ok=document.execCommand("copy"); }catch(_){}
+    ta.remove(); toast(ok?"Copied":"Copy blocked. Select the text by hand.");
+  }
+}
+const CODES = {SP:"spelling",GR:"grammar",WW:"wrong word",P:"punctuation",C:"capital letter","^":"missing word",X:"extra word",WO:"word order"};
+/* fixed rule tags, so mistakes can be tracked over time */
+const RULES = ["past tense","verb tense","3rd person -s","be verb","plural -s","countable/uncountable","articles","prepositions","pronouns","there is/are","-ing form","word form","comparatives","questions","word order","missing word","extra word","word choice","spelling","capital letters","end punctuation","comma splice","commas","other grammar"];
+const RULE_ZH = {"past tense":"過去式","verb tense":"動詞時態","3rd person -s":"第三人稱單數加 s","be verb":"be 動詞","plural -s":"複數加 s","countable/uncountable":"可數與不可數名詞","articles":"冠詞 a / an / the","prepositions":"介系詞","pronouns":"代名詞","there is/are":"there is / there are","-ing form":"動名詞 -ing","word form":"詞性（形容詞、名詞、副詞）","comparatives":"比較級","questions":"問句語序","word order":"語序","missing word":"漏字","extra word":"多餘的字","word choice":"用字","spelling":"拼字","capital letters":"大寫","end punctuation":"句尾標點","comma splice":"兩句之間用逗號連接","commas":"逗號","other grammar":"其他文法"};
+const CODE_RULE = {SP:"spelling",C:"capital letters",P:"end punctuation",X:"extra word","^":"missing word",WO:"word order",WW:"word choice",GR:"other grammar"};
+function ruleOf(e){ const r=String((e&&e.rule)||"").toLowerCase().trim(); return RULES.includes(r) ? r : (CODE_RULE[e&&e.code]||"other grammar"); }
+
+/* ---------- settings persistence ---------- */
+const fields = ["level","task","taught","top5","caps","quality","apikey","book","unit","verify","grading","spelling","autosheet","rubric","hideNames"];
+let myRubrics = [];   // [{id, name, criteria:[{name, max, desc}]}]
+fields.forEach(id=>{
+  const el=$("#"+id); const saved=store.get(id, null);
+  if(saved!==null){ if(el.type==="checkbox") el.checked=saved; else el.value=saved; }
+  el.addEventListener("change",()=>store.set(id, el.type==="checkbox"?el.checked:el.value));
+});
+function settings(){
+  return { level:$("#level").value, task:$("#task").value.trim(), taught:$("#taught").value.trim(),
+           top5:$("#top5").checked, caps:$("#caps").checked, quality:$("#quality").value, apikey:$("#apikey").value.trim(),
+           book:$("#book").value.trim(), unit:$("#unit").value.trim(), verify:$("#verify").checked,
+           grading:$("#grading").value, spelling:$("#spelling").value,
+           rubric: myRubrics.find(r=>r.id===$("#rubric").value) || null };
+}
+
+/* ---------- AI backend: Claude inside the page, or API key outside ---------- */
+let sample = null, sampleReady = false, imagesOK = false;
+(async()=>{
+  try{
+    if(window.claude && typeof window.claude.use==="function"){
+      sample = await window.claude.use("sample");
+      if(sample){
+        try{ const lim = await sample.limits(); imagesOK = !!(lim && lim.images); }catch(e){ imagesOK = true; }
+      }
+    }
+  }catch(e){ sample=null; }
+  sampleReady = true;
+  if(!sample){ $("#keyBox").classList.remove("hidden"); }
+  else if(!imagesOK){ const n=$("#noAI"); n.textContent="Photo reading isn't available in this view right now. Try opening the page on claude.ai."; n.classList.remove("hidden"); }
+})();
+setTimeout(()=>{ if(!sampleReady){ $("#keyBox").classList.remove("hidden"); } }, 11000);
+
+function blobToBase64(blob){
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(",")[1]); r.onerror=rej; r.readAsDataURL(blob); });
+}
+const MODEL_FOR = {quick:"claude-haiku-5-5", default:"claude-sonnet-5-5", complex:"claude-opus-5-5"};
+
+function askClaudeImgs(prompt, blobs, tier){ return askClaude(prompt, blobs, tier); }
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+function isTransient(e){
+  if(!e) return false;
+  if(e.code==="not_granted" || e.code==="rate_limited" || e.noRetry) return false;
+  const m = String(e.message||e.code||"");
+  return e.timeout || /network|fetch|timeout|overloaded|529|500|502|503|504|unavailable|ECONN|Failed to fetch/i.test(m);
+}
+function withTimeoutP(p, ms, what){
+  let t; return Promise.race([p, new Promise((_,rej)=>{ t=setTimeout(()=>{ const e=new Error(`${what||"Claude"} took too long. Tap Retry.`); e.timeout=true; rej(e); }, ms); })]).finally(()=>clearTimeout(t));
+}
+async function askClaude(prompt, imageBlob, tier){
+  let last;
+  for(let attempt=0; attempt<2; attempt++){
+    try{ return await withTimeoutP(askClaudeOnce(prompt, imageBlob, tier), 180000, "Reading the paper"); }
+    catch(e){ last=e; if(!isTransient(e) || attempt) throw e; await sleep(2500); }
+  }
+  throw last;
+}
+/* ask, parse JSON; if the reply isn't valid JSON, ask once more */
+async function askJSON(prompt, imageBlob, tier, check){
+  let text = await askClaude(prompt, imageBlob, tier);
+  let first=null;
+  try{ const d=parseJSON(text); if((!check || check(d)) && !TRUNC.has(d)) return d; if(!check || check(d)) first=d; }catch(e){}
+  try{ text = await askClaude(prompt + "\n\nIMPORTANT: your last reply was not complete, valid JSON. Reply with ONLY the JSON object, nothing before or after it, and keep notes short.", imageBlob, tier);
+  }catch(e){ if(first) return first; throw e; }
+  let d;
+  try{ d = parseJSON(text); }catch(e){ if(first) return first; throw e; }
+  if(check && !check(d)){ if(first) return first; throw new Error("The reply was missing parts. Tap Retry."); }
+  if(TRUNC.has(d) && first) return (JSON.stringify(d).length >= JSON.stringify(first).length) ? d : first;
+  return d;
+}
+async function askClaudeOnce(prompt, imageBlob, tier){
+  const imgs = !imageBlob ? [] : Array.isArray(imageBlob) ? imageBlob : [imageBlob];
+  if(sample){
+    const opts = { modelTier: tier || "default" };
+    if(imgs.length) opts.images = imgs;
+    const r = await sample(prompt, opts);
+    return r.text;
+  }
+  const key = settings().apikey;
+  if(!key) throw new Error("Add your Anthropic API key in Class settings first.");
+  const content = [];
+  for(const b of imgs) content.push({type:"image",source:{type:"base64",media_type:"image/jpeg",data:await blobToBase64(b)}});
+  content.push({type:"text",text:prompt});
+  const resp = await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:MODEL_FOR[tier]||MODEL_FOR.default,max_tokens:8000,messages:[{role:"user",content}]})
+  });
+  if(!resp.ok){ const t=await resp.text(); const e=new Error("API error "+resp.status+": "+t.slice(0,200));
+    if(resp.status===401||resp.status===403){ e.noRetry=true; e.message="That API key was not accepted. Check it in Class settings."; }
+    if(resp.status===429){ e.code="rate_limited"; }
+    throw e; }
+  const j = await resp.json();
+  return (j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
+}
+function parseJSON(text){
+  const bad = ()=>new Error("The reply wasn't in the expected format. Tap Retry.");
+  let t = String(text||"").replace(/```(?:json)?/gi,"");
+  const a = t.indexOf("{"); if(a<0) throw bad();
+  t = t.slice(a);
+  // 1) the first complete {...} object (strings respected)
+  let depth=0, inS=false, esc_=false, end=-1;
+  for(let i=0;i<t.length;i++){
+    const c=t[i];
+    if(inS){ if(esc_) esc_=false; else if(c==="\\") esc_=true; else if(c==='"') inS=false; continue; }
+    if(c==='"') inS=true; else if(c==="{"||c==="[") depth++; else if(c==="}"||c==="]"){ depth--; if(depth===0){ end=i; break; } }
+  }
+  const tidy = x => x.replace(/,\s*([}\]])/g,"$1").replace(/[\u201c\u201d](?=\s*[:,}\]])/g,'"');
+  const attempt = x => { try{ return JSON.parse(x); }catch(e){ try{ return JSON.parse(tidy(x)); }catch(e2){ return undefined; } } };
+  if(end>0){ const r=attempt(t.slice(0,end+1)); if(r!==undefined) return r; }
+  // 2) cut off mid-reply: close what is open, dropping the unfinished last item
+  const r2 = repairTruncated(t); if(r2!==undefined) return r2;
+  throw bad();
+}
+const TRUNC = new WeakSet();
+function repairTruncated(t){
+  // cut back to the end of the last complete {...} or [...] and close what is still open
+  const closes=[]; let inS=false, e=false;
+  for(let i=0;i<t.length;i++){ const c=t[i];
+    if(inS){ if(e) e=false; else if(c==="\\") e=true; else if(c==='"') inS=false; continue; }
+    if(c==='"') inS=true; else if(c==="}"||c==="]") closes.push(i); }
+  for(let k=closes.length-1; k>=0 && closes.length-k<400; k--){
+    const part=t.slice(0,closes[k]+1); const stack=[]; let q=false, x=false;
+    for(const c of part){
+      if(q){ if(x) x=false; else if(c==="\\") x=true; else if(c==='"') q=false; continue; }
+      if(c==='"') q=true; else if(c==="{") stack.push("}"); else if(c==="[") stack.push("]"); else if(c==="}"||c==="]") stack.pop();
+    }
+    try{ const r=JSON.parse(part + stack.reverse().join("")); if(r && typeof r==="object" && !Array.isArray(r)){ TRUNC.add(r); return r; } }catch(err){}
+  }
+  return undefined;
+}
+
+/* ---------- image prep ---------- */
+function loadImage(file){
+  return new Promise((res,rej)=>{
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload=()=>res({img,url}); img.onerror=()=>rej(new Error("Couldn't open that image."));
+    img.src=url;
+  });
+}
+function toJpegBlob(img, maxSide){
+  const s = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.naturalWidth*s); c.height = Math.round(img.naturalHeight*s);
+  c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+  return new Promise(res=>c.toBlob(b=>res(b),"image/jpeg",0.85));
+}
+function cropLine(img, y0, y1){
+  const H = img.naturalHeight, W = img.naturalWidth;
+  y0 = Math.max(0, Math.min(1, +y0||0)); y1 = Math.max(0, Math.min(1, +y1||0));
+  if(y1<=y0) return null;
+  const pad = Math.max(0.012, (y1-y0)*0.35);
+  const top = Math.max(0, (y0-pad)*H), bot = Math.min(H, (y1+pad)*H);
+  const outW = Math.min(1000, W), sc = outW / W;
+  const c = document.createElement("canvas");
+  c.width = outW; c.height = Math.max(1, Math.round((bot-top)*sc));
+  c.getContext("2d").drawImage(img, 0, top, W, bot-top, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.85);
+}
+
+function rotateImage(img, deg){
+  deg = ((+deg||0)%360+360)%360;
+  if(![90,180,270].includes(deg)) return Promise.resolve(null);
+  const W=img.naturalWidth, H=img.naturalHeight, side=deg!==180;
+  const c=document.createElement("canvas"); c.width = side?H:W; c.height = side?W:H;
+  const x=c.getContext("2d"); x.translate(c.width/2, c.height/2); x.rotate(deg*Math.PI/180); x.drawImage(img, -W/2, -H/2);
+  return new Promise(res=>c.toBlob(b=>{
+    if(!b){ res(null); return; }
+    const url=URL.createObjectURL(b); const im=new Image();
+    im.onload=()=>res({img:im, url}); im.onerror=()=>res(null); im.src=url;
+  },"image/jpeg",0.9));
+}
+
+/* ---------- the checking prompt ---------- */
+/* Book profiles: filled in as Kyle names the books he teaches.
+   key = lowercase book name as typed, value = what that book/level covers. */
+const BOOKS = {
+  // "let's go 3": { level:"CEFR A1", note:"..." , units:{ "unit 1":"...", ... } },
+};
+/* teacher's own saved books (from a scanned contents page) and marking style */
+let myBooks = {};   // key -> {name, level, units:[{unit, n, title, grammar, vocab}]}
+let myStyle = {notes:"", skip:[]};
+const bookKey = s => String(s||"").toLowerCase().replace(/\s+/g," ").trim();
+const unitNum = u => { const m=String(u||"").match(/\d+/); return m ? +m[0] : null; };
+function findBook(name){ return myBooks[bookKey(name)] || null; }
+function bookUnitsUpTo(b, unit){
+  const n = unitNum(unit); const us = (b && b.units) || [];
+  if(n===null) return {now:null, before:[]};
+  return { now: us.find(u=>u.n===n) || null, before: us.filter(u=>u.n!==null && u.n<n) };
+}
+function styleBlock(){
+  const parts=[];
+  if(myStyle.notes && myStyle.notes.trim()) parts.push(`This teacher's own marking rules (follow them, they win over the rules above):\n${myStyle.notes.trim()}`);
+  const sk=(myStyle.skip||[]).slice(-30);
+  if(sk.length) parts.push(`This teacher REMOVED these marks before, because they are not mistakes for their students. Do not mark the same thing or the same kind of thing again:\n${sk.map(x=>`- "${x.o}" → "${x.c}" (${x.rule||x.code})${x.ctx?` in "${x.ctx}"`:""}`).join("\n")}`);
+  return parts.length ? "\nTEACHER STYLE:\n"+parts.join("\n") : "";
+}
+function bookProfile(s){
+  if(!s.book) return "";
+  const key = s.book.toLowerCase().trim();
+  const b = BOOKS[key];
+  const mb = findBook(s.book);
+  let out = `Textbook: ${s.book}${s.unit ? `, the class is now at ${s.unit}` : ""}.`;
+  if(mb){
+    out += mb.level ? `\nBook level: ${mb.level}.` : "";
+    const {now, before} = bookUnitsUpTo(mb, s.unit);
+    if(before.length) out += `\nAlready taught in earlier units (students should know these): ${before.map(u=>`${u.unit}: ${u.grammar||u.title}`).join("; ")}`;
+    if(now) out += `\nThis unit teaches: ${now.grammar||now.title}${now.vocab?` (words: ${now.vocab})`:""}`;
+    if(now || before.length) out += `\nMark grammar from these units fully. Grammar the book has NOT taught yet: only mark it if it is a basic error that blocks meaning, as priority 3.`;
+  } else if(b){
+    out += `\nBook level: ${b.level}. ${b.note||""}`;
+    if(b.units && s.unit){ const u=b.units[s.unit.toLowerCase().trim()]; if(u) out += `\nThis unit teaches: ${u}`; }
+  } else {
+    out += `\nUse what you know about this textbook's syllabus to judge what the student has been taught up to this point. If you are not sure about the book, rely on the level and the "learned so far" notes.`;
+  }
+  return out;
+}
+
+const SPELLING = {
+  us: "Use American spelling for corrections (color, favorite, center, mom). British spellings are also correct: never mark them.",
+  uk: "Use British spelling for corrections (colour, favourite, centre, mum). American spellings are also correct: never mark them."
+};
+
+function rulebook(s){
+  return `REFERENCE RULES (follow strictly):
+A. Only mark what a careful native-speaker English teacher would definitely mark at this level. If a form is correct or acceptable standard English (contractions, simple informal but correct phrasing, a short answer like "Because I like it." to a question), do NOT mark it. When in doubt, do not mark.
+B. Check EVERY sentence for these common mistakes of Chinese-speaking learners:
+ - missing or wrong article: "I have dog", "a apple", "the" missing before a known/unique thing
+ - missing plural -s ("two cat"), plural on uncountable nouns ("homeworks", "informations", "furnitures")
+ - third person -s ("He like", "She don't", "It have")
+ - missing be verb ("I very happy", "She tall") and double verbs ("I am go", "I am like")
+ - tense: past events in present ("Yesterday I go"), wrong past forms ("goed", "buyed", "eated")
+ - pronouns: he/she mix-ups, I/me, he/him, she/her, missing subject ("Is very fun")
+ - Chinese-style phrases: "there have" → "there is/are", "open/close the light" → "turn on/off the light", "very like" → "really like", "go to home" → "go home", "play computer" → "play computer games", "people mountain people sea" style literal translations
+ - double connectors: "Although ..., but", "Because ..., so"
+ - word order in questions ("What you like?", "Where you go?") and adverbs ("I every day play")
+ - prepositions of time and place: on Monday, in July, at 7 o'clock, in the morning, at night, on/at the weekend
+ - comparatives/superlatives ("more tall", "the most big", "gooder")
+ - much/many, a lot of, some/any
+ - letter reversals (b/d, p/q) and missing or extra letters are spelling (SP)
+ - COMMA SPLICE (very common, Chinese uses commas between full sentences): two full sentences joined only by a comma. "I like dogs, they are cute." → "I like dogs. They are cute." Code P. Mark it on the comma: original ", they", correction ". They". Also ", however ," between two sentences → ". However,". A list of short phrases with commas is fine.
+ - TENSE DRIFT: first decide the time of the whole text (a story about yesterday, a trip, "When I was young" = past). Then mark any verb that slips out of that time ("Last week we go to the park, it is fun" → went, was). Do not mark a change of time the meaning needs ("Yesterday I went to the zoo. I love animals.").
+ - "one of the / each of the / all of the" + plural: "one of my friend" → friends, "each of the student" → students; and "each of them" + singular verb
+ - -ing needed: as a subject ("Play games is fun" → Playing), after prepositions ("good at swim" → swimming, "before eat" → eating), after enjoy/like/finish/keep/stop ("I enjoy to read" → reading)
+ - word form: noun or verb used where an adjective is needed ("I am happiness" → happy, "I feel confusion" → confused, "make me shame" → ashamed), adjective for adverb ("run quick" → quickly, "easy believe" → easily). Code WW.
+ - extra preposition after verbs that take none: "discuss about", "explain about", "arrive to home", "visit to" (X); missing one where needed: "listen music", "wait me", "think your health" (^)
+ - less/fewer, few/a few, little/a little; "the most + -est" ("the most busiest" → busiest, X)
+ - questions and negatives with do/does: "Does she likes" → like, "Do he play" → Does, "She not like" / "They nots lives" → doesn't like / don't live, "I am not like" → don't like
+ - present continuous needs be + -ing: "They playing" → are playing, "It snowing" → is snowing; spelling of -ing: "haveing" → having, "runing" → running, "snowwing" → snowing (SP)
+ - "a/an/one" + plural: "a good leaders" → a good leader / good leaders; "one very greedy friend" → a very greedy friend; "a apple" → an apple; "a invite" → an invitation
+ - possessives: "he's house" → his house, "Sam pencil" → Sam's pencil, "my mom phone" → my mom's phone, "they house" → their house
+ - verb patterns: "want share" → want to share, "plead my mom to" → plead with my mom to, "share to me / share for my brother" → share with, "invite her party to her friend" → invite her friend to her party, "make decision" → make a decision / make decisions, "let me to go" → let me go, "help me to" is fine
+ - word class of the target word: a verb used as a noun or adjective ("She is plead", "write a invite") is WW; give the right form (pleads / is pleading, an invitation)
+ - place prepositions for a school or shop: "in Cat's" → at Cat's ("at home" and "at my home" are both fine, "go to school" needs no "the")
+C. Mechanics: capital at sentence start, "I", names, days, months, countries, languages, holidays (Mother's Day). End punctuation, question marks. A space before punctuation is P. Quotes: "Hi," said Tom. / Tom said, "Hi."${/junior|cefr a2|cefr b|grade [56]/i.test(s.level||"") ? `
+   At this level also mark a missing comma after an opening word or phrase ("First", "However", "For example", "In the morning", "After school") as P with priority 3. Never mark optional commas inside a sentence.` : `
+   At this level do NOT mark missing commas after opening words ("First", "However"). Only mark commas when a comma splice joins two sentences.`}
+G. Do NOT mark (these are correct, or only style):
+ - an adverb in a correct place ("I will definitely go" and "I definitely will go" are both fine; "I also like" and "I like it also" are fine)
+ - a choice between two correct options (a/one, will/be going to, can/could for ability, "a lot of"/"many")
+ - general plural or uncountable nouns with no article: "Dogs are cute.", "I like music.", "Homework is boring." Do not add "the" when a general meaning works.
+ - the student's ideas, connectors and meaning: never change "but" to "and", or swap a word that is correct but not the one you would use. Fix grammar, do not rewrite the sentence in your own words.
+D. The speaker in a quote is a subject pronoun: "I said", "she said", never "said me" or "said her".
+E. Spelling: ${SPELLING[s.spelling]||SPELLING.us}
+F. Never "correct" a name, a brand, or a Chinese name or place in pinyin. Exception: a name the student copied from the printed page and spelled differently ("Mate" for printed "Matt") is SP.
+H. Summaries and answers about a story: do NOT mark whether the facts match the story (you have not read it). Mark only language. If a sentence makes no sense at all, mark the smallest fix that makes it clear, or note it in "task_note".
+I. One mistake = one mark. Do not mark the same words twice with two codes. Do not give a capital mark and a spelling mark on the same word: give the spelling mark with the capital fixed inside its correction.
+J. Every "correction" must be correct, natural English for a child at this level, and must fit back into the student's sentence. Read the sentence again with your correction in place before you keep it.`;
+}
+
+function gradeRules(s){
+  if(s.grading==="off") return "";
+  if(s.rubric) return `
+GRADE with THIS TEACHER'S RUBRIC "${s.rubric.name}". Judge against what is expected for this level, not adult standards.
+${s.rubric.criteria.map((c,i)=>`${i+1}. ${c.name} (0 to ${c.max} points)${c.desc?`: ${c.desc}`:""}`).join("\n")}
+For each criterion give "points" (whole numbers, or .5 if the rubric is that fine) and a short reason (max 10 words). Use the exact criterion names. Base the points on ALL mistakes you found, even if "errors" lists only some. Do not lower points for handwriting you can't read.`;
+  return `
+GRADE the paper against what is expected for THIS level and book, not adult standards. A strong student at this level should be able to get 5.
+Score each from 1 to 5, with a short reason (max 10 words):
+ - task: did they do what was asked, enough length, on topic
+ - grammar: accuracy of the grammar this level has learned
+ - vocab: word choice and spelling for this level
+ - mechanics: capitals, periods, question marks${s.caps ? "" : " (score 5 unless very poor; the teacher is not marking these)"}
+Base the grade on ALL mistakes you found, even if "errors" lists only the top 5. Do not lower the grade for handwriting you can't read.`;
+}
+
+function levelBlock(s){
+  return `Student level: ${s.level}
+${bookProfile(s)}
+What they have learned so far: ${s.taught || "not given; judge by the level and book"}
+Task: ${s.task || "not given"}`;
+}
+
+const JSON_SHAPE = (s)=>`{
+ "student": "name or null",
+ "rotate": 0,
+ "photo": "ok",
+ "paper_type": "writing",
+ "task_note": "",
+ "items": [{"n":1,"ok":true}],
+ "lines": [{"n":1,"text":"exact handwriting of line 1","fixed":"corrected line 1","also":[{"focus":"went to","examples":["We went to the zoo.","She went to bed early."]}],"y0":0.10,"y1":0.15}],
+ "errors": [{"line":1,"original":"goed","correction":"went","code":"GR","rule":"past tense","priority":1,"why":"past of go is went"}],
+ "unclear": [{"line":2,"read_as":"hause","note":"could be house"}],
+ "positive": "short comment"${s.grading==="off" ? "" : `,
+ "grade": ${s.rubric ? `{"rubric":[${s.rubric.criteria.map(c=>`{"name":${JSON.stringify(c.name)},"points":0,"max":${c.max},"note":"..."}`).join(",")}]}` : `{"task":{"score":4,"note":"..."},"grammar":{"score":3,"note":"..."},"vocab":{"score":4,"note":"..."},"mechanics":{"score":5,"note":"..."}}`}`}
+}`;
+
+function buildPrompt(s){
+  return `You are an experienced, kind ESL teacher checking a young learner's HANDWRITTEN English work from a photo.
+
+${levelBlock(s)}
+
+${rulebook(s)}
+${styleBlock()}
+
+Do this carefully:
+0. PHOTO CHECK. "rotate": how many degrees CLOCKWISE the photo must be turned so the writing is upright (0, 90, 180 or 270). Sideways photos are common. Read the writing in its true direction either way.
+   "photo": "ok", or "blurry" if you cannot read most words with confidence (blur, glare, too far). If "blurry", return empty "lines", "errors", "items" and stop. Never guess a blurry paper.
+0b. PAPER TYPE. "paper_type": "writing" for free writing (a paragraph, story, summary, diary), or "exercise" for a worksheet with numbered items (fill the blank, put the verb in the right form, match, make a sentence with a word).
+1. Find the student's nickname or name if written on the page (often at the top or after "Name:"). Otherwise null.
+1b. READ ONLY THE STUDENT'S OWN WORK:
+   - Ignore the teacher's marks: ticks ✓, crosses, scores like "+5" or "8/10", circles, underlines and notes, often in red or a different pen.
+   - Ignore words the student crossed out or scribbled over. Read the word they wrote instead.
+   - A caret (^ or a little roof) with words above or below the line means those words are inserted there. Read them into the sentence at that spot.
+   - Words squeezed in the margin, or on the next line, that continue a sentence belong to that sentence.
+   - Ignore other pages, books or objects at the edges of the photo.
+2. Transcribe ONLY the student's handwriting, line by line exactly as it appears on the page. Keep every mistake exactly as written. Do not correct anything in the transcript. If the page is a printed worksheet, use the printed text as context, but do not transcribe or check it. Question numbers and item letters are not part of the student's sentence.
+3. If a word is hard to read, write your best guess in the transcript and list it in "unclear". NEVER mark an unclear word as an error.
+3b. Before marking, read the whole text as sentences. Handwriting lines often break in the middle of a sentence, so join them in your head. Decide the time of the text (past story or present facts) for the tense check, and find any comma splices. When a mistake crosses a line break, put it on the line where its "original" starts and keep "original" inside that one line.
+4. Mark errors suitable for this level, focusing on what they have learned. Do not mark style or advanced grammar. Use the smallest fix, never rewrite whole sentences.${s.caps ? "" : "\n   Do NOT mark capital letters or end punctuation."}
+   Fix the REAL mistake, not just its surface. Never only change a capital letter when the word itself is wrong. If a sentence is grammatical but clearly missing a word the meaning needs, mark it with ^.
+5. Each error gets one code: SP spelling, GR grammar, WW wrong word, P punctuation, C capital letter, ^ missing word, X extra word, WO word order.
+   - "original" must be copied EXACTLY from that line of your transcript (same spelling and case), as short as possible.
+   - For ^ : "original" is the word just before the gap, "correction" is that word plus the missing word(s).
+   - For X : "original" is the extra word, "correction" is "".
+   - For WO : "original" is the words in the wrong order, "correction" is the same words in the right order.
+6. priority: 1 = must fix (core, taught, or changes meaning), 2 = should fix, 3 = small.${s.top5 ? "\n   For writing papers, return AT MOST 5 errors in total: the 5 most important for this level." : ""}
+7. "why": a very short teacher note (max 10 words).
+7b. "rule": the rule behind the mistake, exactly one from this list: ${RULES.join(", ")}.
+8. "positive": ONE short, specific, encouraging comment about something real the student did well. Simple English this student can read. Max 12 words.
+9. For each line, give "fixed": that line fully corrected for this level with the smallest changes. Fix ALL its mistakes here, even ones not in "errors". Keep the student's words and meaning. Leave unclear words as read. If the line is correct, "fixed" equals "text".
+10. For each line that had a word choice, grammar, preposition, or missing word mistake, give "also": 2 to 3 more short example sentences that use the corrected word or pattern in other natural ways, so the student learns how it is used. Show other common prepositions and collocations with the SAME meaning of the word (e.g. corrected "I peer through the window" → "I peer over his shoulder.", "She peered into the box."). Never use a different meaning or sense of the word, never introduce new grammar the student hasn't learned, and keep words at this level. "focus" is the corrected word or phrase. Skip "also" (use []) for lines with only spelling, capital, or punctuation fixes, and for correct lines.
+11. For each line, give its vertical position on the photo: y0 = top edge of that handwriting line, y1 = bottom edge, as fractions of image height (0 = top, 1 = bottom).
+12. IF "paper_type" IS "exercise":
+   - Read the printed instruction and each item's printed cue (the word in brackets, the word in the box, the word to use). Do not transcribe or check the printed text.
+   - Make one line per handwritten answer, in item order. A long answer can take two lines.
+   - Judge each answer against the INSTRUCTION and its cue, not only general grammar. A correct English sentence that ignores the instruction is wrong. Example: instruction "present simple or present continuous", cue "It (snow) today." → "It snows today." is wrong for the task; correction "is snowing", rule "verb tense", why "today = happening now: is snowing".
+   - Make-a-sentence items: the target word must be used with the right meaning, word class and pattern ("plead with someone to do", "share something with someone", "invite someone to something"). Wrong use is WW or GR.
+   - A name or word copied wrongly from the printed text is SP ("Mate" for Matt).
+   - Fill-in with printed letters after the blank (e.g. "____d" or "____s"): judge the student's letters together with the printed ones.
+   - Matching or one-word answers: compare with the meaning; a wrong letter or word is one WW mark with the right answer as correction.
+   - "items": every numbered item on the page, with "ok": true if the answer is fully right for the task (small capital or period slips are still ok), else false. Count items the student left empty as false.
+   - Mark EVERY wrong item (one main mark per item, two at most). The "Top 5" limit does not apply to exercises.
+   - "task_note": if the student misunderstood the instruction the same way on many items (turned every sentence into a question, answered "Yes, she does" instead of writing the question, copied the cue unchanged), say it once here in one short sentence a teacher can write at the top. Otherwise "".
+   For "writing" papers, "items" is [] and "task_note" is "" unless the student clearly did not do the task.
+${gradeRules(s)}
+Before answering, read every "fixed" line again. It must be correct, natural English. The "errors" list and the "fixed" lines must agree.
+
+Return ONLY this JSON, no other text:
+${JSON_SHAPE(s)}`;
+}
+
+function buildVerifyPrompt(s, first){
+  return `You are a senior English teacher double-checking a colleague's marking of a young learner's HANDWRITTEN work. The photo is attached.
+
+${levelBlock(s)}
+
+${rulebook(s)}
+${styleBlock()}
+
+Your colleague's result:
+${JSON.stringify(first)}
+
+Check it carefully and fix anything wrong:
+${first && first._rotated ? "The photo has now been turned upright. Give y0 and y1 for every line on THIS upright photo, and set \"rotate\" to 0.\n" : ""}1. Compare every "text" line with the photo. Fix misread words, but keep the student's own mistakes exactly as written. Remove printed text and question numbers. Ignore teacher marks and crossed-out words; read caret insertions into place.
+1b. Check "paper_type". For exercises, check every answer against the printed instruction and its cue (a correct sentence in the wrong tense or form for the task is wrong), check "items" ok/false for every item, and make sure every wrong item has a mark. Keep "task_note" only if the same misunderstanding repeats.
+2. Remove any error that is not truly wrong in standard English, is too advanced for this level, or sits on an unclear word.
+3. Go through every sentence against rule list B one item at a time. Add real mistakes that were missed. Pay special attention to: comma splices, tense drift across the whole text, plural after "one of / each of", -ing forms, and word form (happy/happiness).
+3b. Remove anything rule list G says not to mark, and any correction that rewrites the student's sentence or changes their meaning instead of making the smallest fix.
+4. Check each correction is right, natural, and fixes the real problem. Each "original" must appear exactly in its line's "text".
+5. Make sure every "fixed" line is fully correct and agrees with the errors.
+   Check every "also" example: correct, natural, at this level, and using the SAME meaning of the focus word as in the student's sentence. Remove or replace any that change the meaning or could confuse a child.${s.top5 ? "\n6. For writing papers keep AT MOST 5 errors: the 5 most important for this level. Exercises keep a mark on every wrong item." : ""}
+${s.grading==="off" ? "" : "7. Check the grade is fair for this level, using all mistakes."}
+
+Return ONLY the full corrected result as JSON in exactly the same format:
+${JSON_SHAPE(s)}`;
+}
+
+/* ---------- state ---------- */
+const papers = []; // {id, file, img, url, status, data, error, name}
+let queue = Promise.resolve();
+let seq = 0;
+let current = null; // id of the paper on screen
+
+/* names read from the paper stay hidden until the teacher taps them */
+function nameHidden(p){ return !!(p && p.nameFromPaper && !p.revealed && $("#hideNames").checked && !isDefaultName(p.name)); }
+function summaryName(p){ return nameHidden(p) ? "Paper "+(papers.indexOf(p)+1) : p.name; }
+function nameBlock(p){
+  if(nameHidden(p)) return `<button class="namehide" data-act="reveal" title="Tap to show the name">🔒 Student name hidden <span>Tap to reveal</span></button>`;
+  const canHide = p.nameFromPaper && $("#hideNames").checked && !isDefaultName(p.name);
+  return `<div class="namerow"><input class="pname" value="${esc(p.name)}" data-act="name" aria-label="Student nickname">${canHide?`<button class="btn ghost small" data-act="hidename" title="Hide the name again">🙈 Hide</button>`:""}</div>`;
+}
+$("#hideNames").addEventListener("change", ()=>{ papers.forEach(renderPaper); renderStrip(); });
+function statusLabel(p){
+  if(p.status==="waiting") return {t:"Waiting", cls:""};
+  if(p.status==="reading") return {t:`<span class="spinner"></span>Reading`, cls:""};
+  if(p.status==="verifying") return {t:`<span class="spinner"></span>Checking`, cls:""};
+  if(p.status==="error") return {t:"Error", cls:"bad"};
+  const n=p.data.errors.length, g=p.data.grade;
+  return {t: (g?`<b style="color:var(--red)">${esc(g.display)}</b> · `:"") + (n ? `${n} mark${n>1?"s":""}` : "Clean ✓"), cls:""};
+}
+function renderStrip(){
+  const strip=$("#strip"), chips=$("#chips");
+  strip.classList.toggle("hidden", !papers.length);
+  chips.innerHTML = papers.map((p,i)=>{
+    const s=statusLabel(p);
+    return `<button class="chip ${p.id===current?"on":""}" data-id="${p.id}">
+      ${p.url?`<img src="${p.url}" alt="">`:`<span class="ph"></span>`}
+      <span style="min-width:0"><div class="cn ${nameHidden(p)?"lock":""}">${nameHidden(p)?"🔒 Name hidden":esc(p.name)}</div><div class="cs ${s.cls}">${i+1}/${papers.length} · ${s.t}</div></span>
+    </button>`;
+  }).join("");
+  chips.querySelectorAll(".chip").forEach(c=>c.addEventListener("click",()=>select(+c.dataset.id)));
+  const idx = papers.findIndex(p=>p.id===current);
+  $("#prevBtn").disabled = idx<=0; $("#nextBtn").disabled = idx<0 || idx>=papers.length-1;
+  const on = chips.querySelector(".chip.on");
+  if(on){ const l=on.offsetLeft, r=l+on.offsetWidth; if(l<chips.scrollLeft || r>chips.scrollLeft+chips.clientWidth) chips.scrollLeft = l - 40; }
+}
+function select(id){
+  current=id;
+  papers.forEach(p=>{ const el=document.getElementById("paper-"+p.id); if(el) el.classList.toggle("off", p.id!==current); });
+  renderStrip();
+  const el=document.getElementById("paper-"+id), strip=$("#strip");
+  if(el && el.getBoundingClientRect().top < strip.offsetHeight) el.scrollIntoView({block:"start"});
+}
+function step(d){
+  const i=papers.findIndex(p=>p.id===current), j=i+d;
+  if(j>=0 && j<papers.length) select(papers[j].id);
+}
+$("#prevBtn").addEventListener("click",()=>step(-1));
+$("#nextBtn").addEventListener("click",()=>step(1));
+document.addEventListener("keydown",e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||""))) return;
+  if(e.key==="ArrowLeft") step(-1);
+  if(e.key==="ArrowRight") step(1);
+});
+
+/* ---------- upload ---------- */
+const drop = $("#drop"), fileIn = $("#file");
+drop.addEventListener("click", ()=>fileIn.click());
+fileIn.addEventListener("change", ()=>{ addFiles([...fileIn.files]); fileIn.value=""; });
+/* drop anywhere on the page */
+const dropAll = $("#dropall"); let dragDepth = 0;
+const hasFiles = e => e.dataTransfer && [...(e.dataTransfer.types||[])].includes("Files");
+document.addEventListener("dragenter", e=>{ if(!hasFiles(e)) return; e.preventDefault(); dragDepth++; dropAll.classList.add("on"); });
+document.addEventListener("dragover", e=>{ if(!hasFiles(e)) return; e.preventDefault(); });
+document.addEventListener("dragleave", e=>{ if(!hasFiles(e)) return; dragDepth=Math.max(0,dragDepth-1); if(!dragDepth) dropAll.classList.remove("on"); });
+document.addEventListener("drop", e=>{
+  if(!hasFiles(e)) return; e.preventDefault(); dragDepth=0; dropAll.classList.remove("on");
+  const imgs=[...(e.dataTransfer.files||[])].filter(f=>f.type.startsWith("image/"));
+  if(imgs.length) addFiles(imgs); else toast("Only photos can be checked");
+});
+/* paste a photo (Ctrl+V / Cmd+V) */
+document.addEventListener("paste", e=>{
+  const items=[...((e.clipboardData && e.clipboardData.items) || [])];
+  const imgs=items.filter(i=>i.kind==="file" && i.type.startsWith("image/")).map(i=>i.getAsFile()).filter(Boolean);
+  if(!imgs.length) return; // let normal text paste work in inputs
+  e.preventDefault();
+  addFiles(imgs.map((f,i)=>new File([f], `pasted-${Date.now()}-${i}.${(f.type.split("/")[1]||"png")}`, {type:f.type})));
+  toast(imgs.length>1?`${imgs.length} photos pasted`:"Photo pasted");
+});
+/* book suggestions */
+function refreshBookList(){
+  const names = [...Object.values(myBooks).map(b=>b.name), ...Object.keys(BOOKS).map(k=>k.replace(/\b\w/g,c=>c.toUpperCase()))];
+  $("#bookList").innerHTML = [...new Set(names)].map(n=>`<option value="${esc(n)}">`).join("");
+  showBookHint();
+}
+function showBookHint(){
+  const el=$("#bookHint"); if(!el) return;
+  const b=findBook($("#book").value);
+  if(!b){ el.innerHTML = $("#book").value.trim() ? `Book not scanned yet. <a href="#" data-act="scanbook">Scan its contents page</a> so marks match each unit.` : ""; }
+  else {
+    const {now, before} = bookUnitsUpTo(b, $("#unit").value);
+    el.innerHTML = `📘 ${esc(b.name)}: ${b.units.length} units saved.` + (now ? ` <b>${esc(now.unit)}</b>: ${esc(now.grammar||now.title)}.` : "") + (before.length ? ` Earlier units count as learned.` : "") + ` <a href="#" data-act="scanbook">Rescan</a>`;
+  }
+  el.querySelectorAll("[data-act=scanbook]").forEach(a=>a.addEventListener("click",ev=>{ ev.preventDefault(); $("#bookFile").click(); }));
+}
+["book","unit"].forEach(id=>$("#"+id).addEventListener("input", showBookHint));
+
+function addFiles(files){
+  if(!files.length) return;
+  const firstNew = seq+1;
+  files.forEach(f=>{
+    const p = {id:++seq, file:f, status:"waiting", data:null, error:null, name:"Paper "+seq, view:"marks"};
+    papers.push(p);
+    renderPaper(p);
+    queue = queue.then(()=>processPaper(p));
+  });
+  select(firstNew);
+  $("#sticky").classList.remove("hidden");
+}
+
+async function processPaper(p){
+  try{
+    p.status="reading"; renderPaper(p);
+    const {img,url} = await loadImage(p.file); p.img=img; p.url=url; renderPaper(p);
+    const blob = await toJpegBlob(img, 2000);
+    const s = Object.assign(settings(), p.over||{});
+    const looksOK = d => d && typeof d==="object" && (Array.isArray(d.lines) || String(d.photo||"").toLowerCase()==="blurry");
+    let data = await askJSON(buildPrompt(s), blob, s.quality, looksOK);
+    if(String(data.photo||"").toLowerCase()==="blurry"){
+      const e=new Error("This photo is too blurry to read safely. Retake it straight down, close up, in good light, then tap Retry."); e.retake=true; throw e;
+    }
+    let useBlob = blob;
+    const rot = parseRot(data.rotate); p.rotatedBy = rot;
+    if([90,180,270].includes(rot)){
+      const r = await rotateImage(img, rot);
+      if(r){ p.img=r.img; p.url=r.url; p.crops={}; useBlob = await toJpegBlob(r.img, 2000); data._rotated=true; renderPaper(p); }
+    }
+    if(s.verify || data._rotated){
+      p.status="verifying"; renderPaper(p);
+      try{
+        const checked = await askJSON(buildVerifyPrompt(s, data), useBlob, s.quality, looksOK);
+        // accept the double-check unless it lost most of the paper (a cut-off reply)
+        const n0 = (data.lines||[]).length, n1 = (checked.lines||[]).length;
+        if(checked && n1 && (n1 >= Math.ceil(n0*0.6) || data._rotated)){
+          if(data._rotated) checked._rotated = true;
+          if(!checked.grade && data.grade) checked.grade = data.grade;
+          if(!checked.student && data.student) checked.student = data.student;
+          if(!checked.paper_type && data.paper_type) checked.paper_type = data.paper_type;
+          if(!Array.isArray(checked.items) && Array.isArray(data.items)) checked.items = data.items;
+          data = checked;
+        } else if(data._rotated) p.noCrop = true;
+      }catch(e){ if(e && e.code==="rate_limited") throw e; if(data._rotated) p.noCrop=true; /* otherwise keep the first result */ }
+    }
+    normalize(data, s);
+    p.data = data;
+    if(data.student && data.student!=="null"){ p.name = data.student; p.nameFromPaper = true; }
+    p.status="done";
+  }catch(e){
+    p.status="error";
+    p.error = (e && (e.message || e.code)) ? (e.message || e.code) : "Something went wrong.";
+    if(e && e.code==="rate_limited") p.error="Too many requests at once. Wait a minute, then tap Retry.";
+    if(e && e.code==="not_granted") p.error="Claude access wasn't allowed for this page. Allow it, then tap Retry.";
+    p.retake = !!(e && e.retake);
+  }
+  renderPaper(p);
+  if(p.status==="done" && !p.silent) afterCheck(p);
+}
+
+/* ---------- safety layer: every reply passes through here before it is shown ---------- */
+const UK_US = [["colour","color"],["favourite","favorite"],["centre","center"],["neighbour","neighbor"],["theatre","theater"],["realis","realiz"],["organis","organiz"],["recognis","recogniz"],["apologis","apologiz"],["travell","travel"],["cancell","cancel"],["grey","gray"],["metre","meter"],["litre","liter"],["programme","program"],["practis","practic"],["labour","labor"],["honour","honor"],["humour","humor"],["behaviour","behavior"],["flavour","flavor"],["harbour","harbor"],["jewellery","jewelry"],["pyjama","pajama"],["licence","license"],["defence","defense"],["analys","analyz"],["catalogue","catalog"],["dialogue","dialog"],["tyre","tire"],["aeroplane","airplane"],["mum","mom"],["mummy","mommy"]];
+const toUS = w => { let x=String(w).toLowerCase(); UK_US.forEach(([u,a])=>{ x=x.replace(new RegExp("\\b"+u,"g"), a); }); return x; };
+const CONTR = [[/\bcan't\b/g,"cannot"],[/\bwon't\b/g,"will not"],[/n't\b/g," not"],[/'re\b/g," are"],[/'m\b/g," am"],[/'ll\b/g," will"],[/'ve\b/g," have"],[/'d\b/g," would"],[/\b(it|he|she|that|there|what|who|where)'s\b/g,"$1 is"]];
+const expandC = t => { let x=String(t).toLowerCase(); CONTR.forEach(([r,v])=>{ x=x.replace(r,v); }); return x.replace(/\s+/g," ").trim(); };
+function lev(a,b){ a=String(a); b=String(b); if(a===b) return 0; const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,j)=>j); for(let i=1;i<=m;i++){ const cur=[i]; for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); prev=cur; } return prev[n]; }
+const CODE_ALIAS = {CAP:"C",CAPS:"C",CAPITAL:"C",CAPITALS:"C",SPELL:"SP",SPELLING:"SP",S:"SP",PUNC:"P",PUNCT:"P",PUNCTUATION:"P",MISSING:"^",MW:"^",INSERT:"^","+":"^",EXTRA:"X",DEL:"X",DELETE:"X",ORDER:"WO",W:"WW",WORD:"WW",WC:"WW",G:"GR",GRAM:"GR",GRAMMAR:"GR",T:"GR",VT:"GR"};
+const JUNK_NAMES = /^(null|none|n\/a|na|unknown|student|name|no name|nickname|not given|unclear|-|\?)$/i;
+function cleanName(n){
+  let x = String(n??"").replace(/^\s*(name|nickname|姓名|名字)\s*[:：]\s*/i,"").replace(/[\r\n]+/g," ").trim();
+  if(!x || JUNK_NAMES.test(x) || x.length>30 || !/\p{L}/u.test(x)) return null;
+  return x;
+}
+function parseRot(r){
+  const t=String(r??"").toLowerCase(); let n=parseInt(t.replace(/[^\d-]/g,""),10);
+  if(isNaN(n)) return 0;
+  if(/counter|anti|ccw|left/.test(t) && n>0) n=-n;
+  n=((Math.round(n/90)*90)%360+360)%360;
+  return [90,180,270].includes(n) ? n : 0;
+}
+function findIn(text, o){
+  if(!o) return -1;
+  let i=text.indexOf(o); if(i>=0) return i;
+  i=text.toLowerCase().indexOf(o.toLowerCase()); return i;
+}
+function num01(v){ let x=+v; if(!isFinite(x)) return null; if(x>1.5 && x<=100) x/=100; else if(x>100 && x<=1000) x/=1000; return Math.max(0,Math.min(1,x)); }
+const tq = t => String(t??"").replace(/[‘’ʼ`´]/g,"'").replace(/[“”„]/g,'"').replace(/…/g,"...").replace(/[ \t ]+/g," ");
+const str = (v,max) => { const x = (v===null||v===undefined) ? "" : (typeof v==="object" ? "" : String(v)); return max ? x.slice(0,max) : x; };
+
+function normalize(d, s){
+  d.dropped = [];
+  const drop = (e, why) => d.dropped.push({original:e.original, correction:e.correction, code:e.code, why});
+  /* lines */
+  d.lines = (Array.isArray(d.lines)? d.lines : []).filter(l=>l && typeof l==="object");
+  const oldN = d.lines.map((l,i)=>+l.n||i+1);
+  d.lines.forEach((l,i)=>{
+    l._old = oldN[i]; l.n = i+1;
+    l.text = tq(str(l.text)).trim();
+    l.fixed = (typeof l.fixed==="string" && l.fixed.trim()) ? tq(l.fixed).trim() : null;
+    let y0=num01(l.y0), y1=num01(l.y1);
+    if(y0!==null && y1!==null && y0>y1){ const t=y0; y0=y1; y1=t; }
+    if(y0!==null && y1!==null && y1-y0<0.01) y1=Math.min(1,y0+0.03);
+    l.y0=y0; l.y1=y1;
+    l.also = (Array.isArray(l.also)?l.also:[]).filter(a=>a&&typeof a==="object").map(a=>({focus:tq(str(a.focus,60)).trim(),
+      examples:[...new Set((Array.isArray(a.examples)?a.examples:[]).map(x=>tq(str(x)).trim()).filter(x=>x && x.length<=140))].slice(0,3)})).filter(a=>a.examples.length).slice(0,3);
+  });
+  d.lines = d.lines.filter(l=>l.text);
+  d.lines.forEach((l,i)=>l.n=i+1);
+  const remap = (n, o) => { // old line number (+ the words) -> new line number
+    const cands = d.lines.filter(l=>l._old===(+n||1));
+    const hit = cands.find(l=>findIn(l.text,o)>=0) || cands[0];
+    return hit ? hit.n : (+n||1);
+  };
+  /* errors */
+  d.errors = (Array.isArray(d.errors)? d.errors : []).filter(e=>e && typeof e==="object");
+  d.errors.forEach(e=>{
+    e.original = tq(str(e.original)).trim(); e.correction = tq(str(e.correction)).trim();
+    e.line = remap(e.line, e.original);
+    let p=Math.round(+e.priority); e.priority = p>=1&&p<=3 ? p : 2;
+    let c=str(e.code).toUpperCase().trim(); c=CODE_ALIAS[c]||c; e.code = CODES[c] ? c : "GR";
+    e.why = tq(str(e.why,140)).trim();
+  });
+  const lineOf = n => d.lines.find(x=>x.n===n);
+  const unc = (Array.isArray(d.unclear)?d.unclear:[]).filter(u=>u&&typeof u==="object").map(u=>({line:remap(u.line, tq(str(u.read_as))), read_as:tq(str(u.read_as,60)).trim(), note:tq(str(u.note,120)).trim()})).filter(u=>u.read_as);
+  const keep = [];
+  for(const e of d.errors){
+    if(!e.original && !e.correction){ continue; }
+    // code sanity
+    if(!e.correction && e.code!=="X"){ if(e.code==="^"){ drop(e,"missing word with nothing to add"); continue; } e.code="X"; }
+    if(e.code==="^" && e.original && e.correction && findIn(e.correction, e.original)<0 && e.correction.split(" ").length<=3) e.correction = e.original+" "+e.correction;
+    const lo=e.original.toLowerCase(), lc=e.correction.toLowerCase();
+    if(e.original===e.correction || e.original.replace(/\s/g,"")===e.correction.replace(/\s/g,"") && e.code!=="SP"){ drop(e,"no change"); continue; }
+    if(lo===lc && e.code!=="C") e.code="C";
+    if(e.code==="C" && lo!==lc){ const np=x=>x.replace(/[.,!?;:]/g,""); e.code = np(lo)===np(lc) ? "P" : lev(lo,lc)<=2 ? "SP" : "GR"; }
+    if(e.code==="SP" && !/\s/.test(e.original) && !/\s/.test(e.correction) && lev(lo,lc) > Math.max(3, Math.ceil(lo.length*0.6))) e.code="WW";
+    // never mark British vs American spelling, or a contraction vs its long form
+    if(toUS(e.original)===toUS(e.correction) && lo!==lc){ drop(e,"US/UK spelling"); continue; }
+    if(expandC(e.original)===expandC(e.correction) && lo!==lc && (/'/.test(e.original)||/'/.test(e.correction))){ drop(e,"contraction"); continue; }
+    // find it on the paper: its line, then the lines next to it, then anywhere
+    let l=lineOf(e.line);
+    if(e.original && !(l && findIn(l.text,e.original)>=0)){
+      const near=[e.line+1,e.line-1].map(lineOf).find(x=>x && findIn(x.text,e.original)>=0) || d.lines.find(x=>findIn(x.text,e.original)>=0);
+      if(near){ e.line=near.n; l=near; }
+      else{
+        // try without punctuation at the ends (the transcript may have left it out)
+        const t2=e.original.replace(/^[\s.,!?;:"']+|[\s.,!?;:"']+$/g,"");
+        const hit = t2 && [l,...d.lines].find(x=>x && findIn(x.text,t2)>=0);
+        if(hit && e.code!=="P"){ e.original=t2; e.correction=e.correction.replace(/^[\s.,!?;:"']+|[\s.,!?;:"']+$/g,"") || e.correction; e.line=hit.n; l=hit; }
+        else { drop(e,"not on the paper"); continue; }
+      }
+    }
+    if(!l){ drop(e,"no line"); continue; }
+    // use the exact spelling and case from the transcript
+    if(e.original){ const i=findIn(l.text,e.original); if(i>=0 && l.text.slice(i,i+e.original.length)!==e.original && e.code!=="C") e.original=l.text.slice(i,i+e.original.length); }
+    // never mark a word we said we can't read
+    const lu = unc.filter(u=>u.line===e.line).map(u=>u.read_as.toLowerCase());
+    if(lu.some(w=>new RegExp("(^|[^\\p{L}])"+w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"($|[^\\p{L}])","iu").test(e.original))){ drop(e,"unclear word"); continue; }
+    e.rule = ruleOf(e);
+    keep.push(e);
+  }
+  // duplicates and overlapping marks on the same words: keep the most important one
+  const placed=[];
+  keep.sort((a,b)=>a.priority-b.priority);
+  d.errors = keep.filter(e=>{
+    const l=lineOf(e.line); const i=e.original? findIn(l.text,e.original) : l.text.length; const j=i+Math.max(1,e.original.length);
+    const clash = placed.find(p=>p.line===e.line && (p.o.toLowerCase()===e.original.toLowerCase() && p.c.toLowerCase()===e.correction.toLowerCase() || (e.original && p.i<j && i<p.j)));
+    if(clash){
+      // a second mark on the same word is a duplicate unless the words are repeated on the line
+      const again = e.original && l.text.toLowerCase().indexOf(e.original.toLowerCase(), clash.j)>=0;
+      if(!again){ drop(e,"overlaps another mark"); return false; }
+    }
+    placed.push({line:e.line,i,j,o:e.original,c:e.correction}); return true;
+  });
+  d.unclear = unc.filter((u,i,a)=>a.findIndex(v=>v.line===u.line && v.read_as.toLowerCase()===u.read_as.toLowerCase())===i);
+
+  d.paper_type = String(d.paper_type||"").toLowerCase().includes("exercise") ? "exercise" : "writing";
+  d.task_note = tq(str(d.task_note,220)).trim();
+  if(/^(none|n\/a|null|no|-)\.?$/i.test(d.task_note)) d.task_note="";
+  const seenItem=new Set();
+  d.items = (Array.isArray(d.items)?d.items:[]).filter(x=>x && typeof x==="object").map((x,i)=>({n:+x.n||i+1, ok:x.ok===true || /^(true|yes|1|ok|correct)$/i.test(String(x.ok))}))
+    .filter(x=>!seenItem.has(x.n) && seenItem.add(x.n)).sort((a,b)=>a.n-b.n).slice(0,60);
+  if(d.paper_type!=="exercise") d.items = [];
+  delete d._rotated; d.rotate = 0;
+  d.student = cleanName(d.student);
+  // order by line and position, keep top 5 if asked (free writing only)
+  if(s.top5 && d.paper_type!=="exercise" && d.errors.length>5){ d.errors.slice().sort((a,b)=>a.priority-b.priority).slice(5).forEach(e=>e._cut=true); d.errors = d.errors.filter(e=>!e._cut); }
+  const pos = e => { const l=lineOf(e.line); return l? Math.max(0,findIn(l.text,e.original)) : 0; };
+  d.errors.sort((a,b)=> a.line-b.line || pos(a)-pos(b));
+  d.errors.forEach((e,i)=>{ e.num=i+1; delete e._cut; });
+  d.unclear.forEach(u=>{ u.num="?"; });
+  // the corrected line must agree with the marks, and must not be a rewrite
+  d.lines.forEach(l=>{
+    const errs=d.errors.filter(e=>e.line===l.n);
+    const own = fixLine(l.text, errs).plain;
+    if(!l.fixed){ if(errs.length) l.fixed = own; return; }
+    const lf=l.fixed.toLowerCase();
+    const missing = errs.some(e=>e.code!=="X" && e.correction && !lf.includes(e.correction.toLowerCase().replace(/[.,!?]+$/,"")));
+    const wa=l.text.split(/\s+/), wb=l.fixed.split(/\s+/);
+    const changed = wordChanges(wa, wb);
+    const rewrite = changed > Math.max(4, errs.length*3+2) && changed > wa.length*0.5;
+    if(missing || rewrite) l.fixed = errs.length ? own : l.text;
+    l.also = l.also.filter(a=>a.examples.some(x=>x.toLowerCase()!==lf));
+  });
+  d.lines.forEach(l=>delete l._old);
+  d.positive = tq(str(d.positive,160)).trim();
+  d.grade = computeGrade(d.grade, s, d);
+}
+function wordChanges(a,b){
+  const m=a.length,n=b.length; if(m*n>40000) return Math.abs(m-n);
+  const T=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=m-1;i>=0;i--) for(let j=n-1;j>=0;j--) T[i][j] = a[i].toLowerCase()===b[j].toLowerCase() ? T[i+1][j+1]+1 : Math.max(T[i+1][j],T[i][j+1]);
+  return Math.max(m,n) - T[0][0];
+}
+
+
+/* ---------- self-test: 20 real Cat's papers with the marks a teacher expects ---------- */
+/* must: [words in the student's text, words in the correction (optional)]. not: words that must NOT be marked. */
+const SELFTEST = [
+ {f:"p01.jpg", t:"G3 Story Test summary, blue pen", level:"Grade 3", type:"writing", must:[["child","children"],["audit","adult"],["siven","seven"],["there","these"],["announced","decision"]], not:["^Kids Voting","^practice$","^guinea"]},
+ {f:"p02.jpg", t:"G3 Story Test summary, neat", level:"Grade 3", type:"writing", must:[["anthor","author"],["learn voting|voting how|voting now","about"]], not:["^adults","^children","^decisions"]},
+ {f:"p03.jpg", t:"G3 Story Test summary, round letters", level:"Grade 3", type:"writing", must:[["kigs","kids"],["kid\\b","kids"],["leaders","leader"],["electice","election"]], not:["^guinea pig$","^adults"]},
+ {f:"p04.jpg", t:"G3 Story Test summary, pencil", level:"Grade 3", type:"writing", must:[["excied","excited"],["ledders","leaders"],["roted|fo\\b","vot|for"]], not:["^grow up","^young"]},
+ {f:"p05.jpg", t:"G2 Unit Test, dog (sideways photo)", level:"Grade 2", type:"writing", rotate:90, must:[["very like","really like"]], not:["^Finally","^First"]},
+ {f:"p06.jpg", t:"Grammar quiz, blurry photo", level:"Grade 3", blurry:true},
+ {f:"p07.jpg", t:"NRU2 U6 quiz, Luca", level:"Grade 4", type:"exercise", items:1, must:[["likes","like"],["Does","^$|My"],["snows","is snowing"],["goes","go"],["has","are having"],["plays","play"],["nots|lives","don't live"]], not:["^tidies$","^drives$"]},
+ {f:"p08.jpg", t:"NRU2 U6 quiz, Harris", level:"Grade 4", type:"exercise", items:3, must:[["likes","like"],["snowwing|it snow","is snowing|snowing"],["haveing","having"],["plays|playss","play"],["not lives","don't live"],["chidren","children"],["playing","are playing"]], not:["^drives$","^tidies$"]},
+ {f:"p09.jpg", t:"NRU2 U6 quiz, toy in photo", level:"Grade 4", type:"exercise", items:3, must:[["fathe\\b","father"],["will",""],["is tidies|Matt is|\\bis\\b","^$|tidies"],["not live","don't live"],["haveing","having"],["play","are playing"]], not:["^like$","^go jogging","^Saturdays"]},
+ {f:"p10.jpg", t:"NRU2 U6 quiz, Do on every line", level:"Grade 4", type:"exercise", items:2, note:true, must:[["Does","^$|My"],["Does It|snow","is snowing|It is"],["Mate","Matt"],["Do\\b","^$|Mr|They|The"]], not:["^Sarah$"]},
+ {f:"p11.jpg", t:"NRU2 U6 quiz, Amos", level:"Grade 4", type:"exercise", items:2, must:[["Yes","Does she like"],["drive","drives"],["She goes|goes","Does Sarah go|go"],["hareing|having|They","are having|having"],["tidys","tidies"],["not live","don't live"],["play","are playing"]], not:["^snowing$"]},
+ {f:"p12.jpg", t:"Make sentences: greedy / plead / share / invite", level:"Grade 3", type:"exercise", must:[["want","want to"],["plead","plead with|begged|pleaded"],["for","with"],["invite","invites|invited"]], not:["^greedy$","^brother"]},
+ {f:"p13.jpg", t:"Make sentences, Sam", level:"Grade 3", type:"exercise", must:[["peoson","person"],["is plead|plead","plead|pleading|begs"],["break","broke"],["penil","pencil"],["chare","share"],["rorm","room"],["invite","invitation"]], not:["^greedy$"]},
+ {f:"p14.jpg", t:"Make sentences, friend have", level:"Grade 3", type:"exercise", must:[["have","has"],["one","^a\\b|^a very"],["plead|give","with|to give"],["in Cat|cookie","at Cat|cookies"],["trind","friend"],["he's","his"]], not:["^invite$"]},
+ {f:"p15.jpg", t:"Make sentences, plead my mon", level:"Grade 3", type:"exercise", must:[["mon","mom"],["plead","with|let me|to let"],["to my friend|tO|to","with"]], not:["^greedy$","^invite$"]},
+ {f:"p16.jpg", t:"Definition test, Amos (all right)", level:"Grade 2", type:"exercise", items:8, itemsTol:1, must:[], not:["^fridge$","^culture$","^a$","^b$","^c$"]},
+ {f:"p17.jpg", t:"Definition test, Harris (all right)", level:"Grade 2", type:"exercise", items:8, must:[], not:["^fridge$","^culture$","^language$","^celebrate$","^d$","^a$"]},
+ {f:"p18.jpg", t:"G2 Story Test summary, cat poem", level:"Grade 2", type:"writing", must:[["kittens make|make","sounds"],["talk","talk about"],["pounceon","pounce on"],["cat and kittens","cats and kittens"]], not:["^rhyming","^Views","^tongues"]},
+ {f:"p19.jpg", t:"Vocab + own sentences (sideways)", level:"Grade 3", type:"exercise", rotate:270, must:[["annou|annoue|annouce","announce"],["constityt|constit","constitution"],["decision","decisions|a decision"],["convince","convinced|sure|believe|think"]], not:["^elect$","^leader$"]},
+ {f:"p20.jpg", t:"Vocab + own sentences 2 (sideways)", level:"Grade 3", type:"exercise", rotate:270, must:[["goverm|govermment|goverment","government"],["company","work|her company|a company"],["decision","decisions"],["a games","games"],["our self","ourselves"],["convince","convinces|convinced"]], not:["^independent","^elect$"]}
+];
+let stRun = null;
+function stScore(g, p){
+  const d=p.data, r={pass:true, notes:[]};
+  if(g.blurry){ r.pass = !!p.retake; r.notes.push(p.retake? "asked for a retake ✓" : "did NOT ask for a retake"); r.hit=0; r.of=0; r.wrong=[]; return r; }
+  if(p.status!=="done"){ r.pass=false; r.notes.push("error: "+(p.error||"")); r.hit=0; r.of=g.must.length; r.wrong=[]; return r; }
+  const errs=d.errors.map(e=>({...e, used:false}));
+  const re = x => { try{ return new RegExp(x,"i"); }catch(e){ return /$^/; } };
+  r.found = g.must.map(([o,c])=>{ const e=errs.find(e=>!e.used && re(o).test(e.original) && (!c || re(c).test(e.correction))) || errs.find(e=>re(o).test(e.original) && (!c || re(c).test(e.correction))); if(e) e.used=true; return {o,c,e:e||null}; });
+  r.hit = r.found.filter(x=>x.e).length; r.of = g.must.length;
+  r.wrong = errs.filter(e=>g.not.some(n=>re(n).test(e.original)));
+  r.extra = errs.filter(e=>!e.used && !r.wrong.includes(e));
+  if(r.of && r.hit/r.of < 0.8){ r.pass=false; }
+  if(r.wrong.length){ r.pass=false; r.notes.push(`${r.wrong.length} wrong mark${r.wrong.length>1?"s":""}`); }
+  if(g.type && d.paper_type!==g.type){ r.pass=false; r.notes.push(`read as ${d.paper_type}, expected ${g.type}`); }
+  if(g.rotate!==undefined && p.rotatedBy!==g.rotate){ r.pass=false; r.notes.push(`turned ${p.rotatedBy||0}°, expected ${g.rotate}°`); }
+  if(g.items!==undefined){ const got=d.items.filter(x=>x.ok).length; const tol=g.itemsTol??1; r.items=`${got}/${d.items.length}`; if(Math.abs(got-g.items)>tol){ r.pass=false; r.notes.push(`items right ${got}, expected about ${g.items}`); } }
+  if(g.note && !d.task_note){ r.pass=false; r.notes.push("no task note"); }
+  return r;
+}
+function stText(){
+  if(!stRun) return "";
+  const rows=stRun.res.filter(Boolean);
+  const hit=rows.reduce((a,r)=>a+(r.s.hit||0),0), of=rows.reduce((a,r)=>a+(r.s.of||0),0), wrong=rows.reduce((a,r)=>a+(r.s.wrong||[]).length,0);
+  const out=[`Teacher's Check self-test · ${new Date().toLocaleString()} · ${stRun.cfg}`, `Papers passed: ${rows.filter(r=>r.s.pass).length}/${rows.length} · expected marks found: ${hit}/${of} · wrong marks: ${wrong}`, ""];
+  rows.forEach(r=>{
+    out.push(`${r.s.pass?"PASS":"FAIL"} ${r.g.f} ${r.g.t} · found ${r.s.hit}/${r.s.of}${r.s.items?` · items ${r.s.items}`:""}${r.s.notes.length?" · "+r.s.notes.join("; "):""}`);
+    (r.s.found||[]).filter(x=>!x.e).forEach(x=>out.push(`   missed: ${x.o}${x.c?` → ${x.c}`:""}`));
+    (r.s.wrong||[]).forEach(e=>out.push(`   WRONG: [${e.code}] ${e.original} → ${e.correction||"(delete)"}`));
+    (r.p.data?r.p.data.errors:[]).forEach(e=>out.push(`   mark: L${e.line} [${e.code}] ${e.original} → ${e.correction||"(delete)"} (${e.rule})`));
+    if(r.p.data && r.p.data.task_note) out.push(`   note: ${r.p.data.task_note}`);
+    if(r.p.data && r.p.data.dropped && r.p.data.dropped.length) out.push(`   safety layer removed: ${r.p.data.dropped.map(x=>`${x.original}→${x.correction} (${x.why})`).join("; ")}`);
+  });
+  return out.join("\n");
+}
+function renderSelfTest(){
+  const root=$("#viewTest");
+  const rows=SELFTEST.map((g,i)=>{
+    const r=stRun && stRun.res[i];
+    const st = r ? (r.s.pass?`<span class="st fix">Pass</span>`:`<span class="st rep">Check</span>`) : (stRun && stRun.at===i ? `<span class="spinner"></span>` : "");
+    const det = r ? `${r.s.of?`found ${r.s.hit}/${r.s.of}`:""}${r.s.items?` · items ${r.s.items}`:""}${r.s.wrong&&r.s.wrong.length?` · <b style="color:var(--red)">${r.s.wrong.length} wrong</b>`:""}${r.s.notes.length?` · ${esc(r.s.notes.join("; "))}`:""}` : "";
+    return `<tr class="click" data-i="${i}"><td>${i+1}</td><td>${esc(g.t)}</td><td>${st}</td><td class="sub">${det}</td></tr>
+      ${r && stRun.open===i ? `<tr><td></td><td colspan="3">${stDetail(r)}</td></tr>` : ""}`;
+  }).join("");
+  const done = stRun ? stRun.res.filter(Boolean) : [];
+  const hit=done.reduce((a,r)=>a+(r.s.hit||0),0), of=done.reduce((a,r)=>a+(r.s.of||0),0), wrong=done.reduce((a,r)=>a+(r.s.wrong||[]).length,0);
+  root.innerHTML = `<div class="card"><h2>🧪 Self-test with 20 real papers</h2>
+    <p class="sub" style="margin-top:-6px">Runs Cat's papers (story tests, grammar quizzes, make-a-sentence, definition tests, one blurry and three sideways photos) through the checker with your current Reading and Double-check settings, and compares the marks with what a teacher expects. Nothing is saved to your classes. Uses about ${$("#verify").checked?40:22} Claude requests.</p>
+    ${done.length?`<div class="headline" style="margin-top:10px"><div class="gbadge" style="font-size:22px">${done.filter(r=>r.s.pass).length}/${done.length}</div><div>
+      <div><b>Papers passed</b></div><div class="sub">Expected marks found: <b>${hit}/${of}</b>${of?` (${Math.round(hit/of*100)}%)`:""} · Wrong marks: <b style="color:${wrong?"var(--red)":"var(--green)"}">${wrong}</b></div></div></div>`:""}
+    <div class="row" style="margin:10px 0">
+      ${stRun && stRun.running ? `<button class="btn small" id="stStop">Stop</button>` : `<button class="btn red small" id="stGo">${done.length?"Run again":"Run self-test"}</button>`}
+      ${done.length?`<button class="btn ghost small" id="stCopy">Copy results</button>`:""}
+      <button class="btn ghost small" id="stBack">Back to checking</button>
+    </div>
+    <table class="stable"><tr><th>#</th><th>Paper</th><th></th><th>Result</th></tr>${rows}</table>
+    <p class="sub" style="margin:10px 0 0">Tap a row to see every mark. "Copy results" gives a text you can paste to Claude to fix what it got wrong.</p></div>`;
+  root.querySelectorAll("tr.click").forEach(tr=>tr.addEventListener("click",()=>{ if(!stRun) return; const i=+tr.dataset.i; stRun.open = stRun.open===i ? null : i; renderSelfTest(); }));
+  const go=$("#stGo"); if(go) go.addEventListener("click", runSelfTest);
+  const stop=$("#stStop"); if(stop) stop.addEventListener("click", ()=>{ stRun.stop=true; stop.disabled=true; stop.textContent="Stopping…"; });
+  const cp=$("#stCopy"); if(cp) cp.addEventListener("click", ()=>copyText(stText()));
+  $("#stBack").addEventListener("click", ()=>{ if(location.hash==="#selftest") history.replaceState(null,"",location.pathname+location.search); showView("check"); });
+}
+function stDetail(r){
+  const d=r.p.data;
+  const img = r.p.url ? `<img src="${r.p.url}" alt="" style="width:90px;float:right;border-radius:6px;margin:0 0 6px 8px">` : "";
+  if(!d) return img+`<div class="sub">${esc(r.p.error||"")}</div>`;
+  const miss=(r.s.found||[]).filter(x=>!x.e);
+  return img + `${miss.length?`<div class="sub"><b>Missed:</b> ${miss.map(x=>esc(x.o.split("|")[0])+(x.c?" → "+esc(x.c.split("|")[0]):"")).join(" · ")}</div>`:""}
+    ${d.task_note?`<div class="sub"><b>Note:</b> ${esc(d.task_note)}</div>`:""}
+    ${d.errors.map(e=>`<div class="hl"><span class="code">${esc(e.code)}</span> ${(r.s.wrong||[]).includes(e)?"❌ ":""}<s>${esc(e.original)}</s> → <b style="color:var(--red)">${esc(e.correction||"delete")}</b> <span class="sub">${esc(e.why||"")}</span></div>`).join("") || `<div class="sub">No marks.</div>`}
+    ${d.dropped&&d.dropped.length?`<div class="sub" style="margin-top:4px">Safety layer removed: ${d.dropped.map(x=>esc(`${x.original}→${x.correction} (${x.why})`)).join("; ")}</div>`:""}`;
+}
+async function runSelfTest(){
+  stRun = {res:[], running:true, at:0, open:null, stop:false, cfg:`${$("#quality").value} reading, double-check ${$("#verify").checked?"on":"off"}`};
+  renderSelfTest();
+  for(let i=0;i<SELFTEST.length;i++){
+    if(stRun.stop) break;
+    const g=SELFTEST[i]; stRun.at=i; renderSelfTest();
+    const p={id:"st"+i, silent:true, name:g.t, status:"waiting", data:null, error:null,
+      over:{level:g.level, task:"", taught:"", book:"", unit:"", top5:false, caps:true, grading:"100", rubric:null}};
+    try{
+      const resp = await fetch("selftest/"+g.f);
+      if(!resp.ok) throw new Error("couldn't load the test photo");
+      const b = await resp.blob(); p.file = new File([b], g.f, {type:"image/jpeg"});
+      await processPaper(p);
+    }catch(e){ p.status="error"; p.error=e.message||String(e); }
+    stRun.res[i] = {g, p, s: stScore(g, p)};
+    renderSelfTest();
+  }
+  stRun.running=false; stRun.at=-1; renderSelfTest();
+}
+
+window.__tcTest = { normalize:(d,s)=>{ normalize(d,s); return d; }, parseJSON, parseRot, cleanName, toUS, expandC };
+/* grading: rubric 1-5 per area, weighted to a 0-100 score, then shown on the chosen scale */
+const RUBRIC = [["task","Task",25],["grammar","Grammar",30],["vocab","Words & spelling",25],["mechanics","Capitals & punctuation",20]];
+function computeGrade(g, s, d){
+  if(s.grading==="off") return null;
+  if(s.rubric && g && Array.isArray(g.rubric)){
+    const parts=[]; let got=0, max=0;
+    s.rubric.criteria.forEach((c,i)=>{
+      const it = g.rubric.find(x=>x && String(x.name||"").trim().toLowerCase()===c.name.trim().toLowerCase()) || g.rubric[i];
+      let pts = Math.round((+((it&&it.points)??0))*2)/2; if(!(pts>=0)) pts=0; pts=Math.min(c.max, pts);
+      parts.push({k:"r"+i, label:c.name, score:pts, max:c.max, note:String((it&&it.note)||"")}); got+=pts; max+=c.max;
+    });
+    if(!max) return null;
+    const pct = Math.round(got/max*100);
+    return {pct, parts, scale:s.grading, rubric:s.rubric.name, points:got, max, display: s.grading==="100" ? `${got}/${max}` : gradeDisplay(pct, s.grading)};
+  }
+  if(d && d.paper_type==="exercise" && d.items && d.items.length){
+    const ok=d.items.filter(x=>x.ok).length, n=d.items.length, pct=Math.round(ok/n*100);
+    return {pct, parts:[], scale:s.grading, items:{ok,n}, display: s.grading==="100" ? `${ok}/${n}` : gradeDisplay(pct, s.grading)};
+  }
+  if(!g || typeof g!=="object") return null;
+  const parts=[]; let tot=0, wsum=0;
+  RUBRIC.forEach(([k,label,w])=>{
+    const it=g[k]; if(!it) return;
+    let sc = Math.round(+it.score); if(!(sc>=1)) return; sc=Math.min(5,sc);
+    if(k==="mechanics" && !s.caps) { parts.push({k,label,score:sc,note:String(it.note||"")}); return; }
+    parts.push({k,label,score:sc,note:String(it.note||"")}); tot += sc/5*w; wsum += w;
+  });
+  if(!wsum) return null;
+  const pct = Math.round(tot/wsum*100);
+  return {pct, parts, scale:s.grading, display:gradeDisplay(pct, s.grading)};
+}
+function gradeDisplay(pct, scale){
+  if(scale==="letter") return pct>=95?"A+":pct>=88?"A":pct>=80?"B+":pct>=72?"B":pct>=64?"C+":pct>=56?"C":"D";
+  if(scale==="stars"){ const n=Math.max(1,Math.min(5,Math.round(pct/20))); return "★".repeat(n)+"☆".repeat(5-n); }
+  return String(pct);
+}
+
+/* ---------- rendering a paper ---------- */
+function renderPaper(p){
+  if(p.silent) return;
+  let el = document.getElementById("paper-"+p.id);
+  if(!el){ el=document.createElement("div"); el.className="paper"; el.id="paper-"+p.id; $("#papers").appendChild(el); }
+  el.classList.toggle("off", p.id!==current);
+  const d = p.data;
+  const counts = d ? countCodes(d.errors) : {};
+  const thumb = p.url ? `<img class="thumb" src="${p.url}" alt="paper photo" data-act="zoom">` : `<div class="thumb" style="background:#f3f1ea"></div>`;
+  let stat = "";
+  if(p.status==="waiting") stat = "Waiting in line…";
+  else if(p.status==="reading") stat = `<span class="spinner"></span>Reading handwriting…`;
+  else if(p.status==="verifying") stat = `<span class="spinner"></span>Double-checking…`;
+  else if(p.status==="error") stat = `<span class="err-box">${p.retake?"📷 ":""}${esc(p.error)}</span>`;
+  else stat = d.errors.length ? `${d.errors.length} mark${d.errors.length>1?"s":""}${d.unclear.length?` · ${d.unclear.length} unclear`:""}` : "No mistakes found";
+
+  let body = "";
+  if(p.status==="done"){
+    if(d.grade){
+      body += `<div class="headline">
+        <div class="gbadge ${d.grade.scale==="stars"?"stars":""}" title="${d.grade.pct}/100">${esc(d.grade.display)}</div>
+        <div class="rubric">${d.grade.rubric?`<div class="sub" style="margin-bottom:2px">Rubric: <b>${esc(d.grade.rubric)}</b> · ${d.grade.pct}%</div>`:""}${d.grade.items?`<div class="rrow"><span class="rl">Items right</span><span class="dots" style="letter-spacing:0">${d.grade.items.ok} of ${d.grade.items.n}</span><span class="rn">${d.items.filter(x=>!x.ok).length?`Wrong: ${d.items.filter(x=>!x.ok).map(x=>"#"+x.n).join(", ")}`:"All correct"}</span></div>`:""}${d.grade.parts.map(x=>`
+          <div class="rrow"><span class="rl">${esc(x.label)}</span>${x.max!==undefined?`<span class="dots" style="letter-spacing:0"><b>${x.score}</b> / ${x.max}</span>`:`<span class="dots">${"●".repeat(x.score)}<span style="opacity:.25">${"●".repeat(5-x.score)}</span></span>`}<span class="rn">${esc(x.note)}</span></div>`).join("")}
+        </div></div>`;
+    }
+    if(d.task_note) body += `<div class="tasknote"><b>Note for the top of the paper:</b> ${esc(d.task_note)} <button class="btn ghost small" data-act="copyNote">Copy</button></div>`;
+    body += `<div class="tabs">
+      <button class="tab ${p.view==="marks"?"on":""}" data-act="view" data-v="marks">Marks by line</button>
+      <button class="tab ${p.view==="text"?"on":""}" data-act="view" data-v="text">Full text</button>
+    </div>`;
+    body += p.view==="text" ? renderTranscript(d) : renderMarks(p);
+    if(d.positive){
+      body += `<div class="positive"><div class="txt">${esc(d.positive)}</div><button class="btn ghost small" data-act="copyPos">Copy</button></div>`;
+    }
+    body += `<div class="pfoot">${sheetButton(p)}<button class="btn ghost small" data-act="copyAll">Copy marks</button><button class="btn ghost small" data-act="retry">Check again</button><button class="btn ghost small" data-act="remove">Remove</button></div>`;
+  } else if(p.status==="error"){
+    body = `<div class="pfoot"><button class="btn small" data-act="retry">Retry</button><button class="btn ghost small" data-act="remove">Remove</button></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="phead">
+      ${thumb}
+      <div class="pmeta">
+        ${nameBlock(p)}
+        <div class="pstat">${stat}${p.status==="done"?saveBadge(p):""}</div>
+        ${d && d.errors.length ? `<div class="counts">${Object.entries(counts).map(([c,n])=>`<span class="code">${esc(c)} ${n}</span>`).join("")}</div>`:""}
+      </div>
+    </div>
+    ${body ? `<div class="pbody">${body}</div>` : ""}`;
+  bindPaper(el,p);
+  renderStrip();
+}
+
+function countCodes(errs){ const o={}; errs.forEach(e=>o[e.code]=(o[e.code]||0)+1); return o; }
+
+function findSpans(text, errs, unc){
+  const spans=[];
+  const used = (a,b)=>spans.some(s=>a<s.b && b>s.a);
+  const place = (needle, kind, item)=>{
+    if(!needle) return;
+    let from=0, i;
+    while((i=text.indexOf(needle,from))!==-1){ if(!used(i,i+needle.length)){ spans.push({a:i,b:i+needle.length,kind,item}); return; } from=i+1; }
+    const lo=text.toLowerCase(), nl=needle.toLowerCase(); from=0;
+    while((i=lo.indexOf(nl,from))!==-1){ if(!used(i,i+nl.length)){ spans.push({a:i,b:i+nl.length,kind,item}); return; } from=i+1; }
+    spans.push({a:text.length,b:text.length,kind,item,tail:true});
+  };
+  errs.forEach(e=>place(e.original,"e",e));
+  unc.forEach(u=>place(String(u.read_as||""),"u",u));
+  spans.sort((x,y)=>x.a-y.a);
+  return spans;
+}
+
+function markLine(text, errs, unc){
+  const spans = findSpans(text, errs, unc);
+  let out="", at=0;
+  spans.forEach(s=>{
+    out += esc(text.slice(at,s.a));
+    const tag = s.kind==="e" ? `<sup>${s.item.num}</sup>` : `<sup>?</sup>`;
+    out += s.tail ? ` ${tag}` : `<span class="${s.kind}">${esc(text.slice(s.a,s.b))}${tag}</span>`;
+    at = Math.max(at, s.b);
+  });
+  return out + esc(text.slice(at));
+}
+
+/* corrected version of a line: html (changes underlined) and plain text */
+function fixLine(text, errs){
+  const spans = findSpans(text, errs, []).filter(s=>s.kind==="e");
+  let html="", plain="", at=0;
+  spans.forEach(s=>{
+    if(s.a < at) return;
+    const before = text.slice(at, s.a);
+    const corr = s.item.correction;
+    if(s.tail){ return; } // couldn't locate it in the line, leave the line as is
+    html += esc(before); plain += before;
+    if(corr){ html += `<span class="chg">${esc(corr)}</span>`; plain += corr; }
+    at = s.b;
+  });
+  html += esc(text.slice(at)); plain += text.slice(at);
+  const tidy = t => t.replace(/ {2,}/g," ").replace(/ +([.,!?])/g,"$1").trim();
+  return { html: html.replace(/ {2,}/g," ").replace(/ +([.,!?])/g,"$1").trim(), plain: tidy(plain), changed: spans.some(s=>!s.tail) };
+}
+
+/* word diff: underline words in the corrected line that the student didn't write */
+function diffHtml(stu, fixed){
+  const a = stu.split(/\s+/).filter(Boolean), b = fixed.split(/\s+/).filter(Boolean);
+  const norm = w => w.toLowerCase() === w ? w : w; // keep case: a capital fix counts as a change
+  const m=a.length, n=b.length, T=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=m-1;i>=0;i--) for(let j=n-1;j>=0;j--) T[i][j] = norm(a[i])===norm(b[j]) ? T[i+1][j+1]+1 : Math.max(T[i+1][j],T[i][j+1]);
+  const keep = new Array(n).fill(false); let i=0,j=0;
+  while(i<m && j<n){ if(a[i]===b[j]){ keep[j]=true; i++; j++; } else if(T[i+1][j]>=T[i][j+1]) i++; else j++; }
+  return b.map((w,k)=> keep[k] ? esc(w) : `<span class="chg">${esc(w)}</span>`).join(" ");
+}
+function lineFix(l, errs){
+  const sameish = s => s.replace(/\s+/g," ").trim();
+  if(l.fixed){ return { html: diffHtml(l.text, l.fixed), plain: l.fixed, changed: sameish(l.fixed)!==sameish(l.text) }; }
+  return fixLine(l.text, errs);
+}
+
+function highlightFocus(text, focus){
+  const t=esc(text); if(!focus) return t;
+  const words = focus.trim().split(/\s+/).filter(w=>w.length>1).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));
+  if(!words.length) return t;
+  // highlight each focus word (and simple -s/-ed/-ing forms)
+  const re = new RegExp("\\b(" + words.map(w=>w.replace(/(e|s|ed|ing)$/i,"")+"\\w*").join("|") + ")\\b","gi");
+  return t.replace(re, m=>`<b>${m}</b>`);
+}
+function renderTranscript(d){
+  if(!d.lines.length) return `<div class="transcript">(No handwriting found)</div>`;
+  return `<div class="ftext">${d.lines.map(l=>{
+    const errs = d.errors.filter(e=>e.line===l.n), unc = d.unclear.filter(u=>u.line===l.n);
+    const f = lineFix(l, errs);
+    return `<div class="fline">
+      <div class="ln">${l.n}</div>
+      <div>
+        <div class="stu">${markLine(l.text, errs, unc)}</div>
+        ${f.changed ? `<div class="cor">${f.html}</div>` : `<div class="ok">✓ correct</div>`}
+        ${f.changed && l.also && l.also.length ? `<div class="also"><div class="alh">You can also say</div>${l.also.map(a=>a.examples.map(x=>`<div class="alx">${highlightFocus(x, a.focus)}</div>`).join("")).join("")}</div>` : ""}
+      </div>
+    </div>`;
+  }).join("")}</div>
+  <div class="pfoot" style="margin:-4px 0 12px"><button class="btn ghost small" data-act="copyFixed">Copy corrected text</button></div>`;
+}
+function correctedText(d){
+  return d.lines.map(l=>{ const f=lineFix(l, d.errors.filter(e=>e.line===l.n));
+    const al = f.changed && l.also && l.also.length ? "\n   also: " + l.also.flatMap(a=>a.examples).join(" / ") : "";
+    return f.plain + al; }).join("\n");
+}
+
+function renderMarks(p){
+  const d=p.data;
+  if(!d.errors.length && !d.unclear.length) return `<div class="clean">Clean paper. Nothing to mark at this level.</div>`;
+  const lineNums = [...new Set([...d.errors.map(e=>e.line), ...d.unclear.map(u=>u.line)])].sort((a,b)=>a-b);
+  p.crops = p.crops || {};
+  return lineNums.map(n=>{
+    const l = d.lines.find(x=>x.n===n);
+    if(l && p.img && !p.noCrop && p.crops[n]===undefined) p.crops[n] = cropLine(p.img, l.y0, l.y1);
+    const crop = p.crops[n];
+    const errs = d.errors.filter(e=>e.line===n), unc = d.unclear.filter(u=>u.line===n);
+    return `<div class="lineblock">
+      ${crop ? `<img class="crop" src="${crop}" alt="line ${n} of the paper">` : ""}
+      <div class="lt">Line ${n}${l?`: “${esc(l.text)}”`:""}</div>
+      ${errs.map(e=>`
+        <div class="mark">
+          <div class="num">${e.num}</div>
+          <span class="code">${esc(e.code)}</span>
+          <div>
+            <div class="fix">
+              <span class="orig">${esc(e.original)||"&nbsp;"}</span><span class="arrow">→</span>${e.correction ? `<span class="corr">${esc(e.correction)}</span>` : `<span class="corr del">delete</span>`}
+              ${e.priority===1?`<span class="prio">must fix</span>`:""}
+            </div>
+            ${e.why?`<div class="why">${esc(e.why)} <span class="rtag">${esc(ruleOf(e))}</span></div>`:`<div class="why"><span class="rtag">${esc(ruleOf(e))}</span></div>`}
+          </div>
+          <button class="dismiss" data-act="dismiss" data-num="${e.num}" title="Not a mistake: remove and remember">✕</button>
+        </div>`).join("")}
+      ${unc.map(u=>`
+        <div class="mark">
+          <div class="num q">?</div>
+          <span class="code q">?</span>
+          <div>
+            <div class="fix">“${esc(u.read_as)}”</div>
+            <div class="why">Hard to read${u.note?`: ${esc(u.note)}`:""}. Check the paper. Not marked.</div>
+          </div>
+        </div>`).join("")}
+    </div>`;
+  }).join("");
+}
+
+function sheetButton(p){
+  const st=p.sheetState;
+  if(st==="making") return `<button class="btn small" disabled><span class="spinner" style="border-top-color:#fff"></span>Making practice sheet…</button>`;
+  if(st==="ready") return `<button class="btn small red" data-act="sheet">📄 Practice sheet</button>`;
+  if(st==="none") return "";
+  if(st==="error") return `<button class="btn small" data-act="sheet" title="${esc(p.sheetErr||"")}">Practice sheet failed · retry</button>`;
+  return p.data && p.data.errors.length ? `<button class="btn small" data-act="sheet">📄 Make practice sheet</button>` : "";
+}
+function marksAsText(p){
+  const d=p.data; const lines=[p.name + (d.grade?`   Grade: ${d.grade.display}${d.grade.scale==="100" && !d.grade.items && !d.grade.rubric?"/100":""}`:"")];
+  if(d.grade && d.grade.rubric) d.grade.parts.forEach(x=>lines.push(`   ${x.label}: ${x.score}/${x.max}${x.note?` (${x.note})`:""}`));
+  if(d.task_note) lines.push("Note: "+d.task_note);
+  d.errors.forEach(e=>lines.push(`${e.num}. [${e.code}] line ${e.line}: ${e.original} → ${e.correction||"(delete)"}`));
+  d.unclear.forEach(u=>lines.push(`?  line ${u.line}: "${u.read_as}" is hard to read`));
+  if(d.positive) lines.push("", "⭐ "+d.positive);
+  return lines.join("\n");
+}
+
+function bindPaper(el,p){
+  el.querySelectorAll("[data-act]").forEach(b=>{
+    const act=b.dataset.act;
+    if(act==="name"){ b.addEventListener("input",()=>{ p.name=b.value; const c=document.querySelector(`.chip[data-id="${p.id}"] .cn`); if(c) c.textContent=p.name; });
+      b.addEventListener("change",()=>{ if(p.status==="done") fileToClass(p); }); return; }
+    b.addEventListener("click",()=>{
+      if(act==="dismiss"){ dismissMark(p, +b.dataset.num); return; }
+      if(act==="zoom") openZoom(p.url);
+      if(act==="reveal"){ p.revealed=true; renderPaper(p); }
+      if(act==="hidename"){ p.revealed=false; renderPaper(p); }
+      if(act==="view"){ p.view=b.dataset.v; renderPaper(p); }
+      if(act==="copyPos") copyText(p.data.positive);
+      if(act==="copyNote") copyText(p.data.task_note);
+      if(act==="copyAll") copyText(marksAsText(p));
+      if(act==="copyFixed") copyText(correctedText(p.data));
+      if(act==="sheet"){ if(p.sheet) openSheet(p.sheet,{name:isDefaultName(p.name)?"":p.name, cls:(classes.find(c=>c.id===(p.filed?p.filed.cid:currentClass))||{}).code||""}, p.filed?{cid:p.filed.cid, sid:p.filed.sid}:null); else { sheetQ = sheetQ.then(()=>sheetForPaper(p)); } }
+      if(act==="retry"){ p.noCrop=false; p.retake=false; p.sheet=null; p.sheetState=null; p.data=null; p.crops={}; p.error=null; p.status="waiting"; renderPaper(p); queue=queue.then(()=>processPaper(p)); }
+      if(act==="remove"){
+        const i=papers.indexOf(p); if(i>=0) papers.splice(i,1); el.remove();
+        if(!papers.length){ current=null; renderStrip(); $("#sticky").classList.add("hidden"); $("#summaryCard").classList.add("hidden"); }
+        else select(papers[Math.min(i, papers.length-1)].id);
+      }
+    });
+  });
+}
+
+function openZoom(url){
+  if(!url) return;
+  const m=document.createElement("div"); m.className="modal"; m.innerHTML=`<img src="${url}" alt="paper photo">`;
+  m.addEventListener("click",()=>m.remove()); document.body.appendChild(m);
+}
+
+/* ---------- class summary ---------- */
+$("#sumBtn").addEventListener("click", runSummary);
+$("#clearBtn").addEventListener("click", ()=>{
+  const btn=$("#clearBtn");
+  if(btn.dataset.armed!=="1"){ btn.dataset.armed="1"; btn.textContent="Tap again to clear"; setTimeout(()=>{btn.dataset.armed="";btn.textContent="Clear all";},2500); return; }
+  papers.splice(0); current=null; renderStrip(); $("#papers").innerHTML=""; $("#summaryCard").classList.add("hidden"); $("#sticky").classList.add("hidden");
+  btn.dataset.armed=""; btn.textContent="Clear all";
+});
+
+async function runSummary(){
+  const done = papers.filter(p=>p.status==="done");
+  const card=$("#summaryCard"), body=$("#summaryBody");
+  card.classList.remove("hidden");
+  if(!done.length){ body.innerHTML=`<p class="sub">Check at least one paper first.</p>`; return; }
+  const all = done.flatMap(p=>p.data.errors.map(e=>({...e, student:summaryName(p)})));
+  const counts = countCodes(all);
+  const max = Math.max(1, ...Object.values(counts));
+  const bars = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`
+    <div class="bar"><span class="code">${esc(c)}</span><div class="track"><div class="fill" style="width:${(n/max*100).toFixed(0)}%"></div></div><span>${n}</span></div>`).join("");
+  const graded = done.filter(p=>p.data.grade);
+  const avg = graded.length ? Math.round(graded.reduce((t,p)=>t+p.data.grade.pct,0)/graded.length) : null;
+  const avgTxt = avg===null ? "" : ` · class average ${esc(gradeDisplay(avg, graded[0].data.grade.scale))}${graded[0].data.grade.scale==="100"?"/100":""}`;
+  const head = `<p class="sub" style="margin-bottom:8px">${done.length} paper${done.length>1?"s":""} · ${all.length} marks${$("#top5").checked?" (top 5 per paper)":""}${avgTxt}</p>
+    ${bars?`<div class="bars">${bars}</div>`:""}`;
+  if(!all.length){ body.innerHTML = head + `<div class="clean">No mistakes across the class. Nice.</div>`; return; }
+  body.innerHTML = head + `<p class="pstat"><span class="spinner"></span>Finding the class's common mistakes…</p>`;
+  card.scrollIntoView({behavior:"smooth",block:"start"});
+  const s = settings();
+  const list = all.map(e=>`- ${e.student}: [${e.code}] "${e.original}" → "${e.correction}" (${e.why||""})`).join("\n");
+  const prompt = `You are an ESL teacher. Level: ${s.level}. Learned so far: ${s.taught||"not given"}.
+Here are the marked mistakes from ${done.length} students' papers:
+${list}
+
+Find the mistakes that several students share. Group by the underlying rule, not the exact word.
+Return ONLY JSON:
+{"common":[{"rule":"short name of the problem","students":["names"],"examples":["wrong → right"],"tip":"one-line way to teach it"}],
+ "warmup":{"title":"short name","steps":["3 to 5 short steps for a 5-minute warm-up next lesson, kid-friendly"],"board":["2 to 4 example sentences to write on the board"]}}
+Max 4 items in "common", most shared first. Keep it short and simple.`;
+  try{
+    const data = await askJSON(prompt, null, "default");
+    const common = Array.isArray(data.common)?data.common:[];
+    const w = data.warmup||{};
+    const html = `
+      ${common.map(c=>`<div class="common"><b>${esc(c.rule)}</b>
+        <div class="ex">${(c.examples||[]).map(esc).join(" · ")}</div>
+        <div class="ex">${(c.students||[]).length} student${(c.students||[]).length===1?"":"s"}: ${(c.students||[]).map(esc).join(", ")}</div>
+        ${c.tip?`<div class="why" style="color:var(--ink)">${esc(c.tip)}</div>`:""}</div>`).join("")}
+      ${w.title?`<div class="warm"><b>Warm-up idea: ${esc(w.title)}</b>
+        <ol style="margin:6px 0 6px 18px;padding:0">${(w.steps||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+        ${(w.board||[]).length?`<div style="font-size:13px"><b>On the board:</b><br>${w.board.map(esc).join("<br>")}</div>`:""}</div>`:""}
+      <div class="pfoot"><button class="btn ghost small" id="copySum">Copy summary</button></div>`;
+    body.innerHTML = head + html;
+    const txt = ["Class summary ("+done.length+" papers)", ...Object.entries(counts).map(([c,n])=>`${c} (${CODES[c]||c}): ${n}`), "",
+      ...common.map(c=>`• ${c.rule}: ${(c.examples||[]).join("; ")} [${(c.students||[]).join(", ")}]${c.tip?"\n  Tip: "+c.tip:""}`),
+      "", w.title?`Warm-up: ${w.title}`:"", ...(w.steps||[]).map((x,i)=>`${i+1}. ${x}`), ...((w.board||[]).length?["Board:",...w.board]:[])].join("\n");
+    $("#copySum").addEventListener("click",()=>copyText(txt));
+  }catch(e){
+    body.innerHTML = head + `<p class="err-box">${esc(e.message||e.code||"Couldn't build the summary.")} </p><button class="btn small" id="sumRetry">Try again</button>`;
+    $("#sumRetry").addEventListener("click", runSummary);
+  }
+}
+
+/* =========================================================
+   STORAGE: per-teacher private store in the artifact db,
+   with a localStorage fallback when db isn't available.
+   Shape: classes/<cid> {code,name,level,book,unit,taught}
+          classes/<cid>/students/<sid> {name, entries:[...]}
+   ========================================================= */
+const MAX_ENTRIES = 40;
+function slug(str){
+  const s = String(str||"").trim().toLowerCase();
+  let out = "";
+  for(const ch of s){
+    if(/[a-z0-9_\-.~]/.test(ch)) out += ch;
+    else if(/\s/.test(ch)) out += "-";
+    else out += "+" + ch.codePointAt(0).toString(16);
+  }
+  out = out.replace(/-+/g,"-").replace(/^-|-$/g,"");
+  if(!out || out==="." || out==="..") out = "x" + Date.now().toString(36);
+  return out.slice(0,150);
+}
+
+const Store = (()=>{
+  let db=null, uid=null;
+  const LKEY = "tc_store_v1";
+  const readL = ()=>{ try{ return JSON.parse(localStorage.getItem(LKEY)) || {classes:{}}; }catch(e){ return {classes:{}}; } };
+  const writeL = (o)=>{ try{ localStorage.setItem(LKEY, JSON.stringify(o)); return true; }catch(e){ return false; } };
+  let q = Promise.resolve();
+  const serial = fn => (q = q.then(fn, fn));
+
+  const ready = (async()=>{
+    try{
+      if(window.claude && typeof window.claude.use==="function"){
+        const [d,u] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+        if(d && u){ const id = await u.id(); if(id){ db=d; uid=id; } }
+      }
+    }catch(e){ db=null; }
+    return db ? "cloud" : "local";
+  })();
+
+  const base = ()=> db.doc(`data/users/${uid}/profile`);
+  const classCol = ()=> base().collection("classes");
+  const stuCol = cid => classCol().doc(cid).collection("students");
+  const withTimeout = (p, ms=12000) => Promise.race([p, new Promise((_,rej)=>setTimeout(()=>rej({code:"unavailable",message:"Saved data can't be reached right now."}), ms))]);
+
+  return {
+    ready,
+    mode: ()=> db ? "cloud" : "local",
+    async listClasses(){
+      await ready;
+      if(db){ const s = await withTimeout(classCol().get()); return s.docs.map(d=>({id:d.id, ...d.data()})); }
+      const o=readL(); return Object.entries(o.classes).map(([id,c])=>({id, ...c, students:undefined}));
+    },
+    saveClass(cid, data){ return serial(async()=>{
+      await ready;
+      if(db){ await classCol().doc(cid).set(data); return; }
+      const o=readL(); const old=o.classes[cid]||{}; o.classes[cid]={...data, students:old.students||{}}; writeL(o);
+    }); },
+    deleteClass(cid){ return serial(async()=>{
+      await ready;
+      if(db){ const s=await stuCol(cid).get(); for(const d of s.docs){ await stuCol(cid).doc(d.id).delete(); } await classCol().doc(cid).delete(); return; }
+      const o=readL(); delete o.classes[cid]; writeL(o);
+    }); },
+    async listStudents(cid){
+      await ready;
+      if(db){ const s = await withTimeout(stuCol(cid).get()); return s.docs.map(d=>({id:d.id, ...d.data()})); }
+      const o=readL(); const c=o.classes[cid]; return c ? Object.entries(c.students||{}).map(([id,v])=>({id,...v})) : [];
+    },
+    async getStudent(cid, sid){
+      await ready;
+      if(db){ const d = await withTimeout(stuCol(cid).doc(sid).get()); return d.exists ? {id:sid, ...d.data()} : null; }
+      const o=readL(); const v=o.classes[cid] && o.classes[cid].students && o.classes[cid].students[sid]; return v ? {id:sid, ...v} : null;
+    },
+    saveStudent(cid, sid, data){ return serial(async()=>{
+      await ready;
+      const body = {...data}; delete body.id;
+      if(db){ await stuCol(cid).doc(sid).set(body); return; }
+      const o=readL(); if(!o.classes[cid]) return; o.classes[cid].students = o.classes[cid].students || {}; o.classes[cid].students[sid]=body;
+      if(!writeL(o)) throw {code:"quota_exceeded", message:"This browser's storage is full."};
+    }); },
+    deleteStudent(cid, sid){ return serial(async()=>{
+      await ready;
+      if(db){ await stuCol(cid).doc(sid).delete(); return; }
+      const o=readL(); if(o.classes[cid] && o.classes[cid].students) delete o.classes[cid].students[sid]; writeL(o);
+    }); },
+    /* teacher profile: marking style */
+    async getProfile(){
+      await ready;
+      if(db){ const d = await withTimeout(base().get()); return d.exists ? d.data() : {}; }
+      return readL().profile || {};
+    },
+    saveProfile(data){ return serial(async()=>{
+      await ready;
+      if(db){ await base().set(data); return; }
+      const o=readL(); o.profile=data; writeL(o);
+    }); },
+    /* books scanned from a contents page */
+    async listBooks(){
+      await ready;
+      if(db){ const s = await withTimeout(base().collection("books").get()); return s.docs.map(d=>({id:d.id, ...d.data()})); }
+      return Object.entries(readL().books||{}).map(([id,b])=>({id,...b}));
+    },
+    saveBook(id, data){ return serial(async()=>{
+      await ready;
+      if(db){ await base().collection("books").doc(id).set(data); return; }
+      const o=readL(); o.books=o.books||{}; o.books[id]=data; writeL(o);
+    }); },
+    /* worksheets, so a link can open them on another device */
+    async getSheet(id){
+      await ready;
+      if(db){ const d = await withTimeout(base().collection("sheets").doc(id).get()); return d.exists ? d.data() : null; }
+      return (readL().sheets||{})[id] || null;
+    },
+    saveSheet(id, data){ return serial(async()=>{
+      await ready;
+      if(db){ await base().collection("sheets").doc(id).set(data); return; }
+      const o=readL(); o.sheets=o.sheets||{}; o.sheets[id]=data;
+      const ks=Object.keys(o.sheets); if(ks.length>60) ks.sort((a,b)=>(o.sheets[a].made||0)-(o.sheets[b].made||0)).slice(0,ks.length-60).forEach(k=>delete o.sheets[k]);
+      writeL(o);
+    }); }
+  };
+})();
+
+/* ---------- class selector in settings ---------- */
+let classes = [];          // cached list
+let currentClass = store.get("class", "");
+const CLASS_FIELDS = ["level","book","unit","taught","rubric"];
+
+async function refreshClasses(){
+  try{ classes = await Store.listClasses(); }catch(e){ classes = []; toast(e.message||"Couldn't load classes"); }
+  classes.sort((a,b)=>String(a.code).localeCompare(String(b.code)));
+  const sel=$("#classSel");
+  sel.innerHTML = `<option value="">No class (don't save)</option>` + classes.map(c=>`<option value="${esc(c.id)}">${esc(c.code)}${c.name?" · "+esc(c.name):""}</option>`).join("");
+  if(currentClass && !classes.find(c=>c.id===currentClass)) currentClass="";
+  sel.value = currentClass;
+  const mode = Store.mode();
+  $("#storeNote").textContent = mode==="cloud"
+    ? "Class folders are saved to your account, on any device where you open this page in Claude."
+    : "Class folders are saved in this browser only. Open the page in Claude to keep them on every device.";
+}
+function applyClassSettings(c){
+  if(!c) return;
+  CLASS_FIELDS.forEach(k=>{ if(c[k]!==undefined && c[k]!==null){ $("#"+k).value=c[k]; store.set(k,c[k]); } });
+  if(typeof showRubricButtons==="function") showRubricButtons();
+}
+$("#classSel").addEventListener("change", ()=>{
+  currentClass = $("#classSel").value; store.set("class", currentClass);
+  applyClassSettings(classes.find(c=>c.id===currentClass));
+  toast(currentClass ? "Papers will be saved to this class" : "Not saving to a class");
+});
+let classSaveT=null;
+CLASS_FIELDS.forEach(k=>$("#"+k).addEventListener("change", ()=>{
+  if(!currentClass) return;
+  clearTimeout(classSaveT);
+  classSaveT = setTimeout(async()=>{
+    const c = classes.find(x=>x.id===currentClass); if(!c) return;
+    const changed = CLASS_FIELDS.some(f=>(c[f]||"")!==$("#"+f).value);
+    if(!changed) return;
+    CLASS_FIELDS.forEach(f=>c[f]=$("#"+f).value);
+    const body={...c}; delete body.id;
+    try{ await Store.saveClass(c.id, body); }catch(e){ toast("Couldn't save class settings"); }
+  }, 600);
+}));
+$("#newClassBtn").addEventListener("click", ()=>{ $("#newClassForm").classList.toggle("hidden"); $("#ncCode").focus(); });
+$("#ncCancel").addEventListener("click", ()=>$("#newClassForm").classList.add("hidden"));
+$("#ncSave").addEventListener("click", async()=>{
+  const code=$("#ncCode").value.trim(); if(!code){ toast("Type a class code"); return; }
+  const id=slug(code);
+  if(classes.find(c=>c.id===id)){ toast("That class code already exists"); return; }
+  const body={code, name:$("#ncName").value.trim(), created:Date.now()};
+  CLASS_FIELDS.forEach(f=>body[f]=$("#"+f).value);
+  try{
+    await Store.saveClass(id, body);
+    currentClass=id; store.set("class",id);
+    $("#ncCode").value=""; $("#ncName").value=""; $("#newClassForm").classList.add("hidden");
+    await refreshClasses(); toast("Class created");
+  }catch(e){ toast(e.message||"Couldn't create the class"); }
+});
+refreshClasses();
+
+/* ---------- teacher style + books: load and save ---------- */
+let profile = {};
+async function loadProfile(){
+  try{ profile = await Store.getProfile() || {}; }catch(e){ profile = {}; }
+  myStyle = {notes: (profile.style&&profile.style.notes)||"", skip: (profile.style&&profile.style.skip)||[]};
+  $("#styleNotes").value = myStyle.notes;
+  showStyleCount();
+  myRubrics = Array.isArray(profile.rubrics) ? profile.rubrics : [];
+  refreshRubrics();
+  try{ (await Store.listBooks()).forEach(b=>{ myBooks[bookKey(b.name)] = b; }); }catch(e){}
+  refreshBookList();
+}
+function showStyleCount(){ const n=(myStyle.skip||[]).length; $("#styleCount").textContent = n ? `· learned from ${n} removed mark${n>1?"s":""}` : ""; }
+async function saveStyle(){
+  profile.style = {notes: myStyle.notes, skip: (myStyle.skip||[]).slice(-60)};
+  showStyleCount();
+  try{ await Store.saveProfile(profile); }catch(e){ toast("Couldn't save your marking style"); }
+}
+let styleT=null;
+$("#styleNotes").addEventListener("input", ()=>{ myStyle.notes=$("#styleNotes").value; clearTimeout(styleT); styleT=setTimeout(saveStyle, 700); });
+$("#styleReset").addEventListener("click", ev=>{ ev.preventDefault(); myStyle.skip=[]; saveStyle(); toast("Removed marks forgotten"); });
+loadProfile();
+
+/* ---------- custom rubrics ---------- */
+function refreshRubrics(){
+  const sel=$("#rubric"), want = store.get("rubric","") || sel.value;
+  sel.innerHTML = `<option value="">Standard (Task, Grammar, Words, Capitals)</option>` + myRubrics.map(r=>`<option value="${esc(r.id)}">${esc(r.name)} · ${r.criteria.reduce((a,c)=>a+c.max,0)} pts</option>`).join("");
+  sel.value = myRubrics.find(r=>r.id===want) ? want : "";
+  showRubricButtons();
+}
+function showRubricButtons(){ $("#rubEdit").classList.toggle("hidden", !$("#rubric").value); }
+$("#rubric").addEventListener("change", showRubricButtons);
+let rubEditing = null;
+function rubRowHTML(c){ return `<div class="crow"><input type="text" class="cn" placeholder="e.g. Main idea" value="${esc(c.name||"")}"><input type="number" class="cm" min="1" max="100" step="1" value="${esc(c.max||4)}"><input type="text" class="cd" placeholder="e.g. Tells what the section is about" value="${esc(c.desc||"")}"><button class="x" title="Remove this part">✕</button></div>`; }
+function bindRubRows(){ $("#rubRows").querySelectorAll(".x").forEach(b=>b.onclick=()=>{ b.parentElement.remove(); }); }
+function fillRubEditor(r){
+  $("#rubName").value = r.name||"";
+  const cr = (r.criteria && r.criteria.length) ? r.criteria : [{name:"",max:4},{name:"",max:4},{name:"",max:4}];
+  $("#rubRows").innerHTML = cr.map(rubRowHTML).join(""); bindRubRows();
+}
+function openRubEditor(r){
+  rubEditing = r ? r.id : null;
+  $("#rubTitle").textContent = r ? "Edit rubric" : "New rubric";
+  $("#rubDel").classList.toggle("hidden", !r);
+  fillRubEditor(r || {});
+  $("#rubPaste").value="";
+  $("#rubEditor").classList.remove("hidden"); $("#rubName").focus();
+}
+function readRubEditor(){
+  const criteria=[...$("#rubRows").querySelectorAll(".crow")].map(row=>({name:row.querySelector(".cn").value.trim(), max:Math.max(1,Math.min(100,Math.round(+row.querySelector(".cm").value||0))), desc:row.querySelector(".cd").value.trim()})).filter(c=>c.name);
+  return {name:$("#rubName").value.trim(), criteria};
+}
+async function saveRubrics(){ profile.rubrics = myRubrics; try{ await Store.saveProfile(profile); }catch(e){ toast("Couldn't save the rubric"); } }
+$("#rubAdd").addEventListener("click", ()=>openRubEditor(null));
+$("#rubEdit").addEventListener("click", ()=>openRubEditor(myRubrics.find(r=>r.id===$("#rubric").value)));
+$("#rubCancel").addEventListener("click", ()=>$("#rubEditor").classList.add("hidden"));
+$("#rubRow").addEventListener("click", ()=>{ $("#rubRows").insertAdjacentHTML("beforeend", rubRowHTML({max:4})); bindRubRows(); });
+$("#rubSave").addEventListener("click", async()=>{
+  const r=readRubEditor();
+  if(!r.name){ toast("Give the rubric a name"); return; }
+  if(!r.criteria.length){ toast("Add at least one part"); return; }
+  const id = rubEditing || ("r"+Date.now().toString(36));
+  const i = myRubrics.findIndex(x=>x.id===id);
+  const body = {id, ...r, saved:Date.now()};
+  if(i>=0) myRubrics[i]=body; else myRubrics.push(body);
+  await saveRubrics();
+  store.set("rubric", id); refreshRubrics(); $("#rubric").value=id; $("#rubric").dispatchEvent(new Event("change"));
+  $("#rubEditor").classList.add("hidden");
+  toast(`Rubric saved: ${r.criteria.reduce((a,c)=>a+c.max,0)} points`);
+});
+$("#rubDel").addEventListener("click", async()=>{
+  if(!rubEditing) return;
+  myRubrics = myRubrics.filter(r=>r.id!==rubEditing);
+  await saveRubrics();
+  if($("#rubric").value===rubEditing || store.get("rubric","")===rubEditing){ store.set("rubric",""); }
+  refreshRubrics(); $("#rubric").dispatchEvent(new Event("change"));
+  $("#rubEditor").classList.add("hidden"); toast("Rubric deleted");
+});
+const RUB_ASK = `Return ONLY JSON: {"name":"short name for this rubric, from its title if printed","criteria":[{"name":"short part name","max":4,"desc":"what earns full points, max 15 words"}]}
+"max" is the most points for that part as a plain number. If the rubric uses levels (e.g. 4 = excellent, 3 = good...), "max" is the top level. Skip a total row.`;
+async function rubFromAI(prompt, blobs, btn, label){
+  btn.disabled=true; btn.innerHTML=`<span class="spinner"></span>Reading…`;
+  try{
+    const d = await askJSON(prompt, blobs, "default");
+    const cr = (Array.isArray(d.criteria)?d.criteria:[]).map(c=>({name:String(c.name||"").trim(), max:Math.max(1,Math.round(+c.max||4)), desc:String(c.desc||"").trim()})).filter(c=>c.name);
+    if(!cr.length) throw new Error("I couldn't find rubric parts there. Try a straighter photo or type them in.");
+    fillRubEditor({name: $("#rubName").value.trim() || String(d.name||"").trim(), criteria:cr});
+    toast(`${cr.length} parts read. Check them, then Save.`);
+  }catch(e){ toast(e.message||"Couldn't read the rubric"); }
+  btn.disabled=false; btn.textContent=label;
+}
+$("#rubScan").addEventListener("click", ()=>$("#rubFile").click());
+$("#rubFile").addEventListener("change", async()=>{
+  const files=[...$("#rubFile").files]; $("#rubFile").value=""; if(!files.length) return;
+  const blobs=[]; for(const f of files.slice(0,3)){ const {img}=await loadImage(f); blobs.push(await toJpegBlob(img, 1800)); }
+  rubFromAI(`These photos show a teacher's grading rubric for an English writing test (it may be sideways). Read each part (criterion) and its points.\n${RUB_ASK}`, blobs, $("#rubScan"), "📷 Scan a rubric");
+});
+$("#rubParse").addEventListener("click", ()=>{
+  const t=$("#rubPaste").value.trim(); if(!t){ toast("Paste the rubric first"); return; }
+  rubFromAI(`Turn this teacher's grading rubric into parts with points:\n"""${t.slice(0,3000)}"""\n${RUB_ASK}`, null, $("#rubParse"), "Read this rubric");
+});
+
+/* "Not a mistake": remove the mark, remember it, refile the paper */
+function dismissMark(p, num){
+  const d=p.data; const e=d.errors.find(x=>x.num===num); if(!e) return;
+  const l=d.lines.find(x=>x.n===e.line);
+  myStyle.skip = (myStyle.skip||[]).concat([{o:e.original, c:e.correction, code:e.code, rule:ruleOf(e), ctx:l?l.text.slice(0,90):"", date:Date.now()}]);
+  saveStyle();
+  d.errors = d.errors.filter(x=>x!==e);
+  if(l && l.fixed && e.correction && l.fixed.includes(e.correction) && !l.text.includes(e.correction)) l.fixed = l.fixed.replace(e.correction, e.original);
+  d.errors.forEach((x,i)=>x.num=i+1);
+  renderPaper(p); fileToClass(p);
+  toast("Removed. I'll stop marking this kind of thing.");
+}
+
+/* scan a book's contents page: unit-by-unit grammar */
+$("#scanBookBtn").addEventListener("click", ()=>$("#bookFile").click());
+$("#bookFile").addEventListener("change", async()=>{
+  const files=[...$("#bookFile").files]; $("#bookFile").value=""; if(!files.length) return;
+  const btn=$("#scanBookBtn"); btn.disabled=true; btn.innerHTML=`<span class="spinner"></span>Reading contents…`;
+  try{
+    const blobs=[]; for(const f of files.slice(0,4)){ const {img}=await loadImage(f); blobs.push(await toJpegBlob(img, 1800)); }
+    const typed=$("#book").value.trim();
+    const prompt=`These photos show the contents page (table of contents / scope and sequence) of an English textbook for young learners.${typed?` The teacher calls the book "${typed}".`:""}
+Read every unit or lesson. For each, give the grammar it teaches in short plain words (e.g. "past simple: was/were, regular -ed") and a few key words if shown. If a unit shows no grammar, describe its language focus briefly.
+Return ONLY JSON: {"name":"book name and number as printed${typed?`, or "${typed}" if not printed`:""}","level":"rough level, e.g. Grade 3 / CEFR A1","units":[{"unit":"Unit 1","n":1,"title":"unit title","grammar":"...","vocab":"..."}]}
+"n" is the unit number as a plain number. Include review units only if they teach something new.`;
+    const data = await askJSON(prompt, blobs, "complex");
+    if(!data || !Array.isArray(data.units) || !data.units.length) throw new Error("I couldn't find units on that page. Try a straighter photo.");
+    const name = String(typed || data.name || "My book").trim();
+    const b = {name, level:String(data.level||""), units:data.units.map(u=>({unit:String(u.unit||("Unit "+u.n)), n:(+u.n||unitNum(u.unit)), title:String(u.title||""), grammar:String(u.grammar||""), vocab:String(u.vocab||"")})), saved:Date.now()};
+    myBooks[bookKey(name)] = b;
+    await Store.saveBook(slug(name), b);
+    $("#book").value = name; store.set("book", name); $("#book").dispatchEvent(new Event("change"));
+    refreshBookList(); toast(`${name}: ${b.units.length} units saved`);
+  }catch(e){ toast(e.message||"Couldn't read the contents page"); }
+  btn.disabled=false; btn.textContent="📘 Scan the book's contents page";
+});
+
+/* ---------- filing a checked paper into the class ---------- */
+function entryFrom(p){
+  const d=p.data;
+  return {
+    id: p.entryId, date: p.checkedAt || Date.now(),
+    grade: d.grade ? {pct:d.grade.pct, display:d.grade.display, scale:d.grade.scale, parts:Object.fromEntries(d.grade.parts.filter(x=>x.max===undefined).map(x=>[x.k,x.score])),
+      ...(d.grade.rubric?{rubric:d.grade.rubric, points:d.grade.points, max:d.grade.max, rparts:d.grade.parts.map(x=>({name:x.label, points:x.score, max:x.max}))}:{}),
+      ...(d.grade.items?{items:d.grade.items}:{})} : null,
+    type: d.paper_type || "writing",
+    errors: d.errors.map(e=>({code:e.code, rule:ruleOf(e), original:e.original, correction:e.correction, why:e.why||""})),
+    positive: d.positive || "",
+    task: settings().task || "",
+    sheet: p.sheet || null
+  };
+}
+function isDefaultName(n){ return !n || /^paper \d+$/i.test(n.trim()); }
+
+let fileQ = Promise.resolve();
+function fileToClass(p){ fileQ = fileQ.then(()=>_fileToClass(p), ()=>_fileToClass(p)); return fileQ; }
+async function _fileToClass(p){
+  if(p.status!=="done" || !p.data) return;
+  const cid = p.filed ? p.filed.cid : currentClass;
+  if(!cid){ p.saveState=null; return; }
+  if(isDefaultName(p.name)){ p.saveState="needname"; renderPaper(p); return; }
+  const sid = slug(p.name);
+  p.saveState="saving"; renderPaper(p);
+  try{
+    // moved to a new name: take the entry out of the old student
+    if(p.filed && p.filed.sid!==sid){
+      const old = await Store.getStudent(p.filed.cid, p.filed.sid);
+      if(old){ old.entries=(old.entries||[]).filter(e=>e.id!==p.entryId);
+        if(old.entries.length) await Store.saveStudent(p.filed.cid, p.filed.sid, old); else await Store.deleteStudent(p.filed.cid, p.filed.sid); }
+    }
+    const stu = (await Store.getStudent(cid, sid)) || {name:p.name.trim(), entries:[], created:Date.now()};
+    stu.name = p.name.trim();
+    stu.entries = (stu.entries||[]).filter(e=>e.id!==p.entryId);
+    stu.entries.push(entryFrom(p));
+    stu.entries.sort((a,b)=>a.date-b.date);
+    if(stu.entries.length>MAX_ENTRIES) stu.entries = stu.entries.slice(-MAX_ENTRIES);
+    stu.updated = Date.now();
+    await Store.saveStudent(cid, sid, stu);
+    p.filed={cid, sid}; p.saveState="saved";
+  }catch(e){ p.saveState="error"; p.saveErr = e.message || "Couldn't save"; }
+  renderPaper(p);
+}
+function saveBadge(p){
+  if(!p.saveState) return "";
+  const c = classes.find(x=>x.id===(p.filed?p.filed.cid:currentClass));
+  const code = c ? c.code : "class";
+  if(p.saveState==="saving") return `<span class="saved warn">Saving…</span>`;
+  if(p.saveState==="saved") return `<span class="saved">✓ Saved to ${esc(code)}${nameHidden(p)?"":` › ${esc(p.name)}`}</span>`;
+  if(p.saveState==="needname") return `<span class="saved warn">Type the nickname to save to ${esc(code)}</span>`;
+  return `<span class="saved warn">${esc(p.saveErr||"Not saved")}</span>`;
+}
+
+/* ---------- practice worksheets ---------- */
+let sheetQ = Promise.resolve();
+
+function recurring(entries, skipId){
+  // mistakes from earlier papers, counted by rule-ish key
+  const m = {};
+  (entries||[]).filter(e=>e.id!==skipId).slice(-8).forEach(en=>(en.errors||[]).forEach(e=>{
+    const k = e.code+"|"+(e.why||e.correction).toLowerCase();
+    (m[k] = m[k] || {code:e.code, why:e.why, examples:[], n:0}).n++;
+    if(m[k].examples.length<2) m[k].examples.push(`${e.original} → ${e.correction||"(delete)"}`);
+  }));
+  return Object.values(m).sort((a,b)=>b.n-a.n).slice(0,8);
+}
+
+function buildSheetPrompt(o){
+  const s=o.s;
+  const cur = (o.errors||[]).map(e=>`- [${e.code}] "${e.original}" → "${e.correction||"(delete)"}" (${e.why||""})`).join("\n") || "(none)";
+  const past = (o.past||[]).map(r=>`- [${r.code}] ${r.why||""} e.g. ${r.examples.join("; ")} (seen ${r.n}×)`).join("\n") || "(none)";
+  const lines = (o.lines||[]).map(l=>l.text).join(" / ");
+  return `You are an ESL teacher making a printable PRACTICE WORKSHEET for ${o.forClass ? "a whole class" : "one young learner"}.
+
+${levelBlock(s)}
+
+${o.forClass ? "Common mistakes across the class:" : "Mistakes on today's paper:"}
+${cur}
+
+${o.forClass ? "" : `Mistakes that keep coming back from earlier papers:\n${past}\n\nThe student's own sentences today: ${lines || "(none)"}\n`}
+Make the worksheet:
+- Pick the 2 to 4 most useful rules to practise (most important for this level, and repeated mistakes first). Group mistakes by the rule behind them.
+- For each rule: a short kid-friendly tip (max 15 words), one example (wrong → right), and 3 to 5 exercises.
+- Exercise types: "choose" (pick the right word from 2 or 3 options), "fill" (write the missing word, give a hint in brackets if useful), "fix" (rewrite a sentence that has the mistake), "order" (put the words in order), "write" (write your own sentence using the rule).
+- ${o.forClass ? "Use simple everyday topics." : "In each rule, at least one \"fix\" item should use the student's own sentence or a close version of it."}
+- Use only words and grammar suitable for this level. Short sentences. Each "choose" and "fill" item must have exactly one correct answer.
+- 10 to 16 exercises in total. Mix the types. Finish each rule with something easy to build confidence.
+- Do not practise unclear handwriting or names.
+
+Return ONLY JSON:
+{"title":"short fun title","intro":"one line instruction for the student",
+ "rules":[{"rule":"short name","tag":"one of: ${RULES.join(" | ")}","tip":"...","wrong":"...","right":"...",
+   "items":[{"type":"choose","q":"Yesterday I ___ to school.","options":["go","went"],"answer":"went"},
+            {"type":"fill","q":"She ___ (have) a cat.","answer":"has"},
+            {"type":"fix","q":"He like apples.","answer":"He likes apples."},
+            {"type":"order","words":["school","I","to","go"],"answer":"I go to school."},
+            {"type":"write","q":"Write a sentence about your mom.","answer":"Answers will vary, e.g. My mom likes tea."}]}]}`;
+}
+
+async function makeSheet(o){
+  const data = await askJSON(buildSheetPrompt(o), null, "default");
+  if(!data || !Array.isArray(data.rules) || !data.rules.length) throw new Error("The worksheet came back empty. Try again.");
+  data.rules.forEach(r=>{ r.items = (Array.isArray(r.items)?r.items:[]).filter(i=>i && (i.q||i.words)); });
+  data.rules = data.rules.filter(r=>r.items.length);
+  data.rules.forEach(r=>{ r.tag = ruleOf({rule:r.tag||r.rule}); });
+  data.made = Date.now();
+  data.id = newSheetId();
+  return data;
+}
+function newSheetId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function flatItems(ws){ let n=0; return (ws.rules||[]).flatMap((r,ri)=>(r.items||[]).map(it=>({...it, n:++n, ri, tag:r.tag||ruleOf({rule:r.rule}), ruleName:r.rule}))); }
+
+/* ---------- mastery: where each student stands on each rule ---------- */
+const STATUS = {rep:["rep","Repeating"], new:["new","New"], imp:["imp","Improving"], fix:["fix","Fixed"]};
+function mastery(st){
+  const papers = (st && st.entries || []).slice().sort((a,b)=>a.date-b.date);
+  const prac = (st && st.practice) || [];
+  const names = new Set(); papers.forEach(en=>(en.errors||[]).forEach(e=>names.add(ruleOf(e))));
+  const out = [...names].map(rule=>{
+    const counts = papers.map(en=>(en.errors||[]).filter(e=>ruleOf(e)===rule).length);
+    const seen = counts.map((c,i)=>c?i:-1).filter(i=>i>=0);
+    const last = seen[seen.length-1], lastDate = papers[last].date, since = papers.length-1-last;
+    const pr = prac.flatMap(p=>(p.byRule||[]).filter(x=>x.rule===rule && x.total).map(x=>({date:p.date, right:x.right, total:x.total}))).sort((a,b)=>a.date-b.date);
+    const after = pr.filter(x=>x.date>=lastDate), lp = after[after.length-1] || null;
+    const recent = counts.slice(-4).filter(Boolean).length;
+    let status = "new";
+    if(since>=2) status="fix";
+    else if(since===1 || (lp && lp.right/lp.total>=0.8)) status="imp";
+    else if(seen.length>=2 && recent>=2) status="rep";
+    return {rule, counts:counts.slice(-6), total:counts.reduce((a,b)=>a+b,0), seen:seen.length, status, practice: lp || pr[pr.length-1] || null, lastDate};
+  });
+  const order = {rep:0,new:1,imp:2,fix:3};
+  return out.sort((a,b)=>order[a.status]-order[b.status] || b.total-a.total);
+}
+function spark(counts){
+  const m=Math.max(1,...counts); const ch="▁▂▃▅▇";
+  return counts.map(c=>c? ch[Math.min(4,Math.round(c/m*4))] : "·").join("");
+}
+function statusChip(s){ const [c,t]=STATUS[s]; return `<span class="st ${c}">${t}</span>`; }
+
+/* record a finished worksheet in the student's history */
+function recordPractice(ctx, result){
+  if(!ctx || !ctx.cid || !ctx.sid) return Promise.resolve(false);
+  fileQ = fileQ.then(async()=>{
+    const st = await Store.getStudent(ctx.cid, ctx.sid); if(!st) return false;
+    st.practice = (st.practice||[]).filter(x=>!(x.sheetId===result.sheetId && x.mode===result.mode)).concat([result]).slice(-60);
+    st.updated = Date.now();
+    await Store.saveStudent(ctx.cid, ctx.sid, st); return true;
+  }, ()=>false);
+  return fileQ;
+}
+function byRule(items, judged){
+  const m={};
+  items.forEach(it=>{ const j=judged[it.n]; if(!j || j.correct===null || j.correct===undefined) return;
+    (m[it.tag]=m[it.tag]||{rule:it.tag, right:0, total:0}); m[it.tag].total++; if(j.correct) m[it.tag].right++; });
+  return Object.values(m);
+}
+const normAns = t => String(t||"").toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9' ]+/g," ").replace(/\s+/g," ").trim();
+
+/* grade a photo of the finished paper worksheet */
+async function gradeSheetPhoto(ws, file){
+  const {img} = await loadImage(file);
+  const blob = await toJpegBlob(img, 2000);
+  const items = flatItems(ws);
+  const list = items.map(it=>`${it.n}. [${it.type}] ${it.type==="order"?(it.words||[]).join(" / "):it.q}${it.options?` options: ${it.options.join(" / ")}`:""} | key: ${it.answer||""}`).join("\n");
+  const prompt = `The photo shows a young learner's COMPLETED practice worksheet. These are its numbered items with the answer key:
+${list}
+
+For each item, read what the student wrote, circled or ticked, then judge it:
+- choose / fill / order: correct if it matches the key (ignore capitals and the final period; a small spelling slip in a word that is not the point of the item is still correct)
+- fix: correct if the mistake is fixed and the new sentence is correct
+- write: correct if it is a real sentence that uses the rule correctly
+- blank or unreadable: "student":"", "correct":false
+Return ONLY JSON: {"items":[{"n":1,"student":"what they wrote","correct":true,"note":"max 8 words, only if wrong"}],"comment":"one short encouraging line for the student"}`;
+  const data = await askJSON(prompt, blob, "complex");
+  const judged = {}; (data.items||[]).forEach(x=>{ judged[+x.n] = {student:String(x.student||""), correct:!!x.correct, note:String(x.note||"")}; });
+  return {judged, comment:String(data.comment||""), items};
+}
+/* grade on-screen answers: simple items locally, sentences with Claude */
+async function gradeOnScreen(ws, answers){
+  const items = flatItems(ws); const judged = {}; const ask = [];
+  items.forEach(it=>{
+    const a = answers[it.n] || "";
+    if(!a.trim()){ judged[it.n] = {student:"", correct:false, note:"no answer"}; return; }
+    if(["choose","fill","order"].includes(it.type) || normAns(a)===normAns(it.answer)){ judged[it.n] = {student:a, correct: normAns(a)===normAns(it.answer), note:""}; return; }
+    ask.push(it);
+  });
+  if(ask.length){
+    const prompt = `Judge a young learner's answers on a practice worksheet. For each item:
+- fix: correct if the mistake is fixed and the sentence is correct
+- write: correct if it is a real sentence that uses the rule correctly
+${ask.map(it=>`${it.n}. [${it.type}] rule: ${it.ruleName} | task: ${it.q} | key: ${it.answer} | student: ${answers[it.n]}`).join("\n")}
+Return ONLY JSON: {"items":[{"n":1,"correct":true,"note":"max 8 words, only if wrong"}]}`;
+    try{
+      const data = await askJSON(prompt, null, "default");
+      (data.items||[]).forEach(x=>{ judged[+x.n] = {student:answers[+x.n]||"", correct:!!x.correct, note:String(x.note||"")}; });
+    }catch(e){ ask.forEach(it=>{ judged[it.n] = {student:answers[it.n], correct:null, note:"teacher will check"}; }); }
+    ask.forEach(it=>{ if(!judged[it.n]) judged[it.n] = {student:answers[it.n], correct:null, note:"teacher will check"}; });
+  }
+  return {judged, items};
+}
+function practiceResult(ws, judged, items, mode){
+  const counted = items.filter(it=>judged[it.n] && judged[it.n].correct!==null);
+  return {sheetId:ws.id, title:ws.title||"Practice", date:Date.now(), mode,
+    right: counted.filter(it=>judged[it.n].correct).length, total: counted.length, byRule: byRule(items, judged)};
+}
+
+async function sheetForPaper(p){
+  if(!p.data || !p.data.errors.length){ p.sheetState="none"; renderPaper(p); return; }
+  p.sheetState="making"; renderPaper(p);
+  try{
+    let past=[];
+    if(p.filed){ try{ const st=await Store.getStudent(p.filed.cid, p.filed.sid); past=recurring(st&&st.entries, p.entryId); }catch(e){} }
+    else if(currentClass && !isDefaultName(p.name)){ try{ const st=await Store.getStudent(currentClass, slug(p.name)); past=recurring(st&&st.entries, p.entryId); }catch(e){} }
+    p.sheet = await makeSheet({s:settings(), errors:p.data.errors, lines:p.data.lines, past});
+    p.sheetState="ready";
+    if(p.filed) fileToClass(p); // keep the sheet with the student's record
+  }catch(e){
+    p.sheetState="error"; p.sheetErr = e.message || e.code || "Couldn't make the sheet";
+  }
+  renderPaper(p);
+}
+
+function afterCheck(p){
+  p.checkedAt = Date.now();
+  p.entryId = p.entryId || ("e"+Date.now().toString(36)+p.id);
+  fileToClass(p);
+  if($("#autosheet").checked) sheetQ = sheetQ.then(()=>sheetForPaper(p));
+}
+
+/* ---------- worksheet rendering ---------- */
+function sheetHTML(ws, who){
+  let n=0;
+  const today = new Date().toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"});
+  const item = it=>{
+    n++;
+    const num = `<span class="n">${n}.</span>`;
+    if(it.type==="choose") return `<div class="ex">${num}${esc(it.q)}<span class="opts">${(it.options||[]).map(o=>`<span>${esc(o)}</span>`).join("")}</span></div>`;
+    if(it.type==="fill") return `<div class="ex">${num}${esc(it.q)}</div>`;
+    if(it.type==="fix") return `<div class="ex">${num}Fix it: <i>${esc(it.q)}</i><div class="wl"></div></div>`;
+    if(it.type==="order") return `<div class="ex">${num}Put in order:<div class="wbank">${(it.words||[]).map(w=>`<span>${esc(w)}</span>`).join("")}</div><div class="wl"></div></div>`;
+    return `<div class="ex">${num}${esc(it.q)}<div class="wl"></div><div class="wl"></div></div>`;
+  };
+  const page = `<div class="ws">
+    <div class="wsh">
+      <div><h1>${esc(ws.title||"Practice time!")}</h1><div style="font-size:12px;color:#777;margin-top:4px">${esc(who.cls||"")}</div></div>
+      <div class="who">Name: <span>${esc(who.name||"")}</span><br>Date: <span>${esc(today)}</span></div>
+    </div>
+    ${ws.intro?`<p class="intro">${esc(ws.intro)}</p>`:""}
+    ${ws.rules.map((r,i)=>`<div class="sec">
+      <div class="sech"><span class="secn">${i+1}</span>${esc(r.rule)}</div>
+      <div class="tip">💡 ${esc(r.tip||"")}${r.wrong?`<br><span class="w">${esc(r.wrong)}</span> → <span class="r">${esc(r.right||"")}</span>`:""}</div>
+      ${r.items.map(item).join("")}
+    </div>`).join("")}
+    <div class="foot">Teacher's Check · practice sheet</div>
+  </div>`;
+  n=0;
+  const key = `<div class="ws key">
+    <div class="wsh"><div><h1>Answer key</h1><div style="font-size:12px;color:#777;margin-top:4px">${esc(who.name||"")} ${who.cls?"· "+esc(who.cls):""}</div></div><div class="who" style="font-size:12px;color:#777">For the teacher</div></div>
+    ${ws.rules.map((r,i)=>`<div class="sec"><div class="sech"><span class="secn">${i+1}</span>${esc(r.rule)}</div>
+      ${r.items.map(it=>{ n++; return `<div class="ans">${n}. <b>${esc(it.answer||"")}</b></div>`; }).join("")}</div>`).join("")}
+  </div>`;
+  return {page, key};
+}
+function sheetText(ws, who){
+  let n=0; const out=[ws.title||"Practice", who.name?`Name: ${who.name}`:"", ws.intro||"", ""];
+  ws.rules.forEach((r,i)=>{
+    out.push(`${i+1}. ${r.rule}`, `Tip: ${r.tip||""}${r.wrong?`  (${r.wrong} → ${r.right})`:""}`);
+    r.items.forEach(it=>{ n++;
+      if(it.type==="choose") out.push(`  ${n}. ${it.q}  [${(it.options||[]).join(" / ")}]`);
+      else if(it.type==="order") out.push(`  ${n}. Put in order: ${(it.words||[]).join(" / ")}`);
+      else if(it.type==="fix") out.push(`  ${n}. Fix it: ${it.q}`);
+      else out.push(`  ${n}. ${it.q}`);
+    });
+    out.push("");
+  });
+  n=0; out.push("ANSWERS"); ws.rules.forEach(r=>r.items.forEach(it=>{ n++; out.push(`${n}. ${it.answer||""}`); }));
+  return out.filter((x,i,a)=>!(x==="" && a[i-1]==="")).join("\n");
+}
+
+let wsCurrent=null;
+const PAGE_URL = "https://claude.ai/artifact/LoxVwAdJDob2obav482gxz";
+function sheetLink(ws){ return `${PAGE_URL}#sheet-${ws.id}`; }
+const storedSheets = new Map();
+function ensureStored(ws, who, ctx){
+  if(!ws.id) ws.id = newSheetId();
+  if(storedSheets.has(ws.id)) return storedSheets.get(ws.id);
+  const clean = JSON.parse(JSON.stringify(ws));
+  const pr = Store.saveSheet(ws.id, {ws:clean, who:{name:(who&&who.name)||"", cls:(who&&who.cls)||""}, ctx:ctx&&ctx.cid?{cid:ctx.cid, sid:ctx.sid||null}:null, made:ws.made||Date.now()})
+    .catch(e=>{ storedSheets.delete(ws.id); throw e; });
+  storedSheets.set(ws.id, pr);
+  return pr;
+}
+function openSheet(ws, who, ctx){
+  wsCurrent={ws, who, ctx:ctx||null};
+  const h = sheetHTML(ws, who);
+  $("#wsTitle").textContent = `Practice sheet${who.name?" · "+who.name:""}`;
+  $("#wsPreview").innerHTML = h.page + h.key;
+  $("#wsPanel").innerHTML = "";
+  $("#wsCheck").classList.toggle("hidden", !(ctx && ctx.sid));
+  $("#wsModal").classList.remove("hidden");
+  ensureStored(ws, who, ctx).catch(()=>{});
+}
+$("#wsClose").addEventListener("click", ()=>$("#wsModal").classList.add("hidden"));
+
+/* share: QR code + link + LINE */
+let qrLoading=null;
+function loadQR(){
+  if(window.QRCode) return Promise.resolve();
+  if(!qrLoading) qrLoading = new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"; sc.onload=()=>res(); sc.onerror=()=>{qrLoading=null; rej(new Error("Couldn't load the QR maker"));}; document.head.appendChild(sc); });
+  return qrLoading;
+}
+$("#wsShare").addEventListener("click", async()=>{
+  if(!wsCurrent) return;
+  const {ws, who, ctx} = wsCurrent; const panel=$("#wsPanel");
+  panel.innerHTML = `<div class="qrbox"><span class="spinner"></span>Saving the sheet…</div>`;
+  try{ await ensureStored(ws, who, ctx); }catch(e){ panel.innerHTML = `<div class="qrbox err-box">${esc(e.message||"Couldn't save the sheet, so the link won't open yet. Try again.")}</div>`; return; }
+  const link = sheetLink(ws);
+  const lineText = sheetText(ws, who).split("\nANSWERS")[0] + `\n\nDo it on screen: ${link}`;
+  panel.innerHTML = `<div class="qrbox">
+    <div class="qr" id="wsQR"></div>
+    <div style="flex:1;min-width:220px">
+      <b>Scan to open this sheet</b>
+      <p class="sub" style="margin:4px 0 8px">Opens on any phone or tablet signed in to your Claude account (a class tablet works well). The student does it on screen and the score goes into ${who.name?esc(who.name)+"'s":"the"} history.</p>
+      <div class="row">
+        <button class="btn small" id="wsCopyLink">Copy link</button>
+        <a class="btn small" style="background:#06c755;text-decoration:none" href="https://line.me/R/share?text=${encodeURIComponent(lineText)}" target="_blank" rel="noopener">Send on LINE</a>
+      </div>
+      <p class="sub" style="margin:8px 0 0">LINE sends the sheet as text, so parents can read it even without the link.</p>
+    </div></div>`;
+  $("#wsCopyLink").addEventListener("click", ()=>copyText(link));
+  try{ await loadQR(); new window.QRCode($("#wsQR"), {text:link, width:264, height:264, correctLevel: window.QRCode.CorrectLevel.M}); }
+  catch(e){ $("#wsQR").innerHTML = `<span class="sub">${esc(e.message)}</span>`; }
+});
+
+/* do it here, on this screen */
+$("#wsDo").addEventListener("click", ()=>{ if(!wsCurrent) return; $("#wsModal").classList.add("hidden"); renderDo(wsCurrent.ws, wsCurrent.who, wsCurrent.ctx, false); });
+
+/* check a photo of the finished paper sheet */
+$("#wsCheck").addEventListener("click", ()=>$("#wsFile").click());
+$("#wsFile").addEventListener("change", async()=>{
+  const f=$("#wsFile").files[0]; $("#wsFile").value=""; if(!f || !wsCurrent) return;
+  const {ws, who, ctx} = wsCurrent; const panel=$("#wsPanel");
+  panel.innerHTML = `<div class="qrbox"><span class="spinner"></span>Checking the finished sheet…</div>`;
+  try{
+    const {judged, comment, items} = await gradeSheetPhoto(ws, f);
+    const res = practiceResult(ws, judged, items, "paper");
+    const saved = await recordPractice(ctx, res);
+    panel.innerHTML = practiceHTML(res, judged, items, comment, saved, who);
+  }catch(e){ panel.innerHTML = `<div class="qrbox err-box">${esc(e.message||"Couldn't check the sheet.")}</div>`; }
+});
+function practiceHTML(res, judged, items, comment, saved, who){
+  const wrong = items.filter(it=>judged[it.n] && judged[it.n].correct===false);
+  return `<div class="qrbox" style="display:block">
+    <div class="row" style="justify-content:space-between"><b style="font-size:18px">${res.right}/${res.total} correct</b>
+      <span class="sub">${saved?`✓ Saved to ${esc(who&&who.name||"the student")}'s progress`:"Not saved (this sheet isn't linked to a student)"}</span></div>
+    <div style="margin:6px 0">${res.byRule.map(r=>`<span class="code" style="background:${r.right/r.total>=0.8?"var(--green-soft)":"var(--red-soft)"};color:${r.right/r.total>=0.8?"var(--green)":"var(--red)"};margin-right:6px">${esc(r.rule)} ${r.right}/${r.total}</span>`).join("")}</div>
+    ${wrong.length?`<div style="font-size:14px">${wrong.map(it=>`<div style="padding:2px 0">${it.n}. <span style="text-decoration:line-through;color:#777">${esc(judged[it.n].student||"(blank)")}</span> → <b style="color:var(--red)">${esc(it.answer||"")}</b> <span class="sub">${esc(judged[it.n].note||"")}</span></div>`).join("")}</div>`:`<div class="clean" style="padding:8px 12px">All correct!</div>`}
+    ${comment?`<div class="positive" style="margin-top:8px"><div class="txt">${esc(comment)}</div></div>`:""}
+  </div>`;
+}
+
+/* ---------- on-screen worksheet (also opened by a #sheet- link) ---------- */
+function renderDo(ws, who, ctx, fromLink){
+  const root=$("#viewDo"); const items=flatItems(ws); const answers={};
+  document.querySelector(".wrap").classList.add("hidden"); root.classList.remove("hidden"); window.scrollTo(0,0);
+  const qHTML = it=>{
+    let input="";
+    if(it.type==="choose") input = (it.options||[]).map(o=>`<button class="opt" data-n="${it.n}" data-v="${esc(o)}">${esc(o)}</button>`).join("");
+    else if(it.type==="fill") input = `<input type="text" data-n="${it.n}" placeholder="Type the missing word" autocomplete="off" autocapitalize="off">`;
+    else if(it.type==="order") input = `<div class="built" data-built="${it.n}"></div><div>${(it.words||[]).map((w,i)=>`<button class="wbtn" data-n="${it.n}" data-i="${i}">${esc(w)}</button>`).join("")}</div><button class="btn ghost small" data-clear="${it.n}">Start again</button>`;
+    else input = `<textarea data-n="${it.n}" rows="2" placeholder="${it.type==="fix"?"Write the sentence correctly":"Write your sentence"}"></textarea>`;
+    const label = it.type==="fix" ? `Fix it: <i>${esc(it.q)}</i>` : it.type==="order" ? "Put the words in order:" : esc(it.q);
+    return `<div class="q" id="q${it.n}"><div class="qt"><b>${it.n}.</b> ${label}</div>${input}<div class="fb"></div></div>`;
+  };
+  root.innerHTML = `<div class="do">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <div><h1 style="font-family:Caveat,cursive;font-size:38px;color:var(--red);margin:0;line-height:1">${esc(ws.title||"Practice time!")}</h1>
+      <div class="sub">${esc([who&&who.name, who&&who.cls].filter(Boolean).join(" · "))}</div></div>
+      <button class="btn ghost small" id="doBack">${fromLink?"Open the app":"Back"}</button>
+    </div>
+    ${ws.intro?`<p class="sub">${esc(ws.intro)}</p>`:""}
+    ${(ws.rules||[]).map((r,ri)=>`<div class="card" style="padding:12px 14px">
+      <div style="font-weight:700;margin-bottom:4px">${esc(r.rule)}</div>
+      <div class="sub" style="color:var(--ink)">💡 ${esc(r.tip||"")}${r.wrong?` <span style="text-decoration:line-through;color:var(--red)">${esc(r.wrong)}</span> → <b style="color:var(--green)">${esc(r.right||"")}</b>`:""}</div>
+    </div>${items.filter(it=>it.ri===ri).map(qHTML).join("")}`).join("")}
+    <div id="doResult"></div>
+    <div class="stickybar"><button class="btn red" id="doCheck">Check my answers</button></div>
+  </div>`;
+  root.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{ const n=+b.dataset.n; answers[n]=b.dataset.v; root.querySelectorAll(`.opt[data-n="${n}"]`).forEach(x=>x.classList.toggle("on", x===b)); }));
+  root.querySelectorAll("input[data-n],textarea[data-n]").forEach(el=>el.addEventListener("input",()=>{ answers[+el.dataset.n]=el.value; }));
+  const built={};
+  const showBuilt = n=>{ const it=items.find(x=>x.n===n); const words=(built[n]||[]).map(i=>it.words[i]); root.querySelector(`[data-built="${n}"]`).textContent = words.join(" "); answers[n]=words.join(" ");
+    root.querySelectorAll(`.wbtn[data-n="${n}"]`).forEach(b=>b.classList.toggle("used",(built[n]||[]).includes(+b.dataset.i))); };
+  root.querySelectorAll(".wbtn").forEach(b=>b.addEventListener("click",()=>{ const n=+b.dataset.n, i=+b.dataset.i; built[n]=built[n]||[]; if(built[n].includes(i)) return; built[n].push(i); showBuilt(n); }));
+  root.querySelectorAll("[data-clear]").forEach(b=>b.addEventListener("click",()=>{ const n=+b.dataset.clear; built[n]=[]; showBuilt(n); }));
+  $("#doBack").addEventListener("click", closeDo);
+  $("#doCheck").addEventListener("click", async()=>{
+    const btn=$("#doCheck"); btn.disabled=true; btn.innerHTML=`<span class="spinner" style="border-top-color:#fff"></span>Checking…`;
+    try{
+      const {judged} = await gradeOnScreen(ws, answers);
+      items.forEach(it=>{ const j=judged[it.n]; const el=$("#q"+it.n); if(!el||!j) return;
+        el.classList.toggle("ok", j.correct===true); el.classList.toggle("no", j.correct===false);
+        el.querySelector(".fb").innerHTML = j.correct===true ? `<span style="color:var(--green);font-weight:600">✓ Correct</span>` : j.correct===false ? `<span style="color:var(--red);font-weight:600">✗</span> Answer: <b>${esc(it.type==="write"?"(your own sentence)":it.answer||"")}</b> ${j.note?`<span class="sub">${esc(j.note)}</span>`:""}` : `<span class="sub">${esc(j.note)}</span>`; });
+      const res = practiceResult(ws, judged, items, "screen");
+      const saved = await recordPractice(ctx, res);
+      $("#doResult").innerHTML = `<div class="card" style="text-align:center"><div style="font-family:Caveat,cursive;font-size:44px;color:var(--red);line-height:1">${res.right} / ${res.total}</div>
+        <div class="sub">${res.right===res.total?"Perfect! 🌟":res.right/res.total>=0.8?"Great job! 👍":"Good try. Look at the red ones and try again."}${saved?" · Saved for your teacher":""}</div></div>`;
+      $("#doResult").scrollIntoView({behavior:"smooth"});
+      btn.textContent="Check again";
+    }catch(e){ toast(e.message||"Couldn't check the answers"); btn.textContent="Check my answers"; }
+    btn.disabled=false;
+  });
+}
+function closeDo(){
+  $("#viewDo").classList.add("hidden"); $("#viewDo").innerHTML="";
+  document.querySelector(".wrap").classList.remove("hidden");
+  if(/^#sheet-/.test(location.hash)){ try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){ location.hash=""; } }
+}
+async function routeHash(){
+  if(location.hash==="#selftest"){ showView("test"); return; }
+  const m = String(location.hash||"").match(/^#sheet-([a-z0-9]+)$/i);
+  if(!m) return;
+  const root=$("#viewDo"); document.querySelector(".wrap").classList.add("hidden"); root.classList.remove("hidden");
+  root.innerHTML = `<div class="do"><p class="pstat"><span class="spinner"></span>Opening the practice sheet…</p></div>`;
+  try{
+    const s = await Store.getSheet(m[1]);
+    if(!s || !s.ws){ root.innerHTML = `<div class="do"><div class="empty">This practice sheet isn't saved in this Claude account. Open the link on a device signed in to the teacher's account.<br><br><button class="btn small" id="doHome">Open the app</button></div></div>`; $("#doHome").addEventListener("click", closeDo); return; }
+    renderDo(s.ws, s.who||{}, s.ctx||null, true);
+  }catch(e){ root.innerHTML = `<div class="do"><div class="empty">${esc(e.message||"Couldn't open the sheet.")}<br><br><button class="btn small" id="doHome">Open the app</button></div></div>`; $("#doHome").addEventListener("click", closeDo); }
+}
+window.addEventListener("hashchange", routeHash);
+routeHash();
+$("#wsModal").addEventListener("click", e=>{ if(e.target.id==="wsModal") $("#wsModal").classList.add("hidden"); });
+$("#wsCopy").addEventListener("click", ()=>{ if(wsCurrent) copyText(sheetText(wsCurrent.ws, wsCurrent.who)); });
+
+let h2pLoading=null;
+function loadHtml2Pdf(){
+  if(window.html2pdf) return Promise.resolve();
+  if(!h2pLoading) h2pLoading = new Promise((res,rej)=>{
+    const sc=document.createElement("script");
+    sc.src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+    sc.onload=()=>res(); sc.onerror=()=>{ h2pLoading=null; rej(new Error("Couldn't load the PDF maker.")); };
+    document.head.appendChild(sc);
+  });
+  return h2pLoading;
+}
+$("#wsPdf").addEventListener("click", async()=>{
+  if(!wsCurrent) return;
+  const btn=$("#wsPdf"); btn.disabled=true; const old=btn.textContent; btn.textContent="Making PDF…";
+  try{
+    const downloads = (window.claude && window.claude.use) ? await window.claude.use("downloads") : null;
+    await loadHtml2Pdf();
+    const h = sheetHTML(wsCurrent.ws, wsCurrent.who);
+    const outer=document.createElement("div");
+    outer.style.cssText="position:fixed;left:0;top:0;width:0;height:0;overflow:hidden;z-index:-1";
+    const holder=document.createElement("div");
+    holder.style.cssText="width:700px;background:#fff";
+    holder.innerHTML = h.page + `<div class="html2pdf__page-break"></div>` + h.key;
+    holder.querySelectorAll(".ws").forEach(w=>{ w.style.boxShadow="none"; w.style.padding="0"; w.style.width="700px"; });
+    outer.appendChild(holder); document.body.appendChild(outer);
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    const fname = `practice-${slug(wsCurrent.who.name||"class")}-${new Date().toISOString().slice(0,10)}.pdf`;
+    const blob = await window.html2pdf().set({
+      margin:[12,12,12,12], filename:fname,
+      image:{type:"jpeg",quality:0.95}, html2canvas:{scale:2, useCORS:true, backgroundColor:"#ffffff"},
+      jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}, pagebreak:{mode:["css","legacy"], avoid:[".ex",".tip"]}
+    }).from(holder).outputPdf("blob");
+    outer.remove();
+    if(downloads){
+      try{ await downloads.save({filename:fname, data:blob}); toast("PDF saved"); }
+      catch(e){ if(e && e.code!=="declined") toast(e.message||"Download didn't work here"); }
+    } else {
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname; document.body.appendChild(a); a.click(); a.remove();
+    }
+  }catch(e){ toast(e.message||"Couldn't make the PDF"); }
+  btn.disabled=false; btn.textContent=old;
+});
+
+/* ---------- report card: rubric by month ---------- */
+const monthKey = t => { const d=new Date(t); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); };
+const monthLabel = k => new Date(k+"-01T00:00:00").toLocaleDateString(undefined,{month:"short",year:"2-digit"});
+function reportCard(entries){
+  const g=(entries||[]).filter(e=>e.grade && e.grade.parts);
+  if(!g.length) return "";
+  const by={}; g.forEach(e=>{ (by[monthKey(e.date)]=by[monthKey(e.date)]||[]).push(e); });
+  const months=Object.keys(by).sort().slice(-4);
+  const avg=(arr,f)=>{ const v=arr.map(f).filter(x=>typeof x==="number"); return v.length? v.reduce((a,b)=>a+b,0)/v.length : null; };
+  const rows=[...RUBRIC.map(([k,label])=>[label, m=>avg(by[m], e=>e.grade.parts[k]), v=>v.toFixed(1)]), ["Overall /100", m=>avg(by[m], e=>e.grade.pct), v=>Math.round(v)]];
+  const arrow=(a,b)=> a===null||b===null ? "" : b-a>0.15 ? ` <span class="up">↑</span>` : a-b>0.15 ? ` <span class="down">↓</span>` : "";
+  return `<div class="card"><h2>Report card</h2><table class="rc">
+    <tr><th></th>${months.map(m=>`<th>${esc(monthLabel(m))}</th>`).join("")}</tr>
+    ${rows.map(([label,f,fmt])=>[label,f,fmt,months.map(f)]).filter(r=>r[0].startsWith("Overall") || r[3].some(v=>v!==null)).map(([label,f,fmt,vals])=>{ return `<tr><td><b>${esc(label)}</b></td>${vals.map((v,i)=>`<td>${v===null?"–":fmt(v)}${i===vals.length-1&&i>0?arrow(vals[i-1],v):""}</td>`).join("")}</tr>`; }).join("")}
+  </table><p class="sub" style="margin:6px 0 0">Rubric parts are out of 5, averaged over the month's papers.</p></div>`;
+}
+
+/* ---------- parent report (Traditional Chinese / English) ---------- */
+function parentReport(st, c, mas){
+  const box=$("#svReportBox");
+  box.innerHTML = `<div class="newclass" style="margin-top:12px"><div class="row">
+    <label for="prLang" style="margin:0">Language</label>
+    <select id="prLang" style="width:auto"><option value="zh">繁體中文</option><option value="both">中文 + English</option><option value="en">English</option></select>
+    <button class="btn small red" id="prGo">Write the report</button></div></div>`;
+  $("#prLang").value = store.get("prLang","zh");
+  $("#prGo").addEventListener("click", async()=>{
+    const lang=$("#prLang").value; store.set("prLang", lang);
+    const btn=$("#prGo"); btn.disabled=true; btn.innerHTML=`<span class="spinner" style="border-top-color:#fff"></span>Writing…`;
+    try{
+      const en=(st.entries||[]).slice().sort((a,b)=>a.date-b.date);
+      const cut=Date.now()-31*864e5;
+      const recent=en.filter(e=>e.date>=cut); const use = recent.length? recent : en.slice(-4);
+      const prev=en.filter(e=>e.date<(use[0]?use[0].date:0)).slice(-4);
+      const avgPct = arr => { const g=arr.filter(e=>e.grade); return g.length? Math.round(g.reduce((t,e)=>t+e.grade.pct,0)/g.length) : null; };
+      const prac=(st.practice||[]).filter(p=>p.date>=cut);
+      const facts = [
+        `Child: ${st.name}. Class: ${c.code}${c.level?`, level ${c.level}`:""}${c.book?`, book ${c.book}${c.unit?` ${c.unit}`:""}`:""}.`,
+        `Papers checked in this period: ${use.length}. Average score: ${avgPct(use)??"n/a"}/100${prev.length?`, before that: ${avgPct(prev)??"n/a"}/100`:""}.`,
+        `Rule progress: ${mas.slice(0,6).map(m=>`${m.rule} (${RULE_ZH[m.rule]||m.rule}): ${STATUS[m.status][1]}, mistakes per paper ${m.counts.join(",")}`).join("; ") || "none"}.`,
+        `Example mistakes: ${use.flatMap(e=>e.errors||[]).slice(-6).map(x=>`${x.original} → ${x.correction||"(delete)"}`).join("; ") || "none"}.`,
+        `Practice sheets: ${prac.length? prac.map(p=>`${p.title} ${p.right}/${p.total}`).join("; ") : "none this month"}.`,
+        `Teacher's positive notes: ${use.map(e=>e.positive).filter(Boolean).slice(-3).join(" | ") || "none"}.`
+      ].join("\n");
+      const langRule = lang==="zh" ? "Write in Traditional Chinese (繁體中文, Taiwan usage). Keep English only for the tiny example sentences. 150 to 220 characters."
+        : lang==="both" ? "Write the note in Traditional Chinese (繁體中文, Taiwan usage) first, 150 to 220 characters, then the same note in simple English below it."
+        : "Write in simple, warm English for parents whose English may be basic. 90 to 130 words.";
+      const prompt = `You are a caring English teacher at a cram school (補習班) in Taiwan, writing a short monthly progress note to a parent on LINE.
+${langRule}
+Facts (use only these, do not invent anything):
+${facts}
+
+Write it like a real teacher: warm, specific, honest, encouraging. No scores jargon, no error codes, no headings, no markdown. 1 or 2 emoji at most.
+Include, in this order: a greeting with the child's name; one or two specific things that went well; what we are working on now (at most 2 rules, each explained in very simple words with one tiny English example: wrong → right); progress since last time if the facts show it; one easy 5-minute thing the family can do at home; a short sign-off from the teacher (老師 / Teacher).
+If a rule is Fixed or Improving, say so as good news. Never shame the child.
+Return only the note text.`;
+      const text = (await askClaude(prompt, null, "default")).trim().replace(/^```\w*|```$/g,"").trim();
+      st.lastReport = {text, date:Date.now(), lang};
+      showReport(st.lastReport, st);
+      fileQ = fileQ.then(async()=>{ const fresh=await Store.getStudent(classView.cid, st.id); if(fresh){ fresh.lastReport=st.lastReport; await Store.saveStudent(classView.cid, st.id, fresh); } }, ()=>{});
+    }catch(e){ toast(e.message||"Couldn't write the report"); btn.disabled=false; btn.textContent="Write the report"; }
+  });
+}
+function showReport(r, st){
+  const box=$("#svReportBox"); if(!box) return;
+  box.innerHTML = `<div style="margin-top:12px"><div class="sub">Parent report · ${esc(fmtDate(r.date))} · you can edit it before sending</div>
+    <textarea id="prText" class="report" rows="9" style="width:100%">${esc(r.text)}</textarea>
+    <div class="row"><button class="btn small" id="prCopy">Copy</button>
+      <a class="btn small" id="prLine" style="background:#06c755;text-decoration:none" target="_blank" rel="noopener" href="https://line.me/R/share?text=${encodeURIComponent(r.text)}">Send on LINE</a>
+      <button class="btn ghost small" id="prNew">Write a new one</button></div></div>`;
+  $("#prText").addEventListener("input", ()=>{ $("#prLine").href = "https://line.me/R/share?text="+encodeURIComponent($("#prText").value); });
+  $("#prCopy").addEventListener("click", ()=>copyText($("#prText").value));
+  $("#prNew").addEventListener("click", ()=>parentReport(st, classes.find(x=>x.id===classView.cid)||{code:""}, mastery(st)));
+}
+
+/* ---------- owner overview: all classes in this account ---------- */
+async function renderOverview(){
+  const root=$("#viewOverview");
+  root.innerHTML = `<p class="pstat"><span class="spinner"></span>Adding up every class…</p>`;
+  try{
+    await refreshClasses();
+    const data = await Promise.all(classes.map(async c=>({c, students: await Store.listStudents(c.id).catch(()=>[])})));
+    const now=Date.now(), d30=now-30*864e5, d60=now-60*864e5;
+    const avg = arr => { const g=arr.filter(e=>e.grade); return g.length? Math.round(g.reduce((t,e)=>t+e.grade.pct,0)/g.length) : null; };
+    let papers30=0, active=new Set(), all30=[], prac30=0, fixed=0; const attention=[], improved=[]; const ruleCount={};
+    const rows = data.map(({c,students})=>{
+      const e30=[], e60=[];
+      students.forEach(s=>{
+        const en=(s.entries||[]).slice().sort((a,b)=>a.date-b.date);
+        const r30=en.filter(e=>e.date>=d30), r60=en.filter(e=>e.date>=d60 && e.date<d30);
+        e30.push(...r30); e60.push(...r60); if(r30.length) active.add(c.id+"/"+s.id);
+        prac30 += (s.practice||[]).filter(p=>p.date>=d30).length;
+        r30.forEach(e=>(e.errors||[]).forEach(x=>{ const r=ruleOf(x); ruleCount[r]=(ruleCount[r]||0)+1; }));
+        const m=mastery(s); fixed += m.filter(x=>x.status==="fix").length;
+        const stuck=m.filter(x=>x.status==="rep" && x.seen>=3);
+        const g=en.filter(e=>e.grade).slice(-4);
+        const drop = g.length>=3 ? g[0].grade.pct - g[g.length-1].grade.pct : 0;
+        if(stuck.length || drop>=10) attention.push({c, s, why:[stuck.length?`${stuck.map(x=>x.rule).slice(0,2).join(", ")} keeps coming back`:"", drop>=10?`score down ${drop} points`:""].filter(Boolean).join(" · ")});
+        const rise = g.length>=2 ? g[g.length-1].grade.pct - g[0].grade.pct : 0;
+        const nf = m.filter(x=>x.status==="fix").length;
+        if(rise>=8 || nf>=2) improved.push({c, s, rise, nf});
+      });
+      papers30 += e30.length; all30.push(...e30);
+      const a30=avg(e30), a60=avg(e60);
+      const tr = {}; e30.forEach(e=>(e.errors||[]).forEach(x=>{ const r=ruleOf(x); tr[r]=(tr[r]||0)+1; }));
+      const top = Object.entries(tr).sort((a,b)=>b[1]-a[1])[0];
+      return {c, n:students.length, p30:e30.length, a30, a60, top: top?top[0]:""};
+    });
+    const sa=avg(all30);
+    const rc=Object.entries(ruleCount).sort((a,b)=>b[1]-a[1]).slice(0,8); const mx=Math.max(1,...rc.map(x=>x[1]));
+    improved.sort((a,b)=>(b.rise+b.nf*5)-(a.rise+a.nf*5));
+    root.innerHTML = `
+      <div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0;font-size:17px">Overview · last 30 days</h2></div>
+      <div class="kpis">
+        <div class="kpi"><div class="v">${papers30}</div><div class="l">papers checked</div></div>
+        <div class="kpi"><div class="v">${active.size}</div><div class="l">students active</div></div>
+        <div class="kpi"><div class="v">${sa===null?"–":sa}</div><div class="l">average score /100</div></div>
+        <div class="kpi"><div class="v">${prac30}</div><div class="l">practice sheets done</div></div>
+        <div class="kpi"><div class="v">${fixed}</div><div class="l">mistake rules fixed</div></div>
+      </div>
+      ${rows.length?`<div class="card"><h2>Classes</h2><table class="stable">
+        <tr><th>Class</th><th>Students</th><th>Papers</th><th>Average</th><th>Top problem</th></tr>
+        ${rows.map(r=>`<tr class="click" data-cid="${esc(r.c.id)}"><td><b>${esc(r.c.code)}</b> <span class="sub">${esc(r.c.name||"")}</span></td><td>${r.n}</td><td>${r.p30}</td>
+          <td>${r.a30===null?"–":r.a30}${r.a30!==null&&r.a60!==null?(r.a30-r.a60>=3?` <span class="up">↑${r.a30-r.a60}</span>`:r.a60-r.a30>=3?` <span class="down">↓${r.a60-r.a30}</span>`:""):""}</td>
+          <td>${r.top?`<span class="rtag" style="margin:0">${esc(r.top)}</span>`:"–"}</td></tr>`).join("")}
+      </table></div>`:`<div class="empty">No classes yet.</div>`}
+      <div class="grid">
+        <div class="card"><h2>Needs attention</h2>${attention.length? attention.slice(0,10).map(x=>`<div class="hl click" style="padding:4px 0;cursor:pointer" data-go="${esc(x.c.id)}|${esc(x.s.id)}"><b>${esc(x.s.name)}</b> <span class="sub">${esc(x.c.code)} · ${esc(x.why)}</span></div>`).join("") : `<p class="sub">Nobody stuck right now.</p>`}</div>
+        <div class="card"><h2>Most improved</h2>${improved.length? improved.slice(0,8).map(x=>`<div class="hl" style="padding:4px 0;cursor:pointer" data-go="${esc(x.c.id)}|${esc(x.s.id)}"><b>${esc(x.s.name)}</b> <span class="sub">${esc(x.c.code)}${x.rise>=8?` · score up ${x.rise}`:""}${x.nf?` · ${x.nf} rule${x.nf>1?"s":""} fixed`:""}</span></div>`).join("") : `<p class="sub">Shows up after a few papers per student.</p>`}</div>
+      </div>
+      ${rc.length?`<div class="card"><h2>Most common problems, all classes</h2><div class="bars">${rc.map(([k,n])=>`<div class="bar" style="grid-template-columns:150px 1fr 34px"><span>${esc(k)}</span><div class="track"><div class="fill" style="width:${(n/mx*100).toFixed(0)}%"></div></div><span>${n}</span></div>`).join("")}</div></div>`:""}
+      <p class="sub">This covers the classes saved in this account. A view across all teachers and branches comes with the school version.</p>`;
+    root.querySelectorAll("tr[data-cid]").forEach(r=>r.addEventListener("click",()=>{ classView={cid:r.dataset.cid, sid:null}; showView("classes"); }));
+    root.querySelectorAll("[data-go]").forEach(r=>r.addEventListener("click",()=>{ const [cid,sid]=r.dataset.go.split("|"); classView={cid, sid}; showView("classes"); }));
+  }catch(e){ root.innerHTML = `<div class="empty">${esc(e.message||"Couldn't load the overview.")}</div>`; }
+}
+
+/* ---------- views ---------- */
+let classView = {cid:null, sid:null};
+document.querySelectorAll(".vtab").forEach(b=>b.addEventListener("click", ()=>showView(b.dataset.view)));
+function showView(v){
+  document.querySelectorAll(".vtab").forEach(b=>b.classList.toggle("on", b.dataset.view===v));
+  $("#viewCheck").classList.toggle("hidden", v!=="check");
+  $("#viewClasses").classList.toggle("hidden", v!=="classes");
+  $("#viewOverview").classList.toggle("hidden", v!=="overview");
+  $("#viewTest").classList.toggle("hidden", v!=="test");
+  if(v==="test") renderSelfTest();
+  if(v==="classes") renderClasses();
+  if(v==="overview") renderOverview();
+}
+
+function fmtDate(t){ return new Date(t).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function avgGrade(entries){
+  const g=(entries||[]).filter(e=>e.grade); if(!g.length) return null;
+  const pct=Math.round(g.reduce((t,e)=>t+e.grade.pct,0)/g.length);
+  return gradeDisplay(pct, g[g.length-1].grade.scale) + (g[g.length-1].grade.scale==="100"?"":"");
+}
+function topCodes(entries, n=3){
+  const c={}; (entries||[]).forEach(e=>(e.errors||[]).forEach(x=>c[x.code]=(c[x.code]||0)+1));
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+
+async function renderClasses(){
+  const root=$("#viewClasses");
+  const {cid, sid} = classView;
+  root.innerHTML = `<p class="pstat"><span class="spinner"></span>Loading…</p>`;
+  try{
+    if(!cid){
+      await refreshClasses();
+      root.innerHTML = `
+        <div class="row" style="justify-content:space-between;margin-bottom:12px"><h2 style="margin:0;font-size:17px">Class folders</h2>
+        <button class="btn small red" id="cvNew">+ New class</button></div>
+        ${classes.length ? `<div class="clist">${classes.map(c=>`
+          <button class="cfolder" data-cid="${esc(c.id)}"><span class="tabtop"></span>
+            <div class="ccode">📁 ${esc(c.code)}</div>
+            <div class="cmeta">${esc(c.name||"")}</div>
+            <div class="cmeta">${esc([c.book,c.unit].filter(Boolean).join(" · ")||c.level||"")}</div>
+          </button>`).join("")}</div>`
+        : `<div class="empty">No classes yet. Make one, then pick it in Class settings before you scan.</div>`}
+        <p class="sub" style="margin-top:12px">${esc($("#storeNote").textContent)}</p>`;
+      root.querySelectorAll(".cfolder").forEach(b=>b.addEventListener("click", ()=>{ classView={cid:b.dataset.cid, sid:null}; renderClasses(); }));
+      $("#cvNew").addEventListener("click", ()=>{ showView("check"); $("#newClassForm").classList.remove("hidden"); $("#ncCode").focus(); $("#settings").scrollIntoView({behavior:"smooth"}); });
+      return;
+    }
+    const c = classes.find(x=>x.id===cid) || {id:cid, code:cid};
+    const students = await Store.listStudents(cid);
+    students.sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+    if(!sid){
+      const allEntries = students.flatMap(s=>(s.entries||[]).map(e=>({...e, student:s.name})));
+      const codes = topCodes(allEntries, 9); const max=Math.max(1,...codes.map(x=>x[1]));
+      root.innerHTML = `
+        <div class="crumbs"><a data-go="root">Classes</a> › ${esc(c.code)}</div>
+        <div class="card">
+          <div class="row" style="justify-content:space-between">
+            <div><h2 style="margin:0;font-size:18px">📁 ${esc(c.code)}</h2><div class="sub">${esc([c.name,c.book,c.unit,c.level].filter(Boolean).join(" · "))}</div></div>
+            <div class="row">
+              <button class="btn small" id="cvUse">Check papers for this class</button>
+              <button class="btn small red" id="cvSheet" ${allEntries.length?"":"disabled"}>Class practice sheet</button>
+            </div>
+          </div>
+          ${codes.length?`<h2 style="margin:16px 0 6px">Class mistakes</h2><div class="bars">${codes.map(([k,n])=>`<div class="bar"><span class="code">${esc(k)}</span><div class="track"><div class="fill" style="width:${(n/max*100).toFixed(0)}%"></div></div><span>${n}</span></div>`).join("")}</div>`:""}
+        </div>
+        ${students.length ? `<div class="card"><table class="stable">
+          <tr><th>Student</th><th>Papers</th><th>Last</th><th>Average</th><th>Working on</th></tr>
+          ${students.map(s=>{ const en=s.entries||[]; const last=en[en.length-1]; const w=mastery(s).filter(m=>m.status==="rep"||m.status==="new").slice(0,2);
+            return `<tr class="click" data-sid="${esc(s.id)}"><td><b>${esc(s.name)}</b></td><td>${en.length}</td>
+            <td>${last&&last.grade?esc(last.grade.display):"–"}</td><td>${esc(avgGrade(en)||"–")}</td>
+            <td>${w.length? w.map(m=>`${statusChip(m.status)} <span style="font-size:13px">${esc(m.rule)}</span>`).join("<br>") : `<span class="st fix">All fixed</span>`}</td></tr>`; }).join("")}
+        </table></div>` : `<div class="empty">No students yet. Check papers with this class selected and they'll be saved here.</div>`}
+        <div class="row" style="margin-top:8px"><button class="btn ghost small" id="cvDel">Delete class</button></div>`;
+      root.querySelector("[data-go=root]").addEventListener("click", ()=>{ classView={cid:null,sid:null}; renderClasses(); });
+      root.querySelectorAll("tr[data-sid]").forEach(r=>r.addEventListener("click", ()=>{ classView={cid, sid:r.dataset.sid}; renderClasses(); }));
+      $("#cvUse").addEventListener("click", ()=>{ currentClass=cid; store.set("class",cid); $("#classSel").value=cid; applyClassSettings(c); showView("check"); toast("Papers will be saved to "+c.code); });
+      $("#cvSheet").addEventListener("click", async()=>{
+        const btn=$("#cvSheet"); btn.disabled=true; btn.textContent="Making sheet…";
+        try{
+          const recent = allEntries.sort((a,b)=>b.date-a.date).slice(0,40).flatMap(e=>(e.errors||[]).map(x=>({...x, why:`${x.why||""} (${e.student})`})));
+          const s = {...settings(), level:c.level||settings().level, book:c.book||"", unit:c.unit||"", taught:c.taught||""};
+          const ws = await makeSheet({s, errors:recent.slice(0,40), forClass:true});
+          openSheet(ws, {name:"", cls:c.code}, {cid, sid:null});
+        }catch(e){ toast(e.message||"Couldn't make the sheet"); }
+        btn.disabled=false; btn.textContent="Class practice sheet";
+      });
+      const del=$("#cvDel");
+      del.addEventListener("click", async()=>{
+        if(del.dataset.armed!=="1"){ del.dataset.armed="1"; del.textContent="Tap again to delete this class and all its students"; setTimeout(()=>{ del.dataset.armed=""; del.textContent="Delete class"; },3000); return; }
+        try{ await Store.deleteClass(cid); if(currentClass===cid){ currentClass=""; store.set("class",""); } classView={cid:null,sid:null}; renderClasses(); toast("Class deleted"); }
+        catch(e){ toast(e.message||"Couldn't delete"); }
+      });
+      return;
+    }
+    const st = students.find(x=>x.id===sid) || await Store.getStudent(cid, sid);
+    if(!st){ classView={cid,sid:null}; renderClasses(); return; }
+    const en = (st.entries||[]).slice().sort((a,b)=>b.date-a.date);
+    const rep = recurring(st.entries, null);
+    const mas = mastery(st);
+    root.innerHTML = `
+      <div class="crumbs"><a data-go="root">Classes</a> › <a data-go="class">${esc(c.code)}</a> › ${esc(st.name)}</div>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div><h2 style="margin:0;font-size:18px">${esc(st.name)}</h2><div class="sub">${en.length} paper${en.length===1?"":"s"} · average ${esc(avgGrade(en)||"–")}</div></div>
+          <div class="row">
+            <button class="btn small" id="svReport" ${en.length?"":"disabled"}>👪 Parent report</button>
+            <button class="btn small red" id="svSheet" ${en.length?"":"disabled"}>Practice sheet from recent mistakes</button>
+          </div>
+        </div>
+        <div id="svReportBox"></div>
+        ${mas.length?`<h2 style="margin:16px 0 6px">Progress by rule</h2>
+          <table class="stable"><tr><th>Rule</th><th>Status</th><th title="mistakes per paper, oldest to newest">Last papers</th><th>Practice</th></tr>
+          ${mas.slice(0,10).map(m=>`<tr><td><b>${esc(m.rule)}</b></td><td>${statusChip(m.status)}</td><td><span class="spark">${spark(m.counts)}</span> <span class="sub">${m.total} total</span></td>
+            <td>${m.practice?`${m.practice.right}/${m.practice.total}`:"–"}</td></tr>`).join("")}</table>
+          <p class="sub" style="margin:6px 0 0">Fixed = gone from the last 2 papers. Improving = gone from the last paper, or 80%+ on practice since. Repeating = in 2 of the last 4 papers.</p>`:""}
+      </div>
+      ${reportCard(en)}
+      ${(st.practice||[]).length?`<div class="card"><h2>Practice sheets done</h2>${st.practice.slice().sort((a,b)=>b.date-a.date).slice(0,10).map(x=>`<div class="hl" style="font-size:14px;padding:3px 0">${esc(fmtDate(x.date))} · ${esc(x.title)} · <b>${x.right}/${x.total}</b> <span class="sub">${x.mode==="screen"?"on screen":"on paper"} · ${x.byRule.map(r=>`${esc(r.rule)} ${r.right}/${r.total}`).join(", ")}</span></div>`).join("")}</div>`:""}
+      ${en.map(e=>`<div class="hist">
+        <div class="hd"><span>${esc(fmtDate(e.date))}${e.task?" · "+esc(e.task):""}</span><span>${e.grade?`<b style="color:var(--red)">${esc(e.grade.display)}</b>`:""}${e.sheet?` · <a href="#" data-sheet="${esc(e.id)}" style="color:var(--blue)">practice sheet</a>`:""}</span></div>
+        ${(e.errors||[]).length ? e.errors.map(x=>`<div class="hl"><span class="code">${esc(x.code)}</span> <span style="text-decoration:line-through;color:#666">${esc(x.original)}</span> → <span style="color:var(--red);font-weight:600">${esc(x.correction||"(delete)")}</span></div>`).join("") : `<div class="hl" style="color:var(--green)">No mistakes</div>`}
+        ${e.positive?`<div class="hl" style="color:var(--green)">⭐ ${esc(e.positive)}</div>`:""}
+      </div>`).join("")}
+      <div class="row" style="margin-top:8px"><button class="btn ghost small" id="svDel">Delete student</button></div>`;
+    root.querySelector("[data-go=root]").addEventListener("click", ()=>{ classView={cid:null,sid:null}; renderClasses(); });
+    root.querySelector("[data-go=class]").addEventListener("click", ()=>{ classView={cid,sid:null}; renderClasses(); });
+    root.querySelectorAll("[data-sheet]").forEach(a=>a.addEventListener("click", ev=>{ ev.preventDefault(); const e=en.find(x=>x.id===a.dataset.sheet); if(e&&e.sheet) openSheet(e.sheet,{name:st.name, cls:c.code},{cid, sid}); }));
+    $("#svSheet").addEventListener("click", async()=>{
+      const btn=$("#svSheet"); btn.disabled=true; btn.textContent="Making sheet…";
+      try{
+        const lastErr = (en[0]&&en[0].errors)||[];
+        const s = {...settings(), level:c.level||settings().level, book:c.book||"", unit:c.unit||"", taught:c.taught||""};
+        const ws = await makeSheet({s, errors:lastErr, past:rep, lines:[]});
+        openSheet(ws, {name:st.name, cls:c.code}, {cid, sid});
+      }catch(e){ toast(e.message||"Couldn't make the sheet"); }
+      btn.disabled=false; btn.textContent="Practice sheet from recent mistakes";
+    });
+    $("#svReport").addEventListener("click", ()=>parentReport(st, c, mas));
+    if(st.lastReport) showReport(st.lastReport, st);
+    const del=$("#svDel");
+    del.addEventListener("click", async()=>{
+      if(del.dataset.armed!=="1"){ del.dataset.armed="1"; del.textContent="Tap again to delete "+st.name; setTimeout(()=>{ del.dataset.armed=""; del.textContent="Delete student"; },3000); return; }
+      try{ await Store.deleteStudent(cid, sid); classView={cid,sid:null}; renderClasses(); toast("Student deleted"); }catch(e){ toast(e.message||"Couldn't delete"); }
+    });
+  }catch(e){
+    root.innerHTML = `<div class="empty">${esc(e.message||"Couldn't load saved classes.")}<br><br><button class="btn small" id="cvRetry">Try again</button></div>`;
+    $("#cvRetry").addEventListener("click", renderClasses);
+  }
+}
+
+/* expose for testing */
+window.__tc = {normalize, markLine, renderPaper, papers, addFiles, select, step, buildPrompt, buildVerifyPrompt, settings, Store, fileToClass, afterCheck, openSheet, sheetHTML, sheetText, buildSheetPrompt, refreshClasses, showView, recurring,
+  mastery, flatItems, gradeOnScreen, practiceResult, recordPractice, reportCard, bookProfile, styleBlock, renderDo, dismissMark, routeHash, renderOverview, ensureStored, ruleOf,
+  setBooks:b=>{ myBooks=b; }, getStyle:()=>myStyle, setClassView:v=>{ classView=v; }};
+})();
+</script>
+</body>
+</html>
