@@ -244,6 +244,28 @@ textarea{resize:vertical;min-height:44px}
 .toast.on{opacity:1}
 .stickybar{position:sticky;bottom:10px;display:flex;justify-content:center;gap:8px;margin-top:6px;z-index:5}
 .stickybar .btn{box-shadow:0 6px 18px rgba(0,0,0,.15)}
+/* class board */
+.board{position:fixed;inset:0;z-index:45;background:var(--paper);overflow:auto}
+.btop{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--line);padding:8px 12px}
+.btop .sp{flex:1}
+.bgrid{display:grid;grid-template-columns:repeat(var(--cols,1),minmax(0,1fr));gap:12px;align-items:start;padding:12px}
+@media (max-width:900px){.bgrid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+.bcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:calc(15px*var(--bz,1))}
+.bhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.bname{font-weight:700;font-size:1.25em;overflow-wrap:anywhere}
+.bgrade{font-weight:700;color:var(--red);border:2px solid var(--red);border-radius:10px;padding:1px 10px;font-size:1.1em;white-space:nowrap}
+.bsec{font-size:.75em;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 4px}
+.bline{display:grid;grid-template-columns:1.4em 1fr;gap:6px;padding:3px 0;line-height:1.9}
+.bline .ln{font-size:.75em;color:var(--muted);padding-top:.35em}
+.bline .e{text-decoration:underline;text-decoration-color:var(--red);text-decoration-thickness:2px;text-underline-offset:3px}
+.bline .u{background:var(--amber-soft);border-radius:4px;padding:0 2px}
+.bline sup{font-size:.7em;font-weight:700;color:#fff;background:var(--red);border-radius:8px;padding:1px 5px;margin-left:1px}
+.bline .u sup{background:var(--amber)}
+.bfix{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:start;padding:6px 0;border-top:1px dashed var(--line)}
+.bf{font-size:1.05em}
+.bf s{text-decoration-color:var(--red);color:#555}
+.bf b{color:var(--red)}
+.bpos{margin-top:10px;background:var(--green-soft);color:var(--green);border-radius:10px;padding:8px 10px;font-weight:600;font-size:.95em}
 details summary{cursor:pointer;font-weight:600;font-size:14px}
 </style>
 </head>
@@ -439,6 +461,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   </div>
 
   <div class="stickybar hidden" id="sticky">
+    <button class="btn" id="boardBtn">🖥 Class board</button>
     <button class="btn red" id="sumBtn">Class summary</button>
     <button class="btn ghost" id="clearBtn" style="background:#fff">Clear all</button>
   </div>
@@ -468,6 +491,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   </div>
 </div>
 
+<div class="board hidden" id="board"></div>
 <div class="toast" id="toast"></div>
 <div class="dropall" id="dropall">Drop papers to check</div>
 
@@ -1406,7 +1430,7 @@ function renderPaper(p){
       </div>
     </div>
     ${body ? `<div class="pbody">${body}</div>` : ""}`;
-  bindPaper(el,p);
+  bindPaper(el,p); if(boardOn) renderBoard();
   renderStrip();
 }
 
@@ -1595,6 +1619,65 @@ function openZoom(url){
 }
 
 /* ---------- class summary ---------- */
+/* ---------- class board: up to 5 papers side by side, so the whole class can see their work ---------- */
+let boardOn=false, boardPage=0, boardZoom=1;
+const BOARD_N=5;
+function boardPapers(){ return papers.filter(p=>p.status==="done" && p.data); }
+function boardCard(p){
+  const d=p.data;
+  const head = nameHidden(p)
+    ? `<button class="namehide" data-reveal="${p.id}">🔒 Name hidden <span>Tap to reveal</span></button>`
+    : `<div class="bname">${esc(p.name)}</div>`;
+  const grade = d.grade ? `<span class="bgrade">${esc(d.grade.display)}</span>` : "";
+  const lines = d.lines.map(l=>`<div class="bline"><span class="ln">${l.n}</span><div>${markLine(l.text, d.errors.filter(e=>e.line===l.n), d.unclear.filter(u=>u.line===l.n))}</div></div>`).join("") || `<div class="sub">(No handwriting found)</div>`;
+  const fixes = d.errors.length
+    ? d.errors.map(e=>`<div class="bfix"><span class="num">${e.num}</span><span class="code">${esc(e.code)}</span><div><div class="bf"><s>${esc(e.original)||"&nbsp;"}</s> → <b>${e.correction?esc(e.correction):"delete"}</b></div>${e.why?`<div class="why">${esc(e.why)}</div>`:""}</div></div>`).join("")
+    : `<div class="clean">No mistakes ✓</div>`;
+  return `<div class="bcard"><div class="bhead">${head}${grade}</div><div class="bsec">Their writing</div>${lines}<div class="bsec">Corrections</div>${fixes}${d.positive?`<div class="bpos">⭐ ${esc(d.positive)}</div>`:""}</div>`;
+}
+function renderBoard(){
+  const el=$("#board");
+  if(!boardOn){ el.classList.add("hidden"); el.innerHTML=""; return; }
+  const list=boardPapers(), pages=Math.max(1,Math.ceil(list.length/BOARD_N));
+  boardPage=Math.max(0,Math.min(pages-1,boardPage));
+  const show=list.slice(boardPage*BOARD_N, boardPage*BOARD_N+BOARD_N);
+  const keep=el.scrollTop;
+  el.classList.remove("hidden"); el.style.setProperty("--bz", boardZoom);
+  const busy=papers.filter(p=>["waiting","reading","verifying"].includes(p.status)).length;
+  el.innerHTML = `<div class="btop">
+      <button class="btn small" data-b="prev" ${boardPage<=0?"disabled":""} aria-label="Previous papers">‹</button>
+      <b>${show.length?`${boardPage*BOARD_N+1}–${boardPage*BOARD_N+show.length} of ${list.length}`:"No papers yet"}</b>
+      <button class="btn small" data-b="next" ${boardPage>=pages-1?"disabled":""} aria-label="Next papers">›</button>
+      ${busy?`<span class="sub"><span class="spinner"></span>${busy} still checking</span>`:""}
+      <span class="sp"></span>
+      <button class="btn ghost small" data-b="smaller" aria-label="Smaller text">A−</button><button class="btn ghost small" data-b="bigger" aria-label="Bigger text">A+</button>
+      <button class="btn red small" data-b="close">Close</button></div>
+    <div class="bgrid" style="--cols:${Math.max(1,show.length)}">${show.map(boardCard).join("")}</div>`;
+  el.scrollTop=keep;
+  el.querySelectorAll("[data-b]").forEach(b=>b.addEventListener("click",()=>{
+    const a=b.dataset.b; let top=false;
+    if(a==="prev"){ boardPage--; top=true; } else if(a==="next"){ boardPage++; top=true; }
+    else if(a==="smaller") boardZoom=Math.max(0.8,+(boardZoom-0.15).toFixed(2));
+    else if(a==="bigger") boardZoom=Math.min(2,+(boardZoom+0.15).toFixed(2));
+    else if(a==="close") boardOn=false;
+    renderBoard(); if(top) el.scrollTop=0;
+  }));
+  el.querySelectorAll("[data-reveal]").forEach(b=>b.addEventListener("click",()=>{
+    const p=papers.find(x=>String(x.id)===b.dataset.reveal); if(p){ p.revealed=true; renderPaper(p); }
+  }));
+}
+$("#boardBtn").addEventListener("click", ()=>{
+  if(!boardPapers().length){ toast("Check at least one paper first"); return; }
+  boardOn=true; boardPage=0; renderBoard(); $("#board").scrollTop=0;
+});
+document.addEventListener("keydown", e=>{
+  if(!boardOn) return;
+  const go = d => { boardPage+=d; renderBoard(); $("#board").scrollTop=0; e.stopPropagation(); };
+  if(e.key==="Escape"){ boardOn=false; renderBoard(); e.stopPropagation(); }
+  else if(e.key==="ArrowRight") go(1);
+  else if(e.key==="ArrowLeft") go(-1);
+}, true);
+
 $("#sumBtn").addEventListener("click", runSummary);
 $("#clearBtn").addEventListener("click", ()=>{
   const btn=$("#clearBtn");
