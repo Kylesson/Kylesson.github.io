@@ -41,10 +41,10 @@
 <div id="stage"></div>
 <div id="start">
   <h1 id="title">Bring the poster to life</h1>
-  <p>See it right now on this phone, or point your camera at the printed poster.</p>
-  <button class="btn main" id="preview">Try it now</button>
-  <button class="btn ghost" id="scan">Scan the poster</button>
-  <div id="inapp">You're inside an app browser. <b>Try it now</b> works here. To scan, tap ⋯ and choose <b>Open in browser</b> (Safari or Chrome).</div>
+  <p>手機上直接試玩，或用相機掃印出來的海報。<br>Try it on this phone, or scan the printed poster.</p>
+  <button class="btn main" id="preview">立即試玩 · Try it now</button>
+  <button class="btn ghost" id="scan">掃描海報 · Scan the poster</button>
+  <div id="inapp">在 App 裡也能「立即試玩」。要掃描海報，請點 ⋯ 選「用瀏覽器開啟」。<br>In this app, Try it now works. To scan, tap ⋯ › Open in browser.</div>
   <div id="err"></div>
 </div>
 <div id="hint" class="hide"></div>
@@ -162,7 +162,7 @@ async function startPreview() {
     ty = THREE.MathUtils.clamp(drag.ty + (e.clientY - drag.y) / 150, -1, 1); lastInput = performance.now(); });
   addEventListener("pointerup", () => drag = null);
 
-  hint.textContent = "Tilt your phone or drag"; hint.classList.remove("hide");
+  hint.textContent = "傾斜手機或拖曳 · Tilt or drag"; hint.classList.remove("hide");
   setTimeout(() => hint.classList.add("hide"), 3500);
   const since = performance.now() + 250;
   setTimeout(showCta, 2500);
@@ -195,7 +195,7 @@ async function startScan() {
     anchor.onTargetLost = () => { found = 0; hint.classList.remove("hide"); };
     await mindar.start();
     document.getElementById("start").remove();
-    hint.textContent = "Point at the poster"; hint.classList.remove("hide");
+    hint.textContent = "對準海報 · Point at the poster"; hint.classList.remove("hide");
     renderer.setAnimationLoop(t => { animatePoster(P, t, found); renderer.render(scene, camera); });
   } catch (e) {
     console.error(e);
