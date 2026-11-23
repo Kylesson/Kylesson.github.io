@@ -1,0 +1,11 @@
+{
+  "title": "Night Market",
+  "width": 900,
+  "height": 1260,
+  "layers": [
+    { "src": "layer_bg.png",      "z": 0,    "anim": {} },
+    { "src": "layer_subject.png", "z": 0.18, "anim": { "bob": 0.012, "sway": 0.04 } },
+    { "src": "layer_text.png",    "z": 0.32, "anim": { "pop": true, "fadeIn": true } }
+  ],
+  "sparkles": { "count": 40, "color": "#ffd98a" }
+}
