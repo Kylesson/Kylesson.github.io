@@ -178,9 +178,27 @@ async function startPreview() {
 }
 
 // ---------- Mode 2: point the camera at the printed poster ----------
+// MindAR swallows camera errors, so ask for the camera ourselves first.
+async function cameraOK() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    s.getTracks().forEach(t => t.stop());
+    return true;
+  } catch (e) { return false; }
+}
+function scanFailed() {
+  document.getElementById("stage").innerHTML = "";                     // drop MindAR's video/canvas
+  document.querySelectorAll(".mindar-ui-overlay").forEach(n => n.remove());
+  document.getElementById("err").textContent = inApp
+    ? "這個 App 擋住了相機。請點 ⋯ 用瀏覽器開啟，或按「立即試玩」。 The camera is blocked in this app. Tap ⋯ › Open in browser, or use Try it now."
+    : "相機沒有開啟。請允許相機，或按「立即試玩」。 Camera didn't start. Allow camera access, or use Try it now.";
+}
+
 async function startScan() {
   const err = document.getElementById("err");
   err.textContent = "Starting camera…";
+  if (!(await cameraOK())) return scanFailed();
   try {
     const { MindARThree } = await import("mindar-image-three");
     const mindar = new MindARThree({ container: document.getElementById("stage"),
@@ -193,15 +211,14 @@ async function startScan() {
     let found = 0;
     anchor.onTargetFound = () => { window.__foundAt = found = performance.now(); hint.classList.add("hide"); setTimeout(showCta, 1500); };
     anchor.onTargetLost = () => { found = 0; hint.classList.remove("hide"); };
-    await mindar.start();
+    const ok = await Promise.race([mindar.start().then(() => true), new Promise(r => setTimeout(() => r(false), 20000))]);
+    if (!ok) { try { mindar.stop(); } catch (e) {} return scanFailed(); }
     document.getElementById("start").remove();
     hint.textContent = "對準海報 · Point at the poster"; hint.classList.remove("hide");
     renderer.setAnimationLoop(t => { animatePoster(P, t, found); renderer.render(scene, camera); });
   } catch (e) {
     console.error(e);
-    err.textContent = inApp
-      ? "The camera is blocked in this app. Tap ⋯ › Open in browser, or use Try it now."
-      : "Camera didn't start. Allow camera access, or use Try it now.";
+    scanFailed();
   }
 }
 
