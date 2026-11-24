@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Scan the poster</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0d0d; color: #f4efe6;
+    font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", sans-serif; overflow: hidden; }
+  #stage { position: fixed; inset: 0; touch-action: none; }
+  #start { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 14px; padding: 32px; text-align: center; z-index: 10;
+    background: radial-gradient(circle at 50% 35%, #2a2a2a, #0d0d0d 70%); }
+  #start h1 { margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: .5px; }
+  #start p { margin: 0; max-width: 300px; line-height: 1.45; opacity: .8; font-size: 15px; }
+  .btn { width: 240px; padding: 14px 20px; border: 0; border-radius: 999px; font-size: 16px;
+    font-weight: 700; cursor: pointer; }
+  .btn.main { background: #f4efe6; color: #111; }
+  .btn.ghost { background: transparent; color: #f4efe6; border: 1.5px solid rgba(244,239,230,.5); }
+  .small { font-size: 13px; opacity: .65; max-width: 280px; line-height: 1.4; }
+  #inapp { display: none; font-size: 13px; line-height: 1.45; max-width: 290px; padding: 10px 14px;
+    border-radius: 12px; background: rgba(255,255,255,.08); }
+  #hint { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 5;
+    padding: 10px 18px; border-radius: 999px; background: rgba(0,0,0,.55); font-size: 14px;
+    backdrop-filter: blur(6px); transition: opacity .4s; pointer-events: none; white-space: nowrap; }
+  #hint.hide { opacity: 0; }
+  #cta { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 6; display: none;
+    padding: 13px 26px; border-radius: 999px; background: #f4efe6; color: #111; font-weight: 700;
+    text-decoration: none; font-size: 15px; box-shadow: 0 6px 24px rgba(0,0,0,.35); white-space: nowrap; }
+  #err { color: #ff9b8a; font-size: 14px; max-width: 300px; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "./vendor/three/three.module.min.js",
+    "three/addons/": "./vendor/three/addons/",
+    "mindar-image-three": "./vendor/mindar/mindar-image-three.prod.js"
+} }
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="start">
+  <h1 id="title">Bring the poster to life</h1>
+  <p>手機上直接試玩，或用相機掃印出來的海報。<br>Try it on this phone, or scan the printed poster.</p>
+  <button class="btn main" id="preview">立即試玩 · Try it now</button>
+  <button class="btn ghost" id="scan">掃描海報 · Scan the poster</button>
+  <div id="inapp">在 App 裡也能「立即試玩」。要掃描海報，請點 ⋯ 選「用瀏覽器開啟」。<br>In this app, Try it now works. To scan, tap ⋯ › Open in browser.</div>
+  <div id="err"></div>
+</div>
+<div id="hint" class="hide"></div>
+<a id="cta" target="_blank" rel="noopener"></a>
+
+<script type="module">
+import * as THREE from "three";
+
+// Everything poster-specific lives in scene.json: new poster = new files, same page.
+const cfg = await (await fetch("./scene.json")).json();
+document.getElementById("title").textContent = cfg.title || "Bring the poster to life";
+const aspect = cfg.height / cfg.width;               // poster width = 1 unit
+const hint = document.getElementById("hint");
+const cta = document.getElementById("cta");
+if (cfg.cta) { cta.textContent = cfg.cta.label; cta.href = cfg.cta.url; }
+
+// In-app browsers (Instagram, Facebook, LINE, Threads) often block the camera
+const inApp = /Instagram|FBAN|FBAV|Line\/|Threads|Messenger/i.test(navigator.userAgent);
+if (inApp) document.getElementById("inapp").style.display = "block";
+
+const loader = new THREE.TextureLoader();
+const textures = await Promise.all(cfg.layers.map(L => loader.loadAsync(L.src)));
+textures.forEach(t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; });
+
+// Build the layered poster inside any group (AR anchor or preview scene)
+function buildPoster(group) {
+  const layers = cfg.layers.map((L, i) => {
+    const s = L.scale || 1;
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s, s * aspect),
+      new THREE.MeshBasicMaterial({ map: textures[i], transparent: true, depthWrite: false }));
+    mesh.renderOrder = i;
+    group.add(mesh);
+    return { mesh, cfg: L, z: L.z || 0, x: L.x || 0, y: L.y || 0 };
+  });
+  let sparks = null;
+  if (cfg.sparkles) {
+    const n = cfg.sparkles.count || 40, pos = new Float32Array(n * 3), seed = [];
+    for (let i = 0; i < n; i++) {
+      pos[i*3] = (Math.random() - .5) * .9; pos[i*3+1] = (Math.random() - .5) * aspect * .9;
+      pos[i*3+2] = Math.random() * .35; seed.push(Math.random() * 10);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    sparks = new THREE.Points(g, new THREE.PointsMaterial({ color: cfg.sparkles.color || "#ffd98a",
+      size: .018, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    sparks.userData.seed = seed; sparks.renderOrder = 99; group.add(sparks);
+  }
+  return { layers, sparks };
+}
+
+const ease = t => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
+// Shared animation: layers rise out of the paper from `since`, then idle motion
+function animatePoster(P, t, since) {
+  const sec = t / 1000;
+  const rise = since ? ease((t - since) / 900) : 0;
+  P.layers.forEach((L, i) => {
+    const a = L.cfg.anim || {}, m = L.mesh;
+    const r = since ? ease((t - since - (a.riseAt != null ? a.riseAt * 1000 : i * 108)) / 900) : 0;
+    let x = L.x, y = L.y, rot = 0, sc = 1, op = a.fadeIn ? r : 1;
+    if (a.slideFrom) {                   // stroke slides in from off the poster, ease-out, no overshoot
+      const k = since ? ease((t - since - (a.slideDelay || 0) * 1000) / ((a.slideDur || 1.4) * 1000)) : 0;
+      x += a.slideFrom[0] * (1 - k); y += a.slideFrom[1] * (1 - k); op = Math.min(1, k * 2);
+    }
+    if (a.bob)   y += Math.sin(sec * (a.bobSpeed || 1.6)) * a.bob;
+    if (a.sway)  rot = Math.sin(sec * (a.swaySpeed || 1.1)) * a.sway;
+    if (a.pulse) sc = 1 + Math.sin(sec * (a.pulseSpeed || 2.2)) * a.pulse;
+    if (a.pop)   sc *= .6 + .4 * r;
+    m.position.set(x, y, L.z * r); m.rotation.z = rot; m.scale.setScalar(sc);
+    m.material.opacity = op;
+  });
+  if (P.sparks) {
+    const p = P.sparks.geometry.attributes.position, s = P.sparks.userData.seed;
+    for (let i = 0; i < p.count; i++) {
+      let y = p.getY(i) + .0012; if (y > aspect * .45) y = -aspect * .45;
+      p.setY(i, y); p.setX(i, p.getX(i) + Math.sin(sec * 1.5 + s[i]) * .0006);
+    }
+    p.needsUpdate = true; P.sparks.material.opacity = .85 * rise;
+  }
+  return rise;
+}
+const showCta = () => { if (cfg.cta) cta.style.display = "block"; };
+
+// ---------- Mode 1: preview on this phone, no camera, tilt or drag ----------
+async function startPreview() {
+  document.getElementById("start").remove();
+  const stage = document.getElementById("stage");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  stage.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(cfg.previewBg || "#151210");
+  const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, .01, 20);
+  const fit = () => {                                // fit the whole poster on screen
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    const vFov = THREE.MathUtils.degToRad(camera.fov);
+    const needH = aspect * 1.18, needW = 1.18 / camera.aspect;
+    camera.position.set(0, 0, Math.max(needH, needW) / (2 * Math.tan(vFov / 2)));
+    renderer.setSize(innerWidth, innerHeight);
+  };
+  fit(); addEventListener("resize", fit);
+  const poster = new THREE.Group(); scene.add(poster);
+  const P = buildPoster(poster);
+
+  // Tilt: gyro if allowed, otherwise drag. Gentle auto-sway while idle.
+  let tx = 0, ty = 0, lastInput = 0;
+  const onTilt = e => { if (e.beta == null) return;
+    tx = THREE.MathUtils.clamp((e.gamma || 0) / 30, -1, 1);
+    ty = THREE.MathUtils.clamp(((e.beta || 0) - 45) / 30, -1, 1); lastInput = performance.now(); };
+  try {
+    if (typeof DeviceOrientationEvent !== "undefined" && DeviceOrientationEvent.requestPermission) {
+      if (await DeviceOrientationEvent.requestPermission() === "granted") addEventListener("deviceorientation", onTilt);
+    } else addEventListener("deviceorientation", onTilt);
+  } catch (e) {}
+  let drag = null;
+  stage.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, tx, ty }; });
+  addEventListener("pointermove", e => { if (!drag) return;
+    tx = THREE.MathUtils.clamp(drag.tx + (e.clientX - drag.x) / 150, -1, 1);
+    ty = THREE.MathUtils.clamp(drag.ty + (e.clientY - drag.y) / 150, -1, 1); lastInput = performance.now(); });
+  addEventListener("pointerup", () => drag = null);
+
+  hint.textContent = "傾斜手機或拖曳 · Tilt or drag"; hint.classList.remove("hide");
+  setTimeout(() => hint.classList.add("hide"), 3500);
+  const since = performance.now() + 250;
+  setTimeout(showCta, 4000);
+  let rx = 0, ry = 0;
+  renderer.setAnimationLoop(t => {
+    const sec = t / 1000, idle = t - lastInput > 2500;
+    const gx = idle ? Math.sin(sec * .6) * .55 : tx, gy = idle ? Math.sin(sec * .45) * .3 : ty;
+    ry += (gx * .45 - ry) * .08; rx += (gy * .3 - rx) * .08;
+    poster.rotation.set(rx, ry, 0);
+    animatePoster(P, t, since);
+    renderer.render(scene, camera);
+  });
+}
+
+// ---------- Mode 2: point the camera at the printed poster ----------
+// MindAR swallows camera errors, so ask for the camera ourselves first.
+async function cameraOK() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return false;
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    s.getTracks().forEach(t => t.stop());
+    return true;
+  } catch (e) { return false; }
+}
+function scanFailed() {
+  document.getElementById("stage").innerHTML = "";                     // drop MindAR's video/canvas
+  document.querySelectorAll(".mindar-ui-overlay").forEach(n => n.remove());
+  document.getElementById("err").textContent = inApp
+    ? "這個 App 擋住了相機。請點 ⋯ 用瀏覽器開啟，或按「立即試玩」。 The camera is blocked in this app. Tap ⋯ › Open in browser, or use Try it now."
+    : "相機沒有開啟。請允許相機，或按「立即試玩」。 Camera didn't start. Allow camera access, or use Try it now.";
+}
+
+async function startScan() {
+  const err = document.getElementById("err");
+  err.textContent = "Starting camera…";
+  if (!(await cameraOK())) return scanFailed();
+  try {
+    const { MindARThree } = await import("mindar-image-three");
+    const mindar = new MindARThree({ container: document.getElementById("stage"),
+      imageTargetSrc: "./targets.mind", uiScanning: "no", uiLoading: "yes",
+      filterMinCF: .0001, filterBeta: .001 });
+    const { renderer, scene, camera } = mindar;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const anchor = mindar.addAnchor(0);
+    const P = buildPoster(anchor.group);
+    let found = 0;
+    anchor.onTargetFound = () => { window.__foundAt = found = performance.now(); hint.classList.add("hide"); setTimeout(showCta, 4000); };
+    anchor.onTargetLost = () => { found = 0; hint.classList.remove("hide"); };
+    const ok = await Promise.race([mindar.start().then(() => true), new Promise(r => setTimeout(() => r(false), 20000))]);
+    if (!ok) { try { mindar.stop(); } catch (e) {} return scanFailed(); }
+    document.getElementById("start").remove();
+    hint.textContent = "對準海報 · Point at the poster"; hint.classList.remove("hide");
+    renderer.setAnimationLoop(t => { animatePoster(P, t, found); renderer.render(scene, camera); });
+  } catch (e) {
+    console.error(e);
+    scanFailed();
+  }
+}
+
+document.getElementById("preview").onclick = startPreview;
+document.getElementById("scan").onclick = startScan;
+if (new URLSearchParams(location.search).has("preview")) startPreview();
+</script>
+</body>
+</html>

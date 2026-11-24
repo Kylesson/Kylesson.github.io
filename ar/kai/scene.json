@@ -1,0 +1,18 @@
+{
+  "title": "門面 · 開",
+  "width": 788,
+  "height": 1400,
+  "previewBg": "#151210",
+  "layers": [
+    { "src": "layer_00.png", "z": 0, "anim": {} },
+    { "src": "g_men_l.png", "z": 0.08, "anim": { "slideFrom": [0, 0.9], "slideDelay": 0, "riseAt": 3.2 } },
+    { "src": "g_men_r.png", "z": 0.08, "anim": { "slideFrom": [0, 0.9], "slideDelay": 0.25, "riseAt": 3.2 } },
+    { "src": "g_bar1.png", "z": 0.08, "anim": { "slideFrom": [0.9, 0], "slideDelay": 0.6, "riseAt": 3.2 } },
+    { "src": "g_bar2.png", "z": 0.08, "anim": { "slideFrom": [-0.9, 0], "slideDelay": 0.85, "riseAt": 3.2 } },
+    { "src": "g_left.png", "z": 0.08, "anim": { "slideFrom": [0, -0.9], "slideDelay": 1.1, "riseAt": 3.2 } },
+    { "src": "g_right.png", "z": 0.08, "anim": { "slideFrom": [0, -0.9], "slideDelay": 1.35, "riseAt": 3.2 } },
+    { "src": "layer_02.png", "z": 0.15, "anim": { "bob": 0.006, "bobSpeed": 1.2, "riseAt": 3.4 } },
+    { "src": "layer_03.png", "z": 0.2, "anim": { "fadeIn": true, "riseAt": 3.6 } }
+  ],
+  "cta": { "label": "幫我的店也做一個 · LINE", "url": "https://line.me/R/ti/p/%40225slird" }
+}
