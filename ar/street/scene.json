@@ -1,0 +1,14 @@
+{
+  "title": "雨天巷子 · Rainy street",
+  "width": 1050,
+  "height": 1400,
+  "previewBg": "#0f1110",
+  "layers": [
+    { "src": "01_sky.png",    "z": 0,    "anim": {} },
+    { "src": "02_far.png",    "z": 0.07, "anim": {} },
+    { "src": "05_lights.png", "z": 0.08, "blend": "add", "anim": { "breathe": true, "breatheSpeed": 1.1 } },
+    { "src": "03_mid.png",    "z": 0.16, "anim": {} },
+    { "src": "04_near.png",   "z": 0.28, "anim": { "sway": 0.004, "swaySpeed": 0.7 } }
+  ],
+  "rain": { "count": 170, "color": "#d5dbd7", "opacity": 0.32, "speed": 1, "length": 0.035 }
+}

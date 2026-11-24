@@ -74,7 +74,8 @@ function buildPoster(group) {
   const layers = cfg.layers.map((L, i) => {
     const s = L.scale || 1;
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(s, s * aspect),
-      new THREE.MeshBasicMaterial({ map: textures[i], transparent: true, depthWrite: false }));
+      new THREE.MeshBasicMaterial({ map: textures[i], transparent: true, depthWrite: false,
+        blending: L.blend === "add" ? THREE.AdditiveBlending : THREE.NormalBlending }));
     mesh.renderOrder = i;
     group.add(mesh);
     return { mesh, cfg: L, z: L.z || 0, x: L.x || 0, y: L.y || 0 };
@@ -91,7 +92,19 @@ function buildPoster(group) {
       size: .018, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
     sparks.userData.seed = seed; sparks.renderOrder = 99; group.add(sparks);
   }
-  return { layers, sparks };
+  let rain = null;
+  if (cfg.rain) {
+    const n = cfg.rain.count || 160, len = cfg.rain.length || .035, pos = new Float32Array(n * 6);
+    for (let i = 0; i < n; i++) {
+      const x = (Math.random() - .5) * .92, y = (Math.random() - .5) * aspect * .94, z = .02 + Math.random() * .4;
+      pos.set([x, y, z, x + len * .12, y - len, z], i * 6);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    rain = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: cfg.rain.color || "#cfd6d2",
+      transparent: true, opacity: 0, depthWrite: false }));
+    rain.renderOrder = 98; group.add(rain);
+  }
+  return { layers, sparks, rain };
 }
 
 const ease = t => 1 - Math.pow(1 - Math.min(Math.max(t, 0), 1), 3);
@@ -108,7 +121,7 @@ function animatePoster(P, t, since) {
     if (a.pulse) sc = 1 + Math.sin(sec * (a.pulseSpeed || 2.2)) * a.pulse;
     if (a.pop)   sc *= .6 + .4 * r;
     m.position.set(L.x, y, L.z * r); m.rotation.z = rot; m.scale.setScalar(sc);
-    m.material.opacity = a.fadeIn ? r : 1;
+    m.material.opacity = (a.fadeIn ? r : 1) * (a.breathe ? .55 + .45 * Math.sin(sec * (a.breatheSpeed || 1.3)) : 1);
   });
   if (P.sparks) {
     const p = P.sparks.geometry.attributes.position, s = P.sparks.userData.seed;
@@ -117,6 +130,15 @@ function animatePoster(P, t, since) {
       p.setY(i, y); p.setX(i, p.getX(i) + Math.sin(sec * 1.5 + s[i]) * .0006);
     }
     p.needsUpdate = true; P.sparks.material.opacity = .85 * rise;
+  }
+  if (P.rain) {
+    const p = P.rain.geometry.attributes.position, sp = (cfg.rain.speed || 1) * .012, bottom = -aspect / 2;
+    for (let i = 0; i < p.count; i += 2) {
+      let y0 = p.getY(i) - sp, y1 = p.getY(i + 1) - sp, x0 = p.getX(i) + sp * .12, x1 = p.getX(i + 1) + sp * .12;
+      if (y1 < bottom) { const dy = aspect - .02; y0 += dy; y1 += dy; x0 -= dy * .12; x1 -= dy * .12; }
+      p.setXY(i, x0, y0); p.setXY(i + 1, x1, y1);
+    }
+    p.needsUpdate = true; P.rain.material.opacity = (cfg.rain.opacity || .35) * rise;
   }
   return rise;
 }
